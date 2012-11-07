@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="config.xsd">
+
+	<collector socket="/tmp/kwapi-collector"/>
+	
+	<driver class="Wattsup">
+		<probe id="A">
+			<arg name="device" value="/dev/ttyUSB0"/>
+		</probe>
+<!--		<probe id="B">-->
+<!--			<arg name="device" value="/dev/ttyUSB1"/>-->
+<!--		</probe>-->
+	</driver>
+	
+<!--	<driver class="Omega">-->
+<!--		<probe id="C">-->
+<!--			<arg name="IP" value="192.168.0.10"/>-->
+<!--			<arg name="port" value="2020"/>-->
+<!--			<arg name="output" value="1"/>-->
+<!--		</probe>-->
+<!--		<probe id="D">-->
+<!--			<arg name="IP" value="192.168.0.10"/>-->
+<!--			<arg name="port" value="2020"/>-->
+<!--			<arg name="output" value="1"/>-->
+<!--		</probe>-->
+<!--	</driver>-->
+	
+	<driver class="Dummy">
+		<probe id="X"/>
+		<probe id="Y">
+			<arg name="min_value" value="10"/>
+			<arg name="max_value" value="20"/>
+		</probe>
+	</driver>
+
+</config>
