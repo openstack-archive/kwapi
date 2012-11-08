@@ -60,15 +60,15 @@ class Collector:
             if not datagram:
                 print 'Error: not datagram'
                 break
-             else:
-                 data = datagram.split(':')
-                 if len(data) == 2:
-                     try:
-                         self.add(data[0], float(data[1]))
-                     except:
-                         print 'Format error!'
-                 else:
-                     print 'Malformed datagram!'
+            else:
+                data = datagram.split(':')
+                if len(data) == 2:
+                    try:
+                        self.add(data[0], float(data[1]))
+                    except:
+                        print 'Format error!'
+                else:
+                    print 'Malformed datagram!'
         server.close()
         os.remove(socket_name)
     

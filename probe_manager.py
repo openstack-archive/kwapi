@@ -1,29 +1,87 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from lxml import etree
-from subprocess import call
+from configobj import ConfigObj, Section, flatten_errors
+from validate import Validator, ValidateError
 import drivers
 import sys
+
+from subprocess import call
 import os
 import socket
 import thread
 import threading
 import signal
 
-threads = {}
-socket_name = ''
+threads = []
+socket_name = '/tmp/kwapi-collector'
 
-def get_root(schema, xml):
-    # Validating XML schema
-    xsd = etree.parse(schema)
-    schema = etree.XMLSchema(xsd)
-    parser = etree.XMLParser(schema = schema)
+def driver_check(class_name):
     try:
-        tree = etree.parse(xml, parser)
-    except etree.XMLSyntaxError:
-        return None
-    return tree.getroot()
+        getattr(sys.modules['drivers'], class_name)
+    except AttributeError:
+        raise ValidateError("%s doesn't exist." % class_name)
+    return class_name
+
+def validate(config_file, configspec_file):
+    config = ConfigObj(config_file, configspec=configspec_file)
+    validator = Validator({'driver': driver_check})
+    results = config.validate(validator)
+    if results != True:
+        for(section_list, key, _) in flatten_errors(config, results):
+            if key is not None:
+                print 'The "%s" key in the section "%s" failed validation.' % (key, ', '.join(section_list))
+            else:
+                print 'The following section was missing:%s.' % ', '.join(section_list)
+        return False
+    else:
+        return config
+
+def load_probes_from_conf(config):
+    for key in config.keys():
+        if isinstance(config[key], Section):
+            class_name = config[key]['driver']
+            probe_ids = config[key]['probes']
+            kwargs = {}
+            if 'parameters' in config[key].keys():
+                kwargs = config[key]['parameters']
+            thread = load_probe(class_name, probe_ids, kwargs)
+            threads.append(thread)
+
+def load_probe(class_name, probe_ids, kwargs):
+    try:
+        probeClass = getattr(sys.modules['drivers'], class_name)
+    except AttributeError:
+        raise NameError("%s doesn't exist." % class_name)
+    try:
+        probeObject = probeClass(probe_ids, **kwargs)
+    except Exception as exception:
+        print 'Probe', probe_ids, 'error: %s' % exception
+        return
+    probeObject.subscribe(send_value)
+    probeObject.start()
+    return probeObject
+
+def check_probes_alive(interval=60):
+    # TODO : default value because main exit before this thread...
+    print 'Check probes every', interval, 'seconds'
+    for index, thread in enumerate(threads):
+        if not thread.is_alive():
+            print thread, ' crashed!'
+            threads[index] = load_probe(thread.__class__.__name__, thread.probe_ids, thread.kwargs)
+    timer = threading.Timer(interval, check_probes_alive, [interval])
+    timer.daemon = True
+    timer.start()
+
+def signal_handler(signum, frame):
+    if signum is signal.SIGTERM:
+        terminate()
+
+def terminate():
+    for thread in threads:
+        thread.stop()
+    for thread in threads:
+        thread.join()
 
 def send_value(probe_id, value):
     if os.path.exists(socket_name):
@@ -32,84 +90,15 @@ def send_value(probe_id, value):
         client.send(probe_id + ':' + str(value))
         client.close()
 
-def signal_handler(signum, frame):
-    if signum is signal.SIGTERM:
-        terminate()
-
-def check_probes_alive(interval=60):
-    # TODO : default value because main exit before this thread...
-    print 'Check probes every', interval, 'seconds'
-    for thread in threads.keys():
-        if not threads[thread].is_alive():
-            print threads[thread], ' crashed!'
-            load_probe_from_xml(thread)
-    timer = threading.Timer(interval, check_probes_alive, [interval])
-    timer.daemon = True
-    timer.start()
-
-def terminate():
-    check_probes_alive()
-    for thread in threads.values():
-        thread.stop()
-    for thread in threads.values():
-        thread.join()
-
-def load_probe(class_name, probe_id, kwargs):
-    try:
-        probeClass = getattr(sys.modules['drivers'], class_name)
-    except AttributeError:
-        raise NameError("%s doesn't exist." % class_name)
-    try:
-        probeObject = probeClass(probe_id, **kwargs)
-    except Exception as exception:
-        print 'Probe "' + probe_id + '" error: %s' % exception
-        return
-    probeObject.subscribe(send_value)
-    probeObject.start()
-    threads[probe_id] = probeObject
-
-def load_probe_from_xml(probe_id):
-    print 'load_probe ', probe_id
-    
-    root = get_root('config.xsd', 'config.xml')
-    if root is None:
-        print "Configuration file isn't valid!"
-        sys.exit(1)
-    
-    probe = root.find("./driver/probe[@id='%s']" % probe_id)
-    class_name = probe.getparent().attrib['class']
-    kwargs = {}
-    for argument in probe:
-        kwargs[argument.attrib['name']] = argument.attrib['value']
-    load_probe(class_name, probe_id, kwargs)
-
 if __name__ == "__main__":
-    # Load and validate XML
-    root = get_root('config.xsd', 'config.xml')
-    if root is None:
-        print "Configuration file isn't valid!"
+    config = validate('kwapi.conf', 'configspec.ini')
+    if not config:
         sys.exit(1)
     
-    # Get socket path
-    socket_name = root.find('collector').attrib['socket']
-    
-    # Load probes
-    probe_ids = root.findall("./driver/probe")
-    for probe_id in probe_ids:
-        load_probe_from_xml(probe_id.attrib['id'])
-    
-    # Load probes
-#    for driver in root.findall('driver'):
-#        for probe in driver.findall('probe'):
-#            class_name = driver.attrib['class']
-#            probe_id = probe.attrib['id']
-#            kwargs = {}
-#            for argument in probe.findall('arg'):
-#                kwargs[argument.attrib['name']] = argument.attrib['value']
-#            thread.start_new_thread(load_probe, (class_name, probe_id, kwargs))
+    load_probes_from_conf(config)
     
     # Check probe crashes
-    check_probes_alive(60)
+    check_probes_alive(4)
     
     signal.signal(signal.SIGTERM, signal_handler)
     try:

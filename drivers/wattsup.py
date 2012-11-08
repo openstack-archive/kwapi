@@ -6,8 +6,8 @@ import serial
 
 class Wattsup(Driver):
     
-    def __init__(self, probe_id, **kwargs):
-        Driver.__init__(self, probe_id)
+    def __init__(self, probe_ids, **kwargs):
+        Driver.__init__(self, probe_ids, kwargs)
         
         # Configure serial port
         self.serial = serial.Serial(
@@ -31,7 +31,7 @@ class Wattsup(Driver):
         while not self.terminate:
             packet = self.get_packet()
             value = self.extract_watts(packet)
-            self.update_value(value)
+            self.update_value(self.probe_ids[0], value)
     
     def get_packet(self):
         packet = ''
