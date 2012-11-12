@@ -1,41 +1,27 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from configobj import ConfigObj, Section, flatten_errors
-from validate import Validator, ValidateError
-import drivers
-import sys
-
-from subprocess import call
+import logging
 import os
 import socket
+import sys
+import signal
+from subprocess import call
 import thread
 import threading
-import signal
+from configobj import Section
+import config
+import drivers
 
 threads = []
-socket_name = '/tmp/kwapi-collector'
 
-def driver_check(class_name):
-    try:
-        getattr(sys.modules['drivers'], class_name)
-    except AttributeError:
-        raise ValidateError("%s doesn't exist." % class_name)
-    return class_name
-
-def validate(config_file, configspec_file):
-    config = ConfigObj(config_file, configspec=configspec_file)
-    validator = Validator({'driver': driver_check})
-    results = config.validate(validator)
-    if results != True:
-        for(section_list, key, _) in flatten_errors(config, results):
-            if key is not None:
-                print 'The "%s" key in the section "%s" failed validation.' % (key, ', '.join(section_list))
-            else:
-                print 'The following section was missing:%s.' % ', '.join(section_list)
-        return False
-    else:
-        return config
+def setup_logging(log_level, file_name, print_to_stdout):
+    logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', filename=file_name, filemode='w', level=log_level)
+    if print_to_stdout:
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(log_level)
+        logger = logging.getLogger()
+        logger.addHandler(console_handler)
 
 def load_probes_from_conf(config):
     for key in config.keys():
@@ -46,7 +32,8 @@ def load_probes_from_conf(config):
             if 'parameters' in config[key].keys():
                 kwargs = config[key]['parameters']
             thread = load_probe(class_name, probe_ids, kwargs)
-            threads.append(thread)
+            if thread is not None:
+                threads.append(thread)
 
 def load_probe(class_name, probe_ids, kwargs):
     try:
@@ -56,22 +43,21 @@ def load_probe(class_name, probe_ids, kwargs):
     try:
         probeObject = probeClass(probe_ids, **kwargs)
     except Exception as exception:
-        print 'Probe', probe_ids, 'error: %s' % exception
-        return
+        logging.error('Probe %s constructor error: %s' % (probe_ids, exception))
+        return None
     probeObject.subscribe(send_value)
     probeObject.start()
     return probeObject
 
-def check_probes_alive(interval=60):
-    # TODO : default value because main exit before this thread...
-    print 'Check probes every', interval, 'seconds'
+def check_probes_alive(interval):
     for index, thread in enumerate(threads):
         if not thread.is_alive():
-            print thread, ' crashed!'
+            logging.warning('%s crashed!', thread)
             threads[index] = load_probe(thread.__class__.__name__, thread.probe_ids, thread.kwargs)
-    timer = threading.Timer(interval, check_probes_alive, [interval])
-    timer.daemon = True
-    timer.start()
+    if interval > 0:
+        timer = threading.Timer(interval, check_probes_alive, [interval])
+        timer.daemon = True
+        timer.start()
 
 def signal_handler(signum, frame):
     if signum is signal.SIGTERM:
@@ -84,6 +70,8 @@ def terminate():
         thread.join()
 
 def send_value(probe_id, value):
+    # TODO Do not read config everytime
+    socket_name = config.get_config('kwapi.conf', 'configspec.ini')['socket']
     if os.path.exists(socket_name):
         client = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
         client.connect(socket_name)
@@ -91,14 +79,16 @@ def send_value(probe_id, value):
         client.close()
 
 if __name__ == "__main__":
-    config = validate('kwapi.conf', 'configspec.ini')
-    if not config:
+    setup_logging(logging.DEBUG, 'kwapi.log', print_to_stdout=True)
+    
+    config = config.get_config('kwapi.conf', 'configspec.ini')
+    if config is None:
         sys.exit(1)
     
     load_probes_from_conf(config)
     
     # Check probe crashes
-    check_probes_alive(4)
+    check_probes_alive(config['check_probes_interval'])
     
     signal.signal(signal.SIGTERM, signal_handler)
     try:

@@ -1,27 +1,37 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import logging
 import time
 import socket
 import os, os.path
 import threading
-from recordtype import recordtype
+
+class Record(dict):
+    
+    def __init__(self, timestamp, kwh, watts):
+        dict.__init__(self)
+        self._dict = {}
+        self['timestamp'] = timestamp
+        self['kwh'] = kwh
+        self['w'] = watts
+    
+    def add(self, watts):
+        currentTime = time.time()
+        self['kwh'] += (currentTime - self['timestamp']) / 3600.0 * (watts / 1000.0)
+        self['w'] = watts
+        self['timestamp'] = currentTime
 
 class Collector:
     
     def __init__(self):
-        self.Record = recordtype('Record', 'timestamp, kwh, w')
         self.database = {}
     
     def add(self, probe, watts):
         if probe in self.database:
-            currentTime = time.time()
-            record = self.database[probe]
-            record.kwh += (currentTime - record.timestamp) / 3600.0 * (watts / 1000.0)
-            record.w = watts
-            record.timestamp = currentTime
+            self.database[probe].add(watts)
         else:
-            record = self.Record(timestamp=time.time(), kwh=0.0, w=watts)
+            record = Record(timestamp=time.time(), kwh=0.0, watts=watts)
             self.database[probe] = record
     
     def remove(self, probe):
@@ -48,7 +58,7 @@ class Collector:
             self.timer = threading.Timer(timeout, self.clean, [timeout])
             self.timer.start()
     
-    def listen(self, socket_name='/tmp/kwapi-collector'):
+    def listen(self, socket_name):
         if os.path.exists(socket_name):
             os.remove(socket_name)
          
@@ -66,12 +76,12 @@ class Collector:
                     try:
                         self.add(data[0], float(data[1]))
                     except:
-                        print 'Format error!'
+                        logging.error('Datagram format error: %s' % datagram)
                 else:
-                    print 'Malformed datagram!'
+                    logging.error('Malformed datagram: %s' % datagram)
         server.close()
         os.remove(socket_name)
     
-    def start_listen(self):
-        thread = threading.Thread(target=self.listen)
+    def start_listen(self, socket_name):
+        thread = threading.Thread(target=self.listen, args=[socket_name])
         thread.start()
