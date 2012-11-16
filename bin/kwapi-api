@@ -1,0 +1,18 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+import sys
+import logging
+
+from kwapi import config
+from kwapi import log
+from kwapi.api import app
+
+if __name__ == '__main__':
+    if config.CONF is None:
+        sys.exit(1)
+    
+    log.setup(config.CONF['api_log'], logging.WARNING, logging.DEBUG)
+    
+    root = app.make_app(enable_acl=False)
+    root.run(host='0.0.0.0', port=config.CONF['api_port'])

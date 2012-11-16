@@ -1,0 +1,25 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+import sys
+import logging
+import signal
+
+from kwapi import config
+from kwapi import log
+from kwapi.drivers import driver_manager
+
+if __name__ == "__main__":
+    if config.CONF is None:
+        sys.exit(1)
+    
+    log.setup(config.CONF['drivers_log'], logging.WARNING, logging.DEBUG)
+    
+    driver_manager.load_all_drivers()
+    driver_manager.check_drivers_alive(config.CONF['check_drivers_interval'])
+    
+    signal.signal(signal.SIGTERM, driver_manager.signal_handler)
+    try:
+        signal.pause()
+    except KeyboardInterrupt:
+        driver_manager.terminate()
