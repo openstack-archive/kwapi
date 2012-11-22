@@ -36,6 +36,6 @@ setup(
    
     data_files=[('/etc/kwapi', ['etc/kwapi/kwapi.conf'])],
     
-    install_requires=['flask', 'configobj', 'pyserial', 'requests']
+    install_requires=['configobj', 'flask', 'pyserial', 'python-keystoneclient', 'requests']
     
     )

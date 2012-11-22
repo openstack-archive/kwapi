@@ -52,6 +52,8 @@ def get_config(config_file):
 
 # Config file format specifications
 cfg = """
+acl_enabled = boolean
+acl_auth_url = string
 api_log = string
 api_port = integer
 collector_socket = string

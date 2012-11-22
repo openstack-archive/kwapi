@@ -14,5 +14,5 @@ if __name__ == '__main__':
     
     log.setup(config.CONF['api_log'], logging.WARNING, logging.DEBUG)
     
-    root = app.make_app(enable_acl=False)
+    root = app.make_app(enable_acl=config.CONF['acl_enabled'])
     root.run(host='0.0.0.0', port=config.CONF['api_port'])

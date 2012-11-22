@@ -10,9 +10,9 @@ import flask.helpers
 from kwapi import config
 from collector import Collector
 import v1
-#import acl
+import acl
 
-def make_app(enable_acl=True):
+def make_app(enable_acl):
     """Instantiates Flask app, attaches collector database, installs acl."""
     logging.info('Starting API')
     app = flask.Flask('kwapi.api')
@@ -27,6 +27,6 @@ def make_app(enable_acl=True):
     
     # Install the middleware wrapper
     if enable_acl:
-        return acl.install(app, cfg.CONF)
+        return acl.install(app)
     
     return app
