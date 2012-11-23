@@ -12,10 +12,15 @@ def welcome():
     """Returns detailed information about this specific version of the API."""
     return 'Welcome to Kwapi!'
 
+@blueprint.route('/probe-ids/')
+def list_probes_ids():
+    """Returns all known probes IDs."""
+    return flask.jsonify(probe_ids=flask.request.database.keys())
+
 @blueprint.route('/probes/')
 def list_probes():
-    """Returns a list of all the known probes."""
-    return flask.jsonify(probes=flask.request.database.keys())
+    """Returns all information about all known probes."""
+    return flask.jsonify(probes=flask.request.database)
 
 @blueprint.route('/probes/<probe>/')
 def probe_info(probe):
@@ -30,7 +35,7 @@ def probe_info(probe):
 def probe_value(probe, meter):
     """Returns the probe meter value."""
     try:
-        result = {meter: flask.request.database[probe][meter]}
+        result = {probe: {meter: flask.request.database[probe][meter]}}
     except KeyError:
         flask.abort(404)
     return flask.jsonify(result)
