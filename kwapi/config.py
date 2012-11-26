@@ -55,6 +55,7 @@ cfg = """
 acl_enabled = boolean
 acl_auth_url = string
 api_log = string
+api_metering_secret = string
 api_port = integer
 collector_socket = string
 check_drivers_interval = integer

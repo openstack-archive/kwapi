@@ -4,6 +4,7 @@ from keystoneclient.v2_0 import client as ksclient
 import requests
 
 from ceilometer import counter
+from ceilometer import meter
 from ceilometer.central import plugin
 from ceilometer.openstack.common import cfg
 from ceilometer.openstack.common import log
@@ -24,14 +25,17 @@ class KwapiClient():
         if self.token is not None:
             headers = {'X-Auth-Token': self.token}
         request = requests.get(probes_url, headers=headers)
-        probes = request.json['probes']
+        message = request.json
         
         probe_list = []
-        for key, value in probes.iteritems():
-            probe_dict = value
-            probe_dict['id'] = key
-            probe_list.append(probe_dict)
         
+        if meter.verify_signature(message, cfg.CONF['metering_secret']):
+            probes = message['probes']
+            for key, value in probes.iteritems():
+                probe_dict = value
+                probe_dict['id'] = key
+                probe_list.append(probe_dict)
+            
         return probe_list
 
 class _Base(plugin.CentralPollster):
