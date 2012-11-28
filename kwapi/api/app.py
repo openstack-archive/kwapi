@@ -18,7 +18,7 @@ def make_app(enable_acl):
     app = flask.Flask('kwapi.api')
     app.register_blueprint(v1.blueprint, url_prefix='/v1')
     
-    collector = Collector(config.CONF['collector_socket'])
+    collector = Collector(config.CONF['probes_endpoint'])
     collector.clean(config.CONF['collector_cleaning_interval'], periodic=True)
     
     @app.before_request

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""Loads probe threads, and transmits their values to the collector."""
+"""Loads probe threads, and transmits their values via ZeroMQ."""
 
 import logging
 import os
@@ -9,11 +9,16 @@ import sys
 import signal
 from subprocess import call
 import thread
-import threading
+from threading import Timer
 
 from configobj import Section
+import zmq
 
 from kwapi import config
+
+context = zmq.Context()
+publisher = context.socket(zmq.PUB)
+publisher.bind(config.CONF['probes_endpoint'])
 
 threads = []
 
@@ -58,7 +63,7 @@ def check_drivers_alive(interval):
             if new_thread is not None:
                 threads[index] = new_thread
     if interval > 0:
-        timer = threading.Timer(interval, check_drivers_alive, [interval])
+        timer = Timer(interval, check_drivers_alive, [interval])
         timer.daemon = True
         timer.start()
 
@@ -71,16 +76,8 @@ def terminate():
     """Terminates driver threads"""
     for thread in threads:
         thread.join()
+    publisher.close()
 
 def send_value(probe_id, value):
-    """Send a datagram to a socket, with the following format: "probe_id:value"."""
-    socket_name = config.CONF['collector_socket']
-    if os.path.exists(socket_name):
-        client = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
-        try:
-            client.connect(socket_name)
-            client.sendall(probe_id + ':' + str(value))
-        except:
-            logging.error('Cannot connect to %s' % socket_name)
-        else:
-            client.close()
+    """Sends a message via ZeroMQ, with the following format: "probe_id:value"."""
+    publisher.send(probe_id + ':' + str(value))

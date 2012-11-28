@@ -6,6 +6,8 @@ import socket
 import threading
 import time
 
+import zmq
+
 class Record(dict):
     """Contains fields (timestamp, kwh, w) and a method to update consumption."""
     
@@ -75,32 +77,25 @@ class Collector:
             self.timer.daemon = True
             self.timer.start()
     
-    def listen(self, socket_name):
-        """Listen the socket, and add received values to the database.
-        Datagram format is "probe:value".
+    def listen(self, endpoint):
+        """Subscribes to ZeroMQ messages, and adds received values to the database.
+        Message format is "probe:value".
         
         """
-        logging.info('Collector listenig to %s' % socket_name)
+        logging.info('Collector listenig to %s' % endpoint)
         
-        if os.path.exists(socket_name):
-            os.remove(socket_name)
-         
-        server = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
-        server.bind(socket_name)
-         
+        context = zmq.Context()
+        subscriber = context.socket(zmq.SUB)
+        subscriber.setsockopt(zmq.SUBSCRIBE, '')
+        subscriber.connect(endpoint)
+        
         while True:
-            datagram = server.recv(1024)
-            if not datagram:
-                logging.error('Received data are not datagram')
-                break
+            message = subscriber.recv()
+            data = message.split(':')
+            if len(data) == 2:
+                try:
+                    self.add(data[0], float(data[1]))
+                except:
+                    logging.error('Message format error: %s' % message)
             else:
-                data = datagram.split(':')
-                if len(data) == 2:
-                    try:
-                        self.add(data[0], float(data[1]))
-                    except:
-                        logging.error('Datagram format error: %s' % datagram)
-                else:
-                    logging.error('Malformed datagram: %s' % datagram)
-        server.close()
-        os.remove(socket_name)
+                logging.error('Malformed message: %s' % message)
