@@ -1,12 +1,24 @@
 # -*- coding: utf-8 -*-
 
-import logging
-import os, os.path
-import socket
 import threading
 import time
 
 import zmq
+
+from kwapi.openstack.common import cfg, log
+
+LOG = log.getLogger(__name__)
+
+collector_opts = [
+    cfg.StrOpt('probes_endpoint',
+               required=True,
+               ),
+    cfg.IntOpt('cleaning_interval',
+           required=True,
+           ),
+    ]
+
+cfg.CONF.register_opts(collector_opts)
 
 class Record(dict):
     """Contains fields (timestamp, kwh, w) and a method to update consumption."""
@@ -29,11 +41,11 @@ class Record(dict):
 class Collector:
     """Collector gradually fills its database with received values from wattmeter drivers."""
     
-    def __init__(self, socket_name):
-        """Initializes an empty database and start listening the socket."""
-        logging.info('Starting Collector')
+    def __init__(self, conf):
+        """Initializes an empty database and start listening the endpoint."""
+        LOG.info('Starting Collector')
         self.database = {}
-        thread = threading.Thread(target=self.listen, args=[socket_name])
+        thread = threading.Thread(target=self.listen, args=[conf])
         thread.daemon = True
         thread.start()
     
@@ -53,16 +65,16 @@ class Collector:
         else:
             return False
     
-    def clean(self, timeout, periodic):
+    def clean(self, conf, periodic):
         """Removes probes from database if they didn't send new values over the last timeout period (seconds).
         If periodic, this method is executed automatically after the timeout interval.
         
         """
-        logging.info('Cleaning collector')
+        LOG.info('Cleaning collector')
         # Cleaning        
         for probe in self.database.keys():
-            if time.time() - self.database[probe]['timestamp'] > timeout:
-                logging.info('Removing data of probe %s' % probe)
+            if time.time() - self.database[probe]['timestamp'] > conf.cleaning_interval:
+                LOG.info('Removing data of probe %s' % probe)
                 self.remove(probe)
         
         # Cancel next execution of this function
@@ -73,21 +85,21 @@ class Collector:
         
         # Schedule periodic execution of this function
         if periodic:
-            self.timer = threading.Timer(timeout, self.clean, [timeout, True])
+            self.timer = threading.Timer(conf.cleaning_interval, self.clean, [conf, True])
             self.timer.daemon = True
             self.timer.start()
     
-    def listen(self, endpoint):
+    def listen(self, conf):
         """Subscribes to ZeroMQ messages, and adds received values to the database.
         Message format is "probe:value".
         
         """
-        logging.info('Collector listenig to %s' % endpoint)
+        LOG.info('Collector listenig to %s' % conf.probes_endpoint)
         
         context = zmq.Context()
         subscriber = context.socket(zmq.SUB)
         subscriber.setsockopt(zmq.SUBSCRIBE, '')
-        subscriber.connect(endpoint)
+        subscriber.connect(conf.probes_endpoint)
         
         while True:
             message = subscriber.recv()
@@ -96,6 +108,6 @@ class Collector:
                 try:
                     self.add(data[0], float(data[1]))
                 except:
-                    logging.error('Message format error: %s' % message)
+                    LOG.error('Message format error: %s' % message)
             else:
-                logging.error('Malformed message: %s' % message)
+                LOG.error('Malformed message: %s' % message)

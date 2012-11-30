@@ -6,9 +6,16 @@ import hashlib
 import hmac
 
 import flask
-import flask.helpers
 
-from kwapi import config
+from kwapi.openstack.common import cfg
+
+v1_opts = [
+    cfg.StrOpt('api_metering_secret',
+               required=True,
+               ),
+    ]
+
+cfg.CONF.register_opts(v1_opts)
 
 blueprint = flask.Blueprint('v1', __name__)
 
@@ -66,7 +73,7 @@ def recursive_keypairs(dictionary):
 
 def sign(message):
     """Sets the message signature key."""
-    digest_maker = hmac.new(config.CONF['api_metering_secret'], '', hashlib.sha256)
+    digest_maker = hmac.new(cfg.CONF.api_metering_secret, '', hashlib.sha256)
     for name, value in recursive_keypairs(message):
         if name != 'message_signature':
             digest_maker.update(name)

@@ -1,36 +1,48 @@
 # -*- coding: utf-8 -*-
 
-"""Loads probe threads, and transmits their values via ZeroMQ."""
+"""Loads and checks driver threads."""
 
-import logging
-import os
-import socket
+import ast
 import sys
 import signal
-from subprocess import call
 import thread
 from threading import Timer
 
-from configobj import Section
 import zmq
 
-from kwapi import config
+from kwapi.openstack.common import cfg, log
+
+LOG = log.getLogger(__name__)
+
+driver_manager_opts = [
+    cfg.StrOpt('probes_endpoint',
+               required=True,
+               ),
+    cfg.IntOpt('check_drivers_interval',
+               required=True,
+               ),
+    ]
+
+cfg.CONF.register_opts(driver_manager_opts)
 
 context = zmq.Context()
 publisher = context.socket(zmq.PUB)
-publisher.bind(config.CONF['probes_endpoint'])
+#TODO Read conf
+publisher.bind('ipc:///tmp/kwapi')
 
 threads = []
 
-def load_all_drivers():
+def load_all_drivers(conf):
     """Loads all drivers from config."""
-    for entry in config.CONF.values():
-        if isinstance(entry, Section):
-            class_name = entry['driver']
-            probe_ids = entry['probes']
+    parser = cfg.ConfigParser(cfg.CONF.config_file[0], {})
+    parser.parse()
+    for section, entries in parser.sections.iteritems():
+        if section != 'DEFAULT':
+            class_name = entries['driver'][0]
+            probe_ids = ast.literal_eval(entries['probes'][0])
             kwargs = {}
-            if 'parameters' in entry.keys():
-                kwargs = entry['parameters']
+            if 'parameters' in entries.keys():
+                kwargs = ast.literal_eval(entries['parameters'][0])
             thread = load_driver(class_name, probe_ids, kwargs)
             if thread is not None:
                 threads.append(thread)
@@ -44,26 +56,26 @@ def load_driver(class_name, probe_ids, kwargs):
     try:
         probeObject = probeClass(probe_ids, **kwargs)
     except Exception as exception:
-        logging.error('Exception occurred while initializing %s(%s, %s): %s' % (class_name, probe_ids, kwargs, exception))
+        LOG.error('Exception occurred while initializing %s(%s, %s): %s' % (class_name, probe_ids, kwargs, exception))
     else:
         probeObject.subscribe(send_value)
         probeObject.start()
         return probeObject
 
-def check_drivers_alive(interval):
+def check_drivers_alive(conf):
     """Checks all drivers and reloads those that crashed.
     This method is executed automatically at the given interval.
     
     """
-    logging.info('Checks driver threads')
+    LOG.info('Checks driver threads')
     for index, thread in enumerate(threads):
         if not thread.is_alive():
-            logging.warning('%s(probe_ids=%s, kwargs=%s) is crashed' % (thread.__class__.__name__, thread.probe_ids, thread.kwargs))
+            LOG.warning('%s(probe_ids=%s, kwargs=%s) is crashed' % (thread.__class__.__name__, thread.probe_ids, thread.kwargs))
             new_thread = load_driver(thread.__class__.__name__, thread.probe_ids, thread.kwargs)
             if new_thread is not None:
                 threads[index] = new_thread
-    if interval > 0:
-        timer = Timer(interval, check_drivers_alive, [interval])
+    if conf.check_drivers_interval > 0:
+        timer = Timer(conf.check_drivers_interval, check_drivers_alive, [conf])
         timer.daemon = True
         timer.start()
 

@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import logging
 import serial
 from serial.serialutil import SerialException
 

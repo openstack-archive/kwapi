@@ -2,21 +2,17 @@
 # -*- coding: utf-8 -*-
 
 import sys
-import logging
 import signal
 
-from kwapi import config
-from kwapi import log
 from kwapi.drivers import driver_manager
+from kwapi.openstack.common import cfg, log
 
 if __name__ == "__main__":
-    if config.CONF is None:
-        sys.exit(1)
+    cfg.CONF(sys.argv[1:], project='kwapi', default_config_files=['/etc/kwapi/drivers.conf'])
+    log.setup('kwapi')
     
-    log.setup(config.CONF['drivers_log'], logging.WARNING, logging.DEBUG)
-    
-    driver_manager.load_all_drivers()
-    driver_manager.check_drivers_alive(config.CONF['check_drivers_interval'])
+    driver_manager.load_all_drivers(cfg.CONF)
+    driver_manager.check_drivers_alive(cfg.CONF)
     
     signal.signal(signal.SIGTERM, driver_manager.signal_handler)
     try:

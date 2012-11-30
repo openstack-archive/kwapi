@@ -1,15 +1,17 @@
 # -*- coding: utf-8 -*-
 
-import logging
-
 from threading import Thread, Event
+
+from kwapi.openstack.common import log
+
+LOG = log.getLogger(__name__)
 
 class Driver(Thread):
     """Generic driver class, derived from Thread."""
     
     def __init__(self, probe_ids, kwargs):
         """Initializes driver."""
-        logging.info('Loading driver %s(probe_ids=%s, kwargs=%s)' % (self.__class__.__name__, probe_ids, kwargs))
+        LOG.info('Loading driver %s(probe_ids=%s, kwargs=%s)' % (self.__class__.__name__, probe_ids, kwargs))
         Thread.__init__(self)
         self.probe_ids = probe_ids
         self.kwargs = kwargs

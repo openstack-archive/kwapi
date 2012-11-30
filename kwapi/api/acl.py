@@ -5,7 +5,15 @@
 import flask
 from keystoneclient.v2_0.client import Client
 
-from kwapi import config
+from kwapi.openstack.common import cfg
+
+acl_opts = [
+    cfg.StrOpt('acl_auth_url',
+               required=True,
+               ),
+    ]
+
+cfg.CONF.register_opts(acl_opts)
 
 def install(app):
     """Installs ACL check on application."""
@@ -16,7 +24,7 @@ def check():
     """Checks application access."""
     headers = flask.request.headers
     try:
-        client = Client(token=headers.get('X-Auth-Token'), auth_url=config.CONF['acl_auth_url'])
+        client = Client(token=headers.get('X-Auth-Token'), auth_url=cfg.CONF.acl_auth_url)
     except:
         return "Access denied", 401
     else:
