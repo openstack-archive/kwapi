@@ -25,5 +25,5 @@ class Dummy(Driver):
         while not self.stop_request_pending():
             for probe_id in self.probe_ids:
                 value = randrange(self.min_value, self.max_value)
-                self.update_value(probe_id, value)
+                self.send_value(probe_id, value)
             time.sleep(1)

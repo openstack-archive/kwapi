@@ -66,7 +66,7 @@ class Collector:
             return False
     
     def clean(self, conf, periodic):
-        """Removes probes from database if they didn't send new values over the last timeout period (seconds).
+        """Removes probes from database if they didn't send new values over the last period (seconds).
         If periodic, this method is executed automatically after the timeout interval.
         
         """

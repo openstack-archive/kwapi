@@ -25,11 +25,6 @@ driver_manager_opts = [
 
 cfg.CONF.register_opts(driver_manager_opts)
 
-context = zmq.Context()
-publisher = context.socket(zmq.PUB)
-#TODO Read conf
-publisher.bind('ipc:///tmp/kwapi')
-
 threads = []
 
 def load_all_drivers(conf):
@@ -58,7 +53,6 @@ def load_driver(class_name, probe_ids, kwargs):
     except Exception as exception:
         LOG.error('Exception occurred while initializing %s(%s, %s): %s' % (class_name, probe_ids, kwargs, exception))
     else:
-        probeObject.subscribe(send_value)
         probeObject.start()
         return probeObject
 
@@ -79,6 +73,16 @@ def check_drivers_alive(conf):
         timer.daemon = True
         timer.start()
 
+def start_zmq_server(conf):
+    """Forwards probe values to the probes_endpoint defined in conf."""
+    context = zmq.Context.instance()
+    frontend = context.socket(zmq.SUB)
+    frontend.bind('inproc://drivers')
+    frontend.setsockopt(zmq.SUBSCRIBE, '')
+    backend = context.socket(zmq.PUB)
+    backend.bind(conf.probes_endpoint)
+    thread.start_new_thread(zmq.device, (zmq.FORWARDER, frontend, backend))
+
 def signal_handler(signum, frame):
     """Intercepts TERM signal and properly terminates probe threads."""
     if signum is signal.SIGTERM:
@@ -88,8 +92,3 @@ def terminate():
     """Terminates driver threads"""
     for thread in threads:
         thread.join()
-    publisher.close()
-
-def send_value(probe_id, value):
-    """Sends a message via ZeroMQ, with the following format: "probe_id:value"."""
-    publisher.send(probe_id + ':' + str(value))
