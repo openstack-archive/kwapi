@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import json
 import threading
 import time
 
@@ -90,8 +91,8 @@ class Collector:
             self.timer.start()
     
     def listen(self, conf):
-        """Subscribes to ZeroMQ messages, and adds received values to the database.
-        Message format is "probe:value".
+        """Subscribes to ZeroMQ messages, and adds received measurements to the database.
+        Messages are dictionaries dumped in JSON format.
         
         """
         LOG.info('Collector listenig to %s' % conf.probes_endpoint)
@@ -103,11 +104,11 @@ class Collector:
         
         while True:
             message = subscriber.recv()
-            data = message.split(':')
-            if len(data) == 2:
-                try:
-                    self.add(data[0], float(data[1]))
-                except:
-                    LOG.error('Message format error: %s' % message)
+            measurements = json.loads(message)
+            if not isinstance(measurements, dict):
+                LOG.error('Bad message type (not a dict)')
             else:
-                LOG.error('Malformed message: %s' % message)
+                try:
+                    self.add(measurements['probe_id'], float(measurements['w']))
+                except KeyError:
+                    LOG.error('Malformed message (missing required key)')

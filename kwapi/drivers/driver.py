@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import json
 from threading import Thread, Event
 
 import zmq
@@ -35,9 +36,10 @@ class Driver(Thread):
         """Returns true if a stop request is pending."""
         return self.stop_request.is_set()
     
-    def send_value(self, probe_id, value):
-        """Sends a message via ZeroMQ with the following format: probe_id, value."""
-        self.publisher.send(probe_id + ':' + str(value))
+    def send_measurements(self, probe_id, measurements):
+        """Sends a message via ZeroMQ (dictionary dumped in JSON format)."""
+        measurements['probe_id'] = probe_id
+        self.publisher.send(json.dumps(measurements))
     
     def subscribe(self, observer):
         """Appends the observer (callback method) to the observers list."""

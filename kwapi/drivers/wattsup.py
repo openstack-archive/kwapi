@@ -44,8 +44,9 @@ class Wattsup(Driver):
             except SerialException:
                 self.serial.close()
                 self.stop()
-            value = self.extract_watts(packet)
-            self.send_value(self.probe_ids[0], value)
+            measurements = {}
+            measurements['w'] = self.extract_watts(packet)
+            self.send_measurements(self.probe_ids[0], measurements)
     
     def get_packet(self):
         """Returns the next packet sent by the wattmeter."""
