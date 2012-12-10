@@ -3,7 +3,7 @@
 
 import sys
 
-from kwapi.api import app
+from kwapi.plugins.api import app
 from kwapi.openstack.common import log, cfg
 
 if __name__ == '__main__':
