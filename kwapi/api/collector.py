@@ -11,7 +11,7 @@ from kwapi.openstack.common import cfg, log
 LOG = log.getLogger(__name__)
 
 collector_opts = [
-    cfg.StrOpt('probes_endpoint',
+    cfg.MultiStrOpt('probes_endpoint',
                required=True,
                ),
     cfg.IntOpt('cleaning_interval',
@@ -100,7 +100,8 @@ class Collector:
         context = zmq.Context()
         subscriber = context.socket(zmq.SUB)
         subscriber.setsockopt(zmq.SUBSCRIBE, '')
-        subscriber.connect(conf.probes_endpoint)
+        for endpoint in conf.probes_endpoint:
+            subscriber.connect(endpoint)
         
         while True:
             message = subscriber.recv()

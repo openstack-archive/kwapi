@@ -90,5 +90,5 @@ def signal_handler(signum, frame):
 
 def terminate():
     """Terminates driver threads"""
-    for thread in threads:
-        thread.join()
+    for driver in threads:
+        thread.start_new_thread(driver.join, ())
