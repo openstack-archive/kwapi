@@ -15,10 +15,10 @@ from kwapi.openstack.common import cfg, log
 LOG = log.getLogger(__name__)
 
 driver_manager_opts = [
-    cfg.StrOpt('probes_endpoint',
+    cfg.IntOpt('check_drivers_interval',
                required=True,
                ),
-    cfg.IntOpt('check_drivers_interval',
+    cfg.StrOpt('probes_endpoint',
                required=True,
                ),
     ]
@@ -27,8 +27,8 @@ cfg.CONF.register_opts(driver_manager_opts)
 
 threads = []
 
-def load_all_drivers(conf):
-    """Loads all drivers from config."""
+def load_all_drivers():
+    """Loads all drivers from config file."""
     parser = cfg.ConfigParser(cfg.CONF.config_file[0], {})
     parser.parse()
     for section, entries in parser.sections.iteritems():
@@ -56,7 +56,7 @@ def load_driver(class_name, probe_ids, kwargs):
         probeObject.start()
         return probeObject
 
-def check_drivers_alive(conf):
+def check_drivers_alive():
     """Checks all drivers and reloads those that crashed.
     This method is executed automatically at the given interval.
     
@@ -68,19 +68,21 @@ def check_drivers_alive(conf):
             new_thread = load_driver(thread.__class__.__name__, thread.probe_ids, thread.kwargs)
             if new_thread is not None:
                 threads[index] = new_thread
-    if conf.check_drivers_interval > 0:
-        timer = Timer(conf.check_drivers_interval, check_drivers_alive, [conf])
+                
+    # Schedule periodic execution of this function
+    if cfg.CONF.check_drivers_interval > 0:
+        timer = Timer(cfg.CONF.check_drivers_interval, check_drivers_alive)
         timer.daemon = True
         timer.start()
 
-def start_zmq_server(conf):
-    """Forwards probe values to the probes_endpoint defined in conf."""
+def start_zmq_server():
+    """Forwards probe values to the probes_endpoint."""
     context = zmq.Context.instance()
     frontend = context.socket(zmq.SUB)
     frontend.bind('inproc://drivers')
     frontend.setsockopt(zmq.SUBSCRIBE, '')
     backend = context.socket(zmq.PUB)
-    backend.bind(conf.probes_endpoint)
+    backend.bind(cfg.CONF.probes_endpoint)
     thread.start_new_thread(zmq.device, (zmq.FORWARDER, frontend, backend))
 
 def signal_handler(signum, frame):

@@ -11,12 +11,12 @@ from kwapi.openstack.common import cfg, log
 LOG = log.getLogger(__name__)
 
 collector_opts = [
-    cfg.MultiStrOpt('probes_endpoint',
+    cfg.IntOpt('cleaning_interval',
                required=True,
                ),
-    cfg.IntOpt('cleaning_interval',
-           required=True,
-           ),
+    cfg.MultiStrOpt('probes_endpoint',
+                    required=True,
+                    ),
     ]
 
 cfg.CONF.register_opts(collector_opts)
@@ -42,11 +42,11 @@ class Record(dict):
 class Collector:
     """Collector gradually fills its database with received values from wattmeter drivers."""
     
-    def __init__(self, conf):
+    def __init__(self):
         """Initializes an empty database and start listening the endpoint."""
         LOG.info('Starting Collector')
         self.database = {}
-        thread = threading.Thread(target=self.listen, args=[conf])
+        thread = threading.Thread(target=self.listen)
         thread.daemon = True
         thread.start()
     
@@ -66,41 +66,35 @@ class Collector:
         else:
             return False
     
-    def clean(self, conf, periodic):
+    def clean(self):
         """Removes probes from database if they didn't send new values over the last period (seconds).
         If periodic, this method is executed automatically after the timeout interval.
         
         """
         LOG.info('Cleaning collector')
-        # Cleaning        
+        # Cleaning
         for probe in self.database.keys():
-            if time.time() - self.database[probe]['timestamp'] > conf.cleaning_interval:
+            if time.time() - self.database[probe]['timestamp'] > cfg.CONF.cleaning_interval:
                 LOG.info('Removing data of probe %s' % probe)
                 self.remove(probe)
         
-        # Cancel next execution of this function
-        try:
-            self.timer.cancel()
-        except AttributeError:
-            pass
-        
         # Schedule periodic execution of this function
-        if periodic:
-            self.timer = threading.Timer(conf.cleaning_interval, self.clean, [conf, True])
-            self.timer.daemon = True
-            self.timer.start()
+        if cfg.CONF.cleaning_interval > 0:
+            timer = threading.Timer(cfg.CONF.cleaning_interval, self.clean)
+            timer.daemon = True
+            timer.start()
     
-    def listen(self, conf):
+    def listen(self):
         """Subscribes to ZeroMQ messages, and adds received measurements to the database.
         Messages are dictionaries dumped in JSON format.
         
         """
-        LOG.info('Collector listenig to %s' % conf.probes_endpoint)
+        LOG.info('Collector listenig to %s' % cfg.CONF.probes_endpoint)
         
-        context = zmq.Context()
+        context = zmq.Context.instance()
         subscriber = context.socket(zmq.SUB)
         subscriber.setsockopt(zmq.SUBSCRIBE, '')
-        for endpoint in conf.probes_endpoint:
+        for endpoint in cfg.CONF.probes_endpoint:
             subscriber.connect(endpoint)
         
         while True:

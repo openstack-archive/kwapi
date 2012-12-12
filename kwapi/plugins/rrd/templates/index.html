@@ -1,0 +1,6 @@
+<!doctype html>
+<title>Kwapi monitoring</title>
+<h1>Power Consumption Monitoring</h1>
+{% for probe in probes %}
+<img src="{{ probe }}" alt="Graph {{ probe }}"/>
+{% endfor %}

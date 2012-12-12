@@ -30,12 +30,14 @@ setuptools.setup(
     ],
     
     packages=setuptools.find_packages(),
+    package_data={'kwapi.plugins.rrd': ['templates/*.html']},
     
     scripts=['bin/kwapi-api',
-             'bin/kwapi-drivers'],
+             'bin/kwapi-drivers',
+             'bin/kwapi-rrd'],
     
-    data_files=[('/etc/kwapi', ['etc/kwapi/api.conf', 'etc/kwapi/drivers.conf'])],
+    data_files=[('/etc/kwapi', ['etc/kwapi/api.conf', 'etc/kwapi/drivers.conf', 'etc/kwapi/rrd.conf'])],
     
-    install_requires=['flask', 'pyserial', 'python-keystoneclient', 'pyzmq']
+    install_requires=['flask', 'pyserial', 'python-keystoneclient', 'pyzmq', 'py-rrdtool']
     
     )

@@ -15,31 +15,25 @@ app_opts = [
     cfg.BoolOpt('acl_enabled',
                 required=True,
                 ),
-    cfg.IntOpt('api_port',
-                required=True,
-                ),
-    cfg.StrOpt('api_metering_secret',
-               required=True,
-               ),
     ]
 
 cfg.CONF.register_opts(app_opts)
 
-def make_app(conf):
+def make_app():
     """Instantiates Flask app, attaches collector database, installs acl."""
     LOG.info('Starting API')
-    app = flask.Flask('kwapi.api')
+    app = flask.Flask(__name__)
     app.register_blueprint(v1.blueprint, url_prefix='/v1')
     
-    collector = Collector(cfg.CONF)
-    collector.clean(cfg.CONF, periodic=True)
+    collector = Collector()
+    collector.clean()
     
     @app.before_request
     def attach_config():
         flask.request.database = collector.database
     
     # Install the middleware wrapper
-    if conf.acl_enabled:
+    if cfg.CONF.acl_enabled:
         return acl.install(app)
     
     return app
