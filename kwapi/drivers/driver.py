@@ -5,9 +5,21 @@ from threading import Thread, Event
 
 import zmq
 
-from kwapi.openstack.common import log
+from kwapi.openstack.common import cfg, log
+from kwapi import security
 
 LOG = log.getLogger(__name__)
+
+driver_opts = [
+    cfg.BoolOpt('enable_signing',
+               required=True,
+               ),
+    cfg.StrOpt('metering_secret',
+               required=True,
+               ),
+    ]
+
+cfg.CONF.register_opts(driver_opts)
 
 class Driver(Thread):
     """Generic driver class, derived from Thread."""
@@ -39,6 +51,8 @@ class Driver(Thread):
     def send_measurements(self, probe_id, measurements):
         """Sends a message via ZeroMQ (dictionary dumped in JSON format)."""
         measurements['probe_id'] = probe_id
+        if cfg.CONF.enable_signing:
+            security.append_signature(measurements, cfg.CONF.metering_secret)
         self.publisher.send(json.dumps(measurements))
     
     def subscribe(self, observer):

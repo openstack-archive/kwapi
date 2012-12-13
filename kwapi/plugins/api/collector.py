@@ -7,16 +7,23 @@ import time
 import zmq
 
 from kwapi.openstack.common import cfg, log
+from kwapi import security
 
 LOG = log.getLogger(__name__)
 
 collector_opts = [
+    cfg.BoolOpt('signature_checking',
+               required=True,
+               ),
     cfg.IntOpt('cleaning_interval',
                required=True,
                ),
     cfg.MultiStrOpt('probes_endpoint',
                     required=True,
                     ),
+    cfg.StrOpt('driver_metering_secret',
+               required=True,
+               ),
     ]
 
 cfg.CONF.register_opts(collector_opts)
@@ -102,6 +109,8 @@ class Collector:
             measurements = json.loads(message)
             if not isinstance(measurements, dict):
                 LOG.error('Bad message type (not a dict)')
+            elif cfg.CONF.signature_checking and not security.verify_signature(measurements, cfg.CONF.driver_metering_secret):
+                LOG.error('Bad message signature')
             else:
                 try:
                     self.add(measurements['probe_id'], float(measurements['w']))

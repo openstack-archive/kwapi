@@ -12,16 +12,23 @@ import rrdtool
 import zmq
 
 from kwapi.openstack.common import cfg, log
+from kwapi import security
 
 LOG = log.getLogger(__name__)
 
 rrd_opts = [
+    cfg.BoolOpt('signature_checking',
+               required=True,
+               ),
     cfg.IntOpt('rebuild_graphs_interval',
                 required=True,
                 ),
     cfg.MultiStrOpt('probes_endpoint',
                     required=True,
                     ),
+    cfg.StrOpt('driver_metering_secret',
+               required=False,
+               ),
     cfg.StrOpt('rrd_dir',
                required=True,
                ),
@@ -104,6 +111,8 @@ def listen():
         measurements = json.loads(message)
         if not isinstance(measurements, dict):
             LOG.error('Bad message type (not a dict)')
+        elif cfg.CONF.signature_checking and not security.verify_signature(measurements, cfg.CONF.driver_metering_secret):
+            LOG.error('Bad message signature')
         else:
             try:
                 update_rrd_file(measurements['probe_id'], float(measurements['w']))
