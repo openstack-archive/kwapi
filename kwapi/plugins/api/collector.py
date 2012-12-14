@@ -58,8 +58,8 @@ class Collector:
         thread.start()
     
     def add(self, probe, watts):
-        """Creates (or update) consumption data for this probe."""
-        if probe in self.database:
+        """Creates (or updates) consumption data for this probe."""
+        if probe in self.database.keys():
             self.database[probe].add(watts)
         else:
             record = Record(timestamp=time.time(), kwh=0.0, watts=watts)
@@ -67,7 +67,7 @@ class Collector:
     
     def remove(self, probe):
         """Removes this probe from database."""
-        if probe in self.database:
+        if probe in self.database.keys():
             del self.database[probe]
             return True
         else:

@@ -30,7 +30,7 @@ setuptools.setup(
     ],
     
     packages=setuptools.find_packages(),
-    package_data={'kwapi.plugins.rrd': ['templates/*.html']},
+    package_data={'kwapi.plugins.rrd': ['templates/*', 'static/*']},
     
     scripts=['bin/kwapi-api',
              'bin/kwapi-drivers',

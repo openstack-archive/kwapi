@@ -1,6 +1,55 @@
 <!doctype html>
-<title>Kwapi monitoring</title>
-<h1>Power Consumption Monitoring</h1>
-{% for probe in probes %}
-<img src="{{ probe }}" alt="Graph {{ probe }}"/>
-{% endfor %}
+<html lang="en">
+	<head>
+        <title>Kwapi monitoring</title>
+        <meta charset="utf-8">
+        <link rel="stylesheet" href="{{ url_for('v1.static', filename='design.css') }}"/>
+        <script type="text/javascript">
+        // <![CDATA[
+            function freshimg(image){
+            if (image.src.indexOf("?") == -1)
+            image.src = image.src + "?reload=" + Date.now();
+            }
+        // ]]>
+        </script>
+    </head>
+    <body>
+        <div id="inner">
+            <div id="header"><h1>Kwapi energy monitoring</h1></div>
+                <!-- Horizontal menu bar -->
+                <div class="menu">
+                    <ul>
+                        {% for label in scales %}
+                            {% if label == scale %}
+                                <li><a class="active" href="/last/{{ label }}">{{ label }}</a></li>
+                            {% else %}
+                                <li><a href="/last/{{ label }}">{{ label }}</a></li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                </div>
+            
+            <!-- Scale view (all probes for one scale) -->
+            {% if view == 'scale' %}
+                {% if probe_amount > 0 %}
+                    <h2>Summary</h2>
+                    <!-- Display summary graph -->
+                    <img id="summary" src="/graph/{{ scale }}" alt="Summary graph" onload="freshimg(this)"/>
+                    <h2>Details</h2>
+                    <!-- Display all probe graphs -->
+                    {% for probe in probes %}
+                        <a href="/probe/{{ probe }}"><img src="/graph/{{ scale }}/{{ probe }}" alt="Graph {{ probe }}" onload="freshimg(this)"/></a>
+                    {% endfor %}
+                {% else %}
+                    <p>No probes found.</p>
+                {% endif %}
+            
+            <!-- Probe view (all scales for one probe) -->
+            {% elif view == 'probe' %}
+                {% for scale in scales %}
+                    <img src="/graph/{{ scale }}/{{ probe }}" alt="Graph {{ probe }}" onload="freshimg(this)"/>
+                {% endfor %}
+            {% endif %}
+        </div>
+    </body>
+</html>
