@@ -19,7 +19,7 @@ def welcome_scale(scale):
     if scale not in flask.request.scales:
         flask.abort(404)
     try:
-        return flask.render_template('index.html', probes=flask.request.probes, scales=flask.request.scales, scale=scale, probe_amount=len(flask.request.probes), view='scale')
+        return flask.render_template('index.html', probes=sorted(flask.request.probes), scales=flask.request.scales, scale=scale, view='scale')
     except TemplateNotFound:
         flask.abort(404)
 
@@ -36,7 +36,7 @@ def welcome_probe(probe):
 def send_summary_graph(scale):
     """Sends summary graph."""
     scale = scale.encode('utf-8')
-    png_file = rrd.build_summary_graph(scale)
+    png_file = rrd.build_graph(scale)
     try:
         return flask.send_file(png_file)
     except:

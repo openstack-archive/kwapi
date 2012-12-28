@@ -18,8 +18,6 @@ def make_app():
     app = flask.Flask(__name__)
     app.register_blueprint(v1.blueprint)
     
-    # TODO not here
-    rrd.create_dirs()
     thread.start_new_thread(rrd.listen, ())
     
     @app.before_request

@@ -8,7 +8,6 @@ import itertools
 import json
 import os
 import time
-import threading
 import uuid
 
 import rrdtool
@@ -52,8 +51,10 @@ scales['day'] = {'interval':86400, 'resolution':900, 'label': 'day'},         # 
 scales['week'] = {'interval':604800, 'resolution':7200, 'label': 'week'},     # Resolution = 2 hours
 scales['month'] = {'interval':2678400, 'resolution':21600, 'label': 'month'}, # Resolution = 6 hours
 scales['year'] = {'interval':31622400, 'resolution':604800, 'label': 'year'}, # Resolution = 1 week
-    
+
+colors = ['#EA644A', '#EC9D48', '#ECD748', '#54EC48', '#48C4EC', '#7648EC', '#DE48EC', '#8A8187']
 probes = set()
+probe_colors = {}
 
 def create_dirs():
     """Creates all required directories."""
@@ -98,70 +99,102 @@ def update_rrd(probe, watts):
     filename = cfg.CONF.rrd_dir + '/' + str(uuid.uuid5(uuid.NAMESPACE_DNS, str(probe))) + '.rrd'
     if not os.path.isfile(filename):
         create_rrd_file(filename)
-    probes.add(probe)
     try:
         rrdtool.update(filename, 'N:%s' % watts)
     except rrdtool.error, e:
         LOG.error('Error updating RRD: %s' % e)
 
-def build_summary_graph(scale):
-    """Builds the summary graph."""
-    png_file = cfg.CONF.png_dir + '/' + scale + '/summary.png'
-    
-    if scale in scales.keys() and len(probes) > 0:
+def build_graph(scale, probe=None):
+    """Builds the graph for the probe, or a summary graph."""
+    if scale in scales.keys() and len(probes) > 0 and (probe is None or probe in probes):
+        # Get PNG filename
+        if probe is not None:
+            png_file = get_png_filename(scale, probe)
+        else:
+            png_file = cfg.CONF.png_dir + '/' + scale + '/summary.png'
         # Build required (PNG file not found or outdated)
         if not os.path.exists(png_file) or os.path.getmtime(png_file) < time.time() - scales[scale][0]['resolution']:
-            args = [png_file,
-                    '--start', '-' + str(scales[scale][0]['interval']),
+            if probe is not None:
+                # Specific arguments for probe graph
+                args = [png_file,
+                        '--title', probe,
+                        '--width', '497',
+                        '--height', '187',
+                        '--upper-limit', str(cfg.CONF.max_watts),
+                        ]
+            else:
+                # Specific arguments for summary graph
+                args = [png_file,
+                        '--title', 'Summary',
+                        '--width', '694',
+                        '--height', '261',
+                        ]
+            # Common arguments
+            args += ['--start', '-' + str(scales[scale][0]['interval']),
                     '--end', 'now',
-                    '--width', '694',
-                    '--height', '261',
                     '--full-size-mode',
                     '--imgformat', 'PNG',
-                    '--title', 'Summary (' + scales[scale][0]['label'] + ')',
+                    '--alt-y-grid',
                     '--vertical-label', 'Watts',
                     '--lower-limit', '0',
                     '--rigid',
                     ]
-            # Colors of the areas in the graph
-            colors = ['#EA644A', '#EC9D48', '#ECD748', '#54EC48', '#48C4EC', '#DE48EC', '#7648EC']
-            seq = itertools.cycle(colors)
-            
-            cdef_kwh = 'CDEF:kwh='
-            cdef_cost = 'CDEF:cost='
-            for probe in probes:
-                rrd_file = get_rrd_filename(probe)
-                if os.path.exists(rrd_file):
-                    # Data source
-                    args.append('DEF:watt_with_unknown_%s=%s:w:AVERAGE' % (probe, rrd_file))
-                    # Data source with unknown values set to zero
-                    args.append('CDEF:watt_%s=watt_with_unknown_%s,UN,0,watt_with_unknown_%s,IF' % (probe, probe, probe))
-                    # Real average (to compute kWh)
-                    args.append('VDEF:wattavg_%s=watt_%s,AVERAGE' % (probe, probe))
-                    # Compute kWh for the probe
-                    # RPN expressions must contain DEF or CDEF variables, so we pop a CDEF value
-                    args.append('CDEF:kwh_%s=watt_%s,POP,wattavg_%s,1000.0,/,%s,3600.0,/,*' % (probe, probe, probe, str(scales[scale][0]['interval'])))
-                    # Compute cost
-                    args.append('CDEF:cost_%s=kwh_%s,%f,*' % (probe, probe, cfg.CONF.kwh_price))
-                    # Append kWh and cost to a CDEF expression
-                    cdef_kwh += 'kwh_' + probe + ','
-                    cdef_cost += 'cost_' + probe + ','
-                    # Draw the area for the probe
-                    args.append('AREA:watt_%s%s::STACK' % (probe, seq.next()))
-            # Prepare CDEF expression of kWh and cost by adding the required number of '+'
-            cdef_kwh += '+,' * int(len(probes)-2) + '+'
-            cdef_cost += '+,' * int(len(probes)-2) + '+'
-            # Distinguish the quantity of probes because CDEF expression is invalid if there is less than 2 probes
-            if len(probes) >= 2:
-                args.append(cdef_kwh)
-                args.append(cdef_cost)
-                # Legend
-                args.append('GPRINT:kwh:LAST:Total\: %lf kWh')
-                args.append('GPRINT:cost:LAST:Cost\: %lf €')
+            if scale == 'minute':
+                args += ['--x-grid', 'SECOND:30:MINUTE:1:MINUTE:1:0:%H:%M']
+            cdef_watt = 'CDEF:watt='
+            cdef_watt_with_unknown = 'CDEF:watt_with_unknown='
+            graph_lines = []
+            stack = False
+            if probe is not None:
+                probe_list = [probe]
             else:
-                # Legend
-                args.append('GPRINT:kwh_%s' % list(probes)[0] + ':LAST:Total\: %lf kWh')
-                args.append('GPRINT:cost_%s' % list(probes)[0] + ':LAST:Cost\: %lf €')
+                probe_list = sorted(probes)
+            for probe in probe_list:
+                probe_uuid = uuid.uuid5(uuid.NAMESPACE_DNS, probe)
+                rrd_file = get_rrd_filename(probe)
+                # Data source
+                args.append('DEF:watt_with_unknown_%s=%s:w:AVERAGE' % (probe_uuid, rrd_file))
+                # Data source without unknown values
+                args.append('CDEF:watt_%s=watt_with_unknown_%s,UN,0,watt_with_unknown_%s,IF' % (probe_uuid, probe_uuid, probe_uuid))
+                # Prepare CDEF expression of total watt consumption
+                cdef_watt += 'watt_%s,' % probe_uuid
+                cdef_watt_with_unknown += 'watt_with_unknown_%s,' % probe_uuid
+                # Draw the area for the probe
+                color = probe_colors[probe]
+                args.append('AREA:watt_with_unknown_%s%s::STACK' % (probe_uuid, color + 'AA'))
+                if not stack:
+                    graph_lines.append('LINE:watt_with_unknown_%s%s::' % (probe_uuid, color))
+                    stack = True
+                else:
+                    graph_lines.append('LINE:watt_with_unknown_%s%s::STACK' % (probe_uuid, color))
+            if len(probe_list) >= 2:
+                # Prepare CDEF expression by adding the required number of '+'
+                cdef_watt += '+,' * int(len(probe_list)-2) + '+'
+                cdef_watt_with_unknown += '+,' * int(len(probe_list)-2) + '+'
+            args += graph_lines
+            args.append(cdef_watt)
+            args.append(cdef_watt_with_unknown)
+            # Min watt
+            args.append('VDEF:wattmin=watt_with_unknown,MINIMUM')
+            # Max watt
+            args.append('VDEF:wattmax=watt_with_unknown,MAXIMUM')
+            # Partial average that will be displayed (ignoring unknown values)
+            args.append('VDEF:wattavg_with_unknown=watt_with_unknown,AVERAGE')
+            # Real average (to compute kWh)
+            args.append('VDEF:wattavg=watt,AVERAGE')
+            # Compute kWh for the probe
+            # RPN expressions must contain DEF or CDEF variables, so we pop a CDEF value
+            args.append('CDEF:kwh=watt,POP,wattavg,1000.0,/,%s,3600.0,/,*' % str(scales[scale][0]['interval']))
+            # Compute cost
+            args.append('CDEF:cost=watt,POP,kwh,%f,*' % cfg.CONF.kwh_price)
+            # Legend
+            args.append('GPRINT:wattavg_with_unknown:Avg\: %3.1lf W')
+            args.append('GPRINT:wattmin:Min\: %3.1lf W')
+            args.append('GPRINT:wattmax:Max\: %3.1lf W')
+            args.append('GPRINT:watt_with_unknown:LAST:Last\: %3.1lf W\j')
+            args.append('TEXTALIGN:center')
+            args.append('GPRINT:kwh:LAST:Total\: %lf kWh')
+            args.append('GPRINT:cost:LAST:Cost\: %lf €')
             LOG.info('Build PNG summary graph')
             rrdtool.graph(args)
             return png_file
@@ -169,64 +202,14 @@ def build_summary_graph(scale):
             LOG.info('Retrieve PNG summary graph from cache')
             return png_file
 
-def build_graph(scale, probe):
-    """Builds the graph for this probe."""
-    png_file = get_png_filename(scale, probe)
-    rrd_file = get_rrd_filename(probe)
-    
-    if scale in scales.keys() and os.path.exists(rrd_file):
-        # Build required (PNG file not found or outdated)
-        if not os.path.exists(png_file) or os.path.getmtime(png_file) < time.time() - scales[scale][0]['resolution']:
-            LOG.info('Build PNG graph')
-            rrdtool.graph(png_file,
-                          '--start', '-' + str(scales[scale][0]['interval']),
-                          '--end', 'now',
-                          '--upper-limit', str(cfg.CONF.max_watts),
-                          '--imgformat', 'PNG',
-                          # Data source
-                          'DEF:watt_with_unknown=%s:w:AVERAGE' % rrd_file,
-                          # Min watt
-                          'VDEF:wattmin=watt_with_unknown,MINIMUM',
-                          # Max watt
-                          'VDEF:wattmax=watt_with_unknown,MAXIMUM',
-                          # Data source with unknown values set to zero
-                          'CDEF:watt=watt_with_unknown,UN,0,watt_with_unknown,IF',
-                          # Partial average that will be displayed (ignoring unknown values)
-                          'VDEF:wattavg_with_unknown=watt_with_unknown,AVERAGE',
-                          # Real average (to compute kWh)
-                          'VDEF:wattavg=watt,AVERAGE',
-                          # Compute kWh for the probe
-                          # RPN expressions must contain DEF or CDEF variables, so we pop a CDEF value
-                          'CDEF:kwh=watt,POP,wattavg,1000.0,/,%s,3600.0,/,*' % str(scales[scale][0]['interval']),
-                          # Compute cost
-                          'CDEF:cost=watt,POP,kwh,%f,*' % cfg.CONF.kwh_price,
-                          '--title', probe + ' (' + scales[scale][0]['label'] + ')',
-                          '--vertical-label', 'Watts',
-                          '--lower-limit', '0',
-                          '--rigid',
-                          # Draw the area and a line for the probe
-                          'AREA:watt_with_unknown#0000FF22',
-                          'LINE:watt_with_unknown#0000FFAA',
-                          # Legend
-                          'GPRINT:wattavg_with_unknown:Avg\: %3.1lf W',
-                          'GPRINT:wattmin:Min\: %3.1lf W',
-                          'GPRINT:wattmax:Max\: %3.1lf W',
-                          'GPRINT:watt_with_unknown:LAST:Last\: %3.1lf W',
-                          'GPRINT:kwh:LAST:Total\: %lf kWh',
-                          'GPRINT:cost:LAST:Cost\: %lf €',
-                          )
-        else:
-            LOG.info('Retrieve PNG graph from cache')
-        return png_file
-    else:
-        LOG.warning('Probe or scale not found')
-
 def listen():
     """Subscribes to ZeroMQ messages, and adds received measurements to the database.
     Messages are dictionaries dumped in JSON format.
     
     """
     LOG.info('RRD listenig to %s' % cfg.CONF.probes_endpoint)
+    
+    create_dirs()
     
     context = zmq.Context.instance()
     subscriber = context.socket(zmq.SUB)
@@ -243,6 +226,12 @@ def listen():
             LOG.error('Bad message signature')
         else:
             try:
-                update_rrd(measurements['probe_id'].encode('utf-8'), float(measurements['w']))
+                probe = measurements['probe_id'].encode('utf-8')
+                update_rrd(probe, float(measurements['w']))
+                if not probe in probes:
+                    probes.add(probe)
+                    color_seq = itertools.cycle(colors)
+                    for probe in sorted(probes):
+                        probe_colors[probe] = color_seq.next()
             except KeyError:
                 LOG.error('Malformed message (missing required key)')
