@@ -1,9 +1,0 @@
-#### With Devstack ####
-
-Copy "kwapi" to /opt/stack/ceilometer/ceilometer/.
-
-Modify /opt/stack/ceilometer/setup.py:
-    [ceilometer.poll.central]
-        kwapi = ceilometer.kwapi.kwapi:KwapiPollster
-
-Run "sudo easy_install /opt/stack/ceilometer/".
