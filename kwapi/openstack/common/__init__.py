@@ -16,4 +16,4 @@
 #    under the License.
 
 # TODO(jaypipes) Code in this module is intended to be ported to the eventual
-#                openstack-common library
+#                kwapi.openstack.common library

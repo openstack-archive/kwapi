@@ -16,9 +16,9 @@
 #    under the License.
 
 """
-gettext for openstack-common modules.
+gettext for kwapi.openstack.common modules.
 
-Usual usage in an openstack.common module:
+Usual usage in an kwapi.openstack.common module:
 
     from kwapi.openstack.common.gettextutils import _
 """
@@ -26,7 +26,7 @@ Usual usage in an openstack.common module:
 import gettext
 
 
-t = gettext.translation('openstack-common', 'locale', fallback=True)
+t = gettext.translation('kwapi.openstack.common', 'locale', fallback=True)
 
 
 def _(msg):
