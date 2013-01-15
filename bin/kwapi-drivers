@@ -24,11 +24,11 @@ from kwapi.openstack.common import cfg, log
 if __name__ == "__main__":
     cfg.CONF(sys.argv[1:], project='kwapi', default_config_files=['/etc/kwapi/drivers.conf'])
     log.setup('kwapi')
-    
+
     driver_manager.start_zmq_server()
     driver_manager.load_all_drivers()
     driver_manager.check_drivers_alive()
-    
+
     signal.signal(signal.SIGTERM, driver_manager.signal_handler)
     try:
         signal.pause()

@@ -53,9 +53,9 @@ def load_all_drivers():
             kwargs = {}
             if 'parameters' in entries.keys():
                 kwargs = ast.literal_eval(entries['parameters'][0])
-            thread = load_driver(class_name, probe_ids, kwargs)
-            if thread is not None:
-                threads.append(thread)
+            driver_thread = load_driver(class_name, probe_ids, kwargs)
+            if driver_thread is not None:
+                threads.append(driver_thread)
 
 
 def load_driver(class_name, probe_ids, kwargs):
@@ -80,13 +80,15 @@ def check_drivers_alive():
 
     """
     LOG.info('Checks driver threads')
-    for index, thread in enumerate(threads):
+    for index, driver_thread in enumerate(threads):
         if not thread.is_alive():
             LOG.warning('%s(probe_ids=%s, kwargs=%s) is crashed'
-                        % (thread.__class__.__name__,
-                        thread.probe_ids, thread.kwargs))
-            new_thread = load_driver(thread.__class__.__name__,
-                                     thread.probe_ids, thread.kwargs)
+                        % (driver_thread.__class__.__name__,
+                        driver_thread.probe_ids, driver_thread.kwargs))
+            new_thread = load_driver(driver_thread.__class__.__name__,
+                                     driver_thread.probe_ids,
+                                     driver_thread.kwargs
+                                     )
             if new_thread is not None:
                 threads[index] = new_thread
 

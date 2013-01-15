@@ -58,6 +58,10 @@ setuptools.setup(
                       'pyserial',
                       'python-keystoneclient',
                       'pyzmq',
-                      'py-rrdtool']
+                      'py-rrdtool==dev'],
+
+    dependency_links=['http://downloads.sourceforge.net/project/py-rrdtool/py-'
+                      'rrdtool/1.0b1/py-rrdtool-1.0b1.tar.gz#egg=py-rrdtool-de'
+                      'v'],
 
 )
