@@ -27,7 +27,7 @@ setuptools.setup(
     author='François Rossigneux',
     author_email='francois.rossigneux@inria.fr',
 
-    url='http://gitorious.ow2.org/xlcloud/kwapi',
+    url='https://github.com/stackforge/kwapi',
 
     classifiers=[
         'Development Status :: 3 - Alpha',
@@ -50,14 +50,13 @@ setuptools.setup(
              'bin/kwapi-drivers',
              'bin/kwapi-rrd'],
 
-    data_files=[('/etc/kwapi', ['etc/kwapi/api.conf',
-                                'etc/kwapi/drivers.conf',
-                                'etc/kwapi/rrd.conf'])],
+    data_files=[('etc/kwapi', ['etc/kwapi/api.conf',
+                               'etc/kwapi/drivers.conf',
+                               'etc/kwapi/rrd.conf'])],
 
     install_requires=['flask',
                       'pyserial',
                       'python-keystoneclient',
                       'pyzmq',
-                      'py-rrdtool']
-
+                      'python-rrdtool'],
 )
