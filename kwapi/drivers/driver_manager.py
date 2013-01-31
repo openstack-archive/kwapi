@@ -17,7 +17,6 @@
 """Loads and checks driver threads."""
 
 import ast
-import sys
 import signal
 import thread
 from threading import Timer
@@ -61,17 +60,19 @@ def load_all_drivers():
 def load_driver(class_name, probe_ids, kwargs):
     """Starts a probe thread."""
     try:
-        probeClass = getattr(sys.modules['kwapi.drivers'], class_name)
-    except AttributeError:
+        module = __import__('kwapi.drivers.' + class_name.lower(),
+                            fromlist=class_name)
+        probe_class = getattr(module, class_name)
+    except ImportError:
         raise NameError("%s doesn't exist." % class_name)
     try:
-        probeObject = probeClass(probe_ids, **kwargs)
+        probe_object = probe_class(probe_ids, **kwargs)
     except Exception as exception:
         LOG.error('Exception occurred while initializing %s(%s, %s): %s'
                   % (class_name, probe_ids, kwargs, exception))
     else:
-        probeObject.start()
-        return probeObject
+        probe_object.start()
+        return probe_object
 
 
 def check_drivers_alive():
