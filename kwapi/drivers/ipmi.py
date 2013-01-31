@@ -29,10 +29,22 @@ class Ipmi(Driver):
         Keyword arguments:
         probe_ids -- list containing the probes IDs
                      (a wattmeter monitor sometimes several probes)
-        kwargs -- keyword (device) defining the device to read (/dev/ttyUSB0)
+        kwargs -- keywords (cache_file, interface, host, username, password)
+                  defining the IPMI parameters
 
         """
         Driver.__init__(self, probe_ids, kwargs)
+        command = 'ipmitool '
+        command += '-I ' + self.kwargs.get('interface') + ' '
+        command += '-H ' + self.kwargs.get('host') + ' '
+        command += '-U ' + self.kwargs.get('username', 'root') + ' '
+        command += '-P ' + self.kwargs.get('password') + ' '
+        command += 'sdr dump ' + self.kwargs.get('cache_file')
+        output, error = subprocess.Popen(command,
+                                     shell=True,
+                                     stdout=subprocess.PIPE,
+                                     stderr=subprocess.STDOUT
+                                     ).communicate()
 
     def run(self):
         """Starts the driver thread."""
@@ -45,11 +57,11 @@ class Ipmi(Driver):
     def get_watts(self):
         """Returns the power consumption."""
         command = 'ipmitool '
-        command += '-S ' + kwargs.get('cache_file') + ' '
-        command += '-I ' + kwargs.get('interface') + ' '
-        command += '-H ' + kwargs.get('host') + ' '
-        command += '-U ' + kwargs.get('username', 'root') + ' '
-        command += '-P ' + kwargs.get('password') + ' '
+        command += '-S ' + self.kwargs.get('cache_file') + ' '
+        command += '-I ' + self.kwargs.get('interface') + ' '
+        command += '-H ' + self.kwargs.get('host') + ' '
+        command += '-U ' + self.kwargs.get('username', 'root') + ' '
+        command += '-P ' + self.kwargs.get('password') + ' '
         command += 'sensor reading "System Level" | cut -f2 -d"|"'
         output, error = subprocess.Popen(command,
                                          shell=True,
