@@ -54,7 +54,9 @@ setuptools.setup(
                                'etc/kwapi/drivers.conf',
                                'etc/kwapi/rrd.conf'])],
 
-    install_requires=['flask',
+    install_requires=['eventlet',
+                      'flask',
+                      'iso8601',
                       'pyserial',
                       'python-keystoneclient',
                       'pyzmq',
