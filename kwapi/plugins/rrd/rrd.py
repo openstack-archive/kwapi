@@ -151,10 +151,11 @@ def build_graph(scale, probe=None):
         # Build required (PNG file not found or outdated)
         if not os.path.exists(png_file) or os.path.getmtime(png_file) < \
                 time.time() - scales[scale][0]['resolution']:
+            scale_label = ' (' + scales[scale][0]['label'] + ')'
             if probe is not None:
                 # Specific arguments for probe graph
                 args = [png_file,
-                        '--title', probe,
+                        '--title', probe + scale_label,
                         '--width', '497',
                         '--height', '187',
                         '--upper-limit', str(cfg.CONF.max_watts),
@@ -162,7 +163,7 @@ def build_graph(scale, probe=None):
             else:
                 # Specific arguments for summary graph
                 args = [png_file,
-                        '--title', 'Summary',
+                        '--title', 'Summary' + scale_label,
                         '--width', '694',
                         '--height', '261',
                         ]
