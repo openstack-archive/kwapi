@@ -5,13 +5,29 @@
         <meta charset="utf-8">
         <link rel="stylesheet" href="{{ url_for('v1.static', filename='design.css') }}"/>
         <link rel="icon" type="image/png" href="{{ url_for('v1.static', filename='favicon.png') }}" />
+        <script src="{{ url_for('v1.static', filename='jquery-1.9.1.min.js') }}"></script>
         <script type="text/javascript">
         // <![CDATA[
-            function reloadImage(image)
-            {
-                if(image.src.indexOf("?") == -1)
-                    image.src = image.src + "?reload=" + Date.now();
+            function reloadImage(img) {
+                var src = img.attr('src');
+                param_position = src.indexOf('?');
+                if(param_position != -1) {
+                    src = src.substring(0, param_position);
+                }
+                src += '?timestamp=' + Date.now();
+                img.attr('src', src);
             }
+            
+            function reloadAllImages() {
+                $('.graph').each(function() {
+                    reloadImage($(this));
+                });
+            }
+            
+            $(document).ready(function () {
+                reloadAllImages();
+                setInterval('reloadAllImages()', 5000);
+            });
         // ]]>
         </script>
     </head>
@@ -36,11 +52,11 @@
                 {% if probes|count > 0 %}
                     <h2>Summary</h2>
                     <!-- Display summary graph -->
-                    <img id="summary" src="/graph/{{ scale }}" alt="Summary graph" onload="reloadImage(this)"/>
+                    <img class="graph" id="summary" src="/graph/{{ scale }}" alt="Summary graph"/>
                     <h2>Details</h2>
                     <!-- Display all probe graphs -->
                     {% for probe in probes %}
-                        <a href="/probe/{{ probe }}"><img src="/graph/{{ scale }}/{{ probe }}" alt="Graph {{ probe }}" onload="reloadImage(this)"/></a>
+                        <a href="/probe/{{ probe }}"><img class="graph" src="/graph/{{ scale }}/{{ probe }}" alt="Graph {{ probe }}"/></a>
                     {% endfor %}
                 {% else %}
                     <p>No probes found.</p>
@@ -49,7 +65,7 @@
             <!-- Probe view (all scales for one probe) -->
             {% elif view == 'probe' %}
                 {% for scale in scales %}
-                    <img src="/graph/{{ scale }}/{{ probe }}" alt="Graph {{ probe }}" onload="reloadImage(this)"/>
+                    <img class="graph" src="/graph/{{ scale }}/{{ probe }}" alt="Graph {{ probe }}"/>
                 {% endfor %}
             {% endif %}
         </div>
