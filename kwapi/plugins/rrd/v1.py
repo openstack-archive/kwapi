@@ -63,7 +63,7 @@ def send_summary_graph(scale):
     scale = scale.encode('utf-8')
     png_file = rrd.build_graph(scale)
     try:
-        return flask.send_file(png_file)
+        return flask.send_file(png_file, cache_timeout=0, conditional=True)
     except:
         flask.abort(404)
 
@@ -75,6 +75,6 @@ def send_probe_graph(scale, probe):
     scale = scale.encode('utf-8')
     png_file = rrd.build_graph(scale, probe)
     try:
-        return flask.send_file(png_file)
+        return flask.send_file(png_file, cache_timeout=0, conditional=True)
     except:
         flask.abort(404)

@@ -10,11 +10,11 @@
         // <![CDATA[
             function reloadImage(img) {
                 var src = img.attr('src');
-                param_position = src.indexOf('?');
+                param_position = src.indexOf('#');
                 if(param_position != -1) {
                     src = src.substring(0, param_position);
                 }
-                src += '?timestamp=' + Date.now();
+                src += '#' + Date.now();
                 img.attr('src', src);
             }
             
@@ -25,7 +25,6 @@
             }
             
             $(document).ready(function () {
-                reloadAllImages();
                 setInterval('reloadAllImages()', 5000);
             });
         // ]]>
@@ -38,9 +37,9 @@
             <ul>
                 {% for label in scales %}
                     {% if label == scale %}
-                        <li><a class="active" href="/last/{{ label }}">{{ label }}</a></li>
+                        <li><a class="active" href="/last/{{ label }}/">{{ label }}</a></li>
                     {% else %}
-                        <li><a href="/last/{{ label }}">{{ label }}</a></li>
+                        <li><a href="/last/{{ label }}/">{{ label }}</a></li>
                     {% endif %}
                 {% endfor %}
             </ul>
@@ -52,11 +51,11 @@
                 {% if probes|count > 0 %}
                     <h2>Summary</h2>
                     <!-- Display summary graph -->
-                    <img class="graph" id="summary" src="/graph/{{ scale }}" alt="Summary graph"/>
+                    <img class="graph" id="summary" src="/graph/{{ scale }}/" alt="Summary graph"/>
                     <h2>Details</h2>
                     <!-- Display all probe graphs -->
                     {% for probe in probes %}
-                        <a href="/probe/{{ probe }}"><img class="graph" src="/graph/{{ scale }}/{{ probe }}" alt="Graph {{ probe }}"/></a>
+                        <a href="/probe/{{ probe }}"><img class="graph" src="/graph/{{ scale }}/{{ probe }}/" alt="Graph {{ probe }}"/></a>
                     {% endfor %}
                 {% else %}
                     <p>No probes found.</p>
@@ -65,7 +64,7 @@
             <!-- Probe view (all scales for one probe) -->
             {% elif view == 'probe' %}
                 {% for scale in scales %}
-                    <img class="graph" src="/graph/{{ scale }}/{{ probe }}" alt="Graph {{ probe }}"/>
+                    <img class="graph" src="/graph/{{ scale }}/{{ probe }}/" alt="Graph {{ probe }}"/>
                 {% endfor %}
             {% endif %}
         </div>
