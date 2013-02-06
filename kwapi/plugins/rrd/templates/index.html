@@ -10,7 +10,7 @@
         // <![CDATA[
             function reloadImage(img) {
                 var src = img.attr('src');
-                param_position = src.indexOf('#');
+                param_position = src.indexOf('#a');
                 if(param_position != -1) {
                     src = src.substring(0, param_position);
                 }
@@ -25,7 +25,7 @@
             }
             
             $(document).ready(function () {
-                setInterval('reloadAllImages()', 5000);
+                setInterval('reloadAllImages()', {{ refresh*1000 }});
             });
         // ]]>
         </script>
@@ -63,6 +63,7 @@
             
             <!-- Probe view (all scales for one probe) -->
             {% elif view == 'probe' %}
+                <h2>{{ probe }}</h2>
                 {% for scale in scales %}
                     <img class="graph" src="/graph/{{ scale }}/{{ probe }}/" alt="Graph {{ probe }}"/>
                 {% endfor %}

@@ -19,7 +19,16 @@
 import flask
 from jinja2 import TemplateNotFound
 
+from kwapi.openstack.common import cfg
 import rrd
+
+web_opts = [
+    cfg.IntOpt('refresh_interval',
+               required=True,
+               ),
+]
+
+cfg.CONF.register_opts(web_opts)
 
 blueprint = flask.Blueprint('v1', __name__, static_folder='static')
 
@@ -37,6 +46,7 @@ def welcome_scale(scale):
     try:
         return flask.render_template('index.html',
                                      probes=sorted(flask.request.probes),
+                                     refresh=cfg.CONF.refresh_interval,
                                      scales=flask.request.scales,
                                      scale=scale,
                                      view='scale')
@@ -51,6 +61,7 @@ def welcome_probe(probe):
     try:
         return flask.render_template('index.html',
                                      probe=probe,
+                                     refresh=cfg.CONF.refresh_interval,
                                      scales=flask.request.scales,
                                      view='probe')
     except TemplateNotFound:
