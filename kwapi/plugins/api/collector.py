@@ -143,5 +143,8 @@ class Collector:
                 try:
                     self.add(measurements['probe_id'],
                              float(measurements['w']))
+                except (TypeError, ValueError):
+                    LOG.error('Malformed power consumption data: %s'
+                              % measurements['w'])
                 except KeyError:
                     LOG.error('Malformed message (missing required key)')

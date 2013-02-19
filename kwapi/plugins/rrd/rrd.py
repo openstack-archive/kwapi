@@ -135,7 +135,7 @@ def update_rrd(probe, watts):
         create_rrd_file(filename)
     try:
         rrdtool.update(filename, 'N:%s' % watts)
-    except rrdtool.error, e:
+    except rrdtool.error as e:
         LOG.error('Error updating RRD: %s' % e)
 
 
@@ -277,10 +277,14 @@ def listen():
             try:
                 probe = measurements['probe_id'].encode('utf-8')
                 update_rrd(probe, float(measurements['w']))
+            except (TypeError, ValueError):
+                LOG.error('Malformed power consumption data: %s'
+                          % measurements['w'])
+            except KeyError:
+                LOG.error('Malformed message (missing required key)')
+            else:
                 if not probe in probes:
                     probes.add(probe)
                     color_seq = itertools.cycle(colors)
                     for probe in sorted(probes):
                         probe_colors[probe] = color_seq.next()
-            except KeyError:
-                LOG.error('Malformed message (missing required key)')
