@@ -40,8 +40,8 @@ class Dummy(Driver):
     def run(self):
         """Starts the driver thread."""
         while not self.stop_request_pending():
+            measurements = {}
             for probe_id in self.probe_ids:
-                measurements = {}
                 measurements['w'] = randrange(self.min_value, self.max_value)
                 measurements['v'] = 230.0
                 measurements['a'] = measurements['w'] / measurements['v']

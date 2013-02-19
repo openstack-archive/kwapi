@@ -34,33 +34,31 @@ class Wattsup(Driver):
         """
         Driver.__init__(self, probe_ids, kwargs)
 
+    def run(self):
+        """Starts the driver thread."""
         # Configure serial port
         self.serial = serial.Serial(
-            port=kwargs.get('device', '/dev/ttyUSB0'),
+            port=self.kwargs.get('device', '/dev/ttyUSB0'),
             baudrate=115200,
             parity=serial.PARITY_NONE,
             stopbits=serial.STOPBITS_ONE,
             bytesize=serial.EIGHTBITS,
             timeout=2,
         )
-
         # Clear memory
         self.serial.write('#R,W,0;')
         self.serial.read(256)
-
         # Start external logging with interval = 1
         self.serial.write('#L,W,3,E,1,1;')
         self.serial.read(256)
-
-    def run(self):
-        """Starts the driver thread."""
+        # Take measurements
+        measurements = {}
         while not self.stop_request_pending():
             try:
                 packet = self.get_packet()
             except SerialException:
                 self.serial.close()
                 self.stop()
-            measurements = {}
             measurements['w'] = self.extract_watts(packet)
             self.send_measurements(self.probe_ids[0], measurements)
 

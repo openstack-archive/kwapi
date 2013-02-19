@@ -20,7 +20,10 @@ import subprocess
 import time
 import uuid
 
+from kwapi.openstack.common import log
 from driver import Driver
+
+LOG = log.getLogger(__name__)
 
 
 class Ipmi(Driver):
@@ -40,11 +43,12 @@ class Ipmi(Driver):
 
     def run(self):
         """Starts the driver thread."""
-        self.create_cache()
+        measurements = {}
         while not self.stop_request_pending():
-            measurements = {}
-            measurements['w'] = self.get_watts()
-            self.send_measurements(self.probe_ids[0], measurements)
+            watts = self.get_watts()
+            if watts is not None:
+                measurements['w'] = watts
+                self.send_measurements(self.probe_ids[0], measurements)
             time.sleep(1)
 
     def get_cache_filename(self):
@@ -54,6 +58,7 @@ class Ipmi(Driver):
 
     def create_cache(self):
         """Creates the cache file."""
+        cache_file = self.get_cache_filename()
         try:
             os.makedirs(self.kwargs.get('cache_dir'))
         except OSError as exception:
@@ -64,28 +69,47 @@ class Ipmi(Driver):
         command += '-H ' + self.kwargs.get('host') + ' '
         command += '-U ' + self.kwargs.get('username', 'root') + ' '
         command += '-P ' + self.kwargs.get('password') + ' '
-        command += 'sdr dump ' + self.get_cache_filename()
-        output, error = subprocess.Popen(command,
-                                         shell=True,
-                                         stdout=subprocess.PIPE,
-                                         stderr=subprocess.STDOUT
-                                         ).communicate()
+        command += 'sdr dump ' + cache_file
+        child = subprocess.Popen(command,
+                                 shell=True,
+                                 stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE
+                                 )
+        output, error = child.communicate()
+        if child.returncode == 0:
+            return cache_file
+        else:
+            LOG.error('Failed to download cache from probe %s: %s'
+                      % (self.probe_ids[0], error))
+            return None
 
     def get_watts(self):
         """Returns the power consumption."""
         cache_file = self.get_cache_filename()
+        # Try to create cache (not a problem if this fails)
         if not os.path.exists(cache_file):
             self.create_cache()
+        # Get power consumption
         command = 'ipmitool '
         command += '-S ' + cache_file + ' '
         command += '-I ' + self.kwargs.get('interface') + ' '
         command += '-H ' + self.kwargs.get('host') + ' '
         command += '-U ' + self.kwargs.get('username', 'root') + ' '
         command += '-P ' + self.kwargs.get('password') + ' '
-        command += 'sensor reading "System Level" | cut -f2 -d"|"'
-        output, error = subprocess.Popen(command,
-                                         shell=True,
-                                         stdout=subprocess.PIPE,
-                                         stderr=subprocess.STDOUT
-                                         ).communicate()
-        return int(output)
+        command += 'sensor reading "System Level"'
+        child = subprocess.Popen(command,
+                                 shell=True,
+                                 stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE
+                                 )
+        output, error = child.communicate()
+        if child.returncode == 0:
+            try:
+                return int(output.split('|')[1])
+            except ValueError:
+                LOG.error('Received data from probe %s are invalid: %s'
+                          % (self.probe_ids[0], output))
+        else:
+            LOG.error('Failed to retrieve data from probe %s: %s'
+                      % (self.probe_ids[0], error))
+            return None
