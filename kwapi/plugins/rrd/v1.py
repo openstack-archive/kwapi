@@ -19,7 +19,7 @@
 import flask
 from jinja2 import TemplateNotFound
 
-from kwapi.openstack.common import cfg
+from oslo.config import cfg
 import rrd
 
 web_opts = [

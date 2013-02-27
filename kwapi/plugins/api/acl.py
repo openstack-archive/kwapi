@@ -18,8 +18,7 @@
 
 import flask
 from keystoneclient.v2_0.client import Client
-
-from kwapi.openstack.common import cfg
+from oslo.config import cfg
 
 acl_opts = [
     cfg.StrOpt('acl_auth_url',

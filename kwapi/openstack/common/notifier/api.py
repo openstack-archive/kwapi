@@ -15,7 +15,8 @@
 
 import uuid
 
-from kwapi.openstack.common import cfg
+from oslo.config import cfg
+
 from kwapi.openstack.common import context
 from kwapi.openstack.common.gettextutils import _
 from kwapi.openstack.common import importutils

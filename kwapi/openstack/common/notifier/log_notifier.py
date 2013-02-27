@@ -13,8 +13,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from oslo.config import cfg
 
-from kwapi.openstack.common import cfg
 from kwapi.openstack.common import jsonutils
 from kwapi.openstack.common import log as logging
 

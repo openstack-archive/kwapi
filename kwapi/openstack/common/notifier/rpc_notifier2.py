@@ -15,7 +15,8 @@
 
 '''messaging based notification driver, with message envelopes'''
 
-from kwapi.openstack.common import cfg
+from oslo.config import cfg
+
 from kwapi.openstack.common import context as req_context
 from kwapi.openstack.common.gettextutils import _
 from kwapi.openstack.common import log as logging

@@ -17,9 +17,10 @@
 import json
 from threading import Thread, Event
 
+from oslo.config import cfg
 import zmq
 
-from kwapi.openstack.common import cfg, log
+from kwapi.openstack.common import log
 from kwapi import security
 
 LOG = log.getLogger(__name__)

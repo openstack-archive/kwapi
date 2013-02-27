@@ -17,8 +17,10 @@
 
 import sys
 
+from oslo.config import cfg
+
 from kwapi.plugins.rrd import app
-from kwapi.openstack.common import cfg, log
+from kwapi.openstack.common import log
 
 app_opts = [
     cfg.IntOpt('rrd_port',

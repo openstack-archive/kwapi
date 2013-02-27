@@ -17,8 +17,9 @@
 """Set up the API server application instance."""
 
 import flask
+from oslo.config import cfg
 
-from kwapi.openstack.common import cfg, log
+from kwapi.openstack.common import log
 import acl
 from collector import Collector
 import v1

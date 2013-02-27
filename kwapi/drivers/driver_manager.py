@@ -21,9 +21,10 @@ import signal
 import thread
 from threading import Timer
 
+from oslo.config import cfg
 import zmq
 
-from kwapi.openstack.common import cfg, log
+from kwapi.openstack.common import log
 
 LOG = log.getLogger(__name__)
 

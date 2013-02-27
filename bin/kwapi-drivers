@@ -18,8 +18,10 @@
 import sys
 import signal
 
+from oslo.config import cfg
+
 from kwapi.drivers import driver_manager
-from kwapi.openstack.common import cfg, log
+from kwapi.openstack.common import log
 
 if __name__ == "__main__":
     cfg.CONF(sys.argv[1:], project='kwapi', default_config_files=['/etc/kwapi/drivers.conf'])

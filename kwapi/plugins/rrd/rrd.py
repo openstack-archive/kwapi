@@ -24,10 +24,11 @@ import os
 import time
 import uuid
 
+from oslo.config import cfg
 import rrdtool
 import zmq
 
-from kwapi.openstack.common import cfg, log
+from kwapi.openstack.common import log
 from kwapi import security
 
 LOG = log.getLogger(__name__)
