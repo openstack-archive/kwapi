@@ -24,14 +24,16 @@ from kwapi.openstack.common import log
 
 app_opts = [
     cfg.IntOpt('rrd_port',
-                required=True,
-                ),
+               required=True,
+               ),
 ]
 
 cfg.CONF.register_opts(app_opts)
 
 if __name__ == '__main__':
-    cfg.CONF(sys.argv[1:], project='kwapi', default_config_files=['/etc/kwapi/rrd.conf'])
+    cfg.CONF(sys.argv[1:],
+             project='kwapi',
+             default_config_files=['/etc/kwapi/rrd.conf'])
     log.setup('kwapi')
 
     root = app.make_app()

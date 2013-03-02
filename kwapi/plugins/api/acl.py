@@ -17,32 +17,34 @@
 """Set up the ACL to access the API."""
 
 import flask
-from keystoneclient.v2_0.client import Client
+import keystoneclient.middleware.auth_token as auth_token
 from oslo.config import cfg
 
-acl_opts = [
-    cfg.StrOpt('acl_auth_url',
-               required=True,
-               ),
-]
+from kwapi import policy
 
-cfg.CONF.register_opts(acl_opts)
+OPT_GROUP_NAME = 'keystone_authtoken'
 
 
-def install(app):
+def register_opts(conf):
+    """Registers keystoneclient middleware options."""
+    conf.register_opts(auth_token.opts,
+                       group=OPT_GROUP_NAME,
+                       )
+    auth_token.CONF = conf
+
+
+register_opts(cfg.CONF)
+
+
+def install(app, conf):
     """Installs ACL check on application."""
+    app.wsgi_app = auth_token.AuthProtocol(app.wsgi_app,
+                                           conf=dict(conf.get(OPT_GROUP_NAME)))
     app.before_request(check)
-    return app
 
 
 def check():
     """Checks application access."""
     headers = flask.request.headers
-    try:
-        client = Client(token=headers.get('X-Auth-Token'),
-                        auth_url=cfg.CONF.acl_auth_url)
-    except:
+    if not policy.check_is_admin(headers.get('X-Roles', "").split(",")):
         return "Access denied", 401
-    else:
-        if not client.authenticate():
-            return "Access denied", 401

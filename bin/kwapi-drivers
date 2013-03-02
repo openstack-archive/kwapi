@@ -24,7 +24,9 @@ from kwapi.drivers import driver_manager
 from kwapi.openstack.common import log
 
 if __name__ == "__main__":
-    cfg.CONF(sys.argv[1:], project='kwapi', default_config_files=['/etc/kwapi/drivers.conf'])
+    cfg.CONF(sys.argv[1:],
+             project='kwapi',
+             default_config_files=['/etc/kwapi/drivers.conf'])
     log.setup('kwapi')
 
     driver_manager.start_zmq_server()

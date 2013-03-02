@@ -20,6 +20,7 @@ import sys
 from oslo.config import cfg
 
 from kwapi.plugins.api import app
+from kwapi.plugins.api import acl
 from kwapi.openstack.common import log
 
 app_opts = [
@@ -36,6 +37,6 @@ if __name__ == '__main__':
              default_config_files=['/etc/kwapi/api.conf']
              )
     log.setup('kwapi')
-
+    log.setup('keystoneclient')
     root = app.make_app()
     root.run(host='0.0.0.0', port=cfg.CONF.api_port)

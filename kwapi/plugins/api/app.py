@@ -50,6 +50,6 @@ def make_app():
 
     # Install the middleware wrapper
     if cfg.CONF.acl_enabled:
-        return acl.install(app)
+        acl.install(app, cfg.CONF)
 
     return app
