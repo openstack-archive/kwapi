@@ -20,7 +20,6 @@ import sys
 from oslo.config import cfg
 
 from kwapi.plugins.api import app
-from kwapi.plugins.api import acl
 from kwapi.openstack.common import log
 
 app_opts = [
