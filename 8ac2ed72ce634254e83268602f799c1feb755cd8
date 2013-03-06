@@ -1,0 +1,8 @@
+Verified+2: Jenkins
+Approved+1: François Rossigneux <francois.rossigneux@inria.fr>
+Code-Review+2: François Rossigneux <francois.rossigneux@inria.fr>
+Submitted-by: Jenkins
+Submitted-at: Wed, 06 Mar 2013 11:36:49 +0000
+Reviewed-on: https://review.openstack.org/23685
+Project: stackforge/kwapi
+Branch: refs/heads/master
