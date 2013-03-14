@@ -17,10 +17,18 @@
 
 import setuptools
 
+from kwapi.openstack.common import setup as common_setup
+
+requires = common_setup.parse_requirements(['pip-requires'])
+depend_links = common_setup.parse_dependency_links(['pip-requires'])
+project = 'kwapi'
+version = common_setup.get_version(project, '2013.3')
+
+
 setuptools.setup(
 
     name='kwapi',
-    version='1.0',
+    version=version,
 
     description='Energy Efficiency Architecture',
 
@@ -54,11 +62,6 @@ setuptools.setup(
                                'etc/kwapi/drivers.conf',
                                'etc/kwapi/rrd.conf'])],
 
-    install_requires=['eventlet',
-                      'flask',
-                      'iso8601',
-                      'pyserial',
-                      'python-keystoneclient',
-                      'pyzmq',
-                      'python-rrdtool'],
+    install_requires=requires,
+    dependency_links=depend_links,
 )
