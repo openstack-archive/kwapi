@@ -1,6 +1,7 @@
 flask
 iso8601
 pyserial
+pysnmp
 python-keystoneclient
 pyzmq
 python-rrdtool
