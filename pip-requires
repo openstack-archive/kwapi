@@ -1,9 +1,9 @@
 flask
 iso8601
+oslo.config
 pyserial
 pysnmp
 python-keystoneclient
 pyzmq
 #python-rrdtool
 webob
-http://tarballs.openstack.org/oslo-config/oslo-config-2013.1b4.tar.gz#egg=oslo-config
