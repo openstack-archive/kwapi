@@ -36,6 +36,9 @@ collector_opts = [
     cfg.MultiStrOpt('probes_endpoint',
                     required=True,
                     ),
+    cfg.MultiStrOpt('watch_probe',
+                    required=False,
+                    ),
     cfg.StrOpt('driver_metering_secret',
                required=True,
                ),
@@ -126,7 +129,11 @@ class Collector:
 
         context = zmq.Context.instance()
         subscriber = context.socket(zmq.SUB)
-        subscriber.setsockopt(zmq.SUBSCRIBE, '')
+        if not cfg.CONF.watch_probe:
+            subscriber.setsockopt(zmq.SUBSCRIBE, '')
+        else:
+            for probe in cfg.CONF.watch_probe:
+                subscriber.setsockopt(zmq.SUBSCRIBE, probe)
         for endpoint in cfg.CONF.probes_endpoint:
             subscriber.connect(endpoint)
 
