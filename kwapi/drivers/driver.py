@@ -73,7 +73,12 @@ class Driver(Thread):
         measurements['probe_id'] = probe_id
         if cfg.CONF.enable_signing:
             security.append_signature(measurements, cfg.CONF.metering_secret)
-        self.publisher.send(json.dumps(measurements))
+        self.publisher.send_multipart(
+            [
+                probe_id + '.',
+                json.dumps(measurements)
+            ]
+        )
 
     def subscribe(self, observer):
         """Appends the observer (callback method) to the observers list."""
