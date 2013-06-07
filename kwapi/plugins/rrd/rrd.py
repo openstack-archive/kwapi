@@ -46,6 +46,9 @@ rrd_opts = [
     cfg.MultiStrOpt('probes_endpoint',
                     required=True,
                     ),
+    cfg.MultiStrOpt('watch_probe',
+                    required=False,
+                    ),
     cfg.StrOpt('driver_metering_secret',
                required=True,
                ),
@@ -261,12 +264,16 @@ def listen():
 
     context = zmq.Context.instance()
     subscriber = context.socket(zmq.SUB)
-    subscriber.setsockopt(zmq.SUBSCRIBE, '')
+    if not cfg.CONF.watch_probe:
+        subscriber.setsockopt(zmq.SUBSCRIBE, '')
+    else:
+        for probe in cfg.CONF.watch_probe:
+            subscriber.setsockopt(zmq.SUBSCRIBE, probe + '.')
     for endpoint in cfg.CONF.probes_endpoint:
         subscriber.connect(endpoint)
 
     while True:
-        message = subscriber.recv()
+        [probe, message] = subscriber.recv_multipart()
         measurements = json.loads(message)
         if not isinstance(measurements, dict):
             LOG.error('Bad message type (not a dict)')
