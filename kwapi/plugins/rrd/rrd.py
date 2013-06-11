@@ -128,7 +128,7 @@ def create_rrd_file(filename):
                         % (scales[scale][0]['resolution'],
                         scales[scale][0]['interval'] /
                         scales[scale][0]['resolution']))
-            rrdtool.create(args)
+        rrdtool.create(args)
 
 
 def update_rrd(probe, watts):
