@@ -55,6 +55,7 @@ setuptools.setup(
     package_data={'kwapi.plugins.rrd': ['templates/*', 'static/*']},
 
     scripts=['bin/kwapi-api',
+             'bin/kwapi-forwarder',
              'bin/kwapi-drivers',
              'bin/kwapi-rrd'],
 
