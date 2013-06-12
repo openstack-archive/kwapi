@@ -21,6 +21,7 @@ import errno
 import itertools
 import json
 import os
+from threading import Lock
 import time
 import uuid
 
@@ -80,6 +81,7 @@ colors = ['#EA644A', '#EC9D48', '#ECD748', '#54EC48', '#48C4EC', '#7648EC',
           '#DE48EC', '#8A8187']
 probes = set()
 probe_colors = {}
+lock = Lock()
 
 
 def create_dirs():
@@ -292,7 +294,9 @@ def listen():
                 LOG.error('Malformed message (missing required key)')
             else:
                 if not probe in probes:
-                    probes.add(probe)
                     color_seq = itertools.cycle(colors)
+                    lock.acquire()
+                    probes.add(probe)                
                     for probe in sorted(probes):
                         probe_colors[probe] = color_seq.next()
+                    lock.release()
