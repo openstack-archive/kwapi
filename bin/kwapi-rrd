@@ -35,6 +35,5 @@ if __name__ == '__main__':
              project='kwapi',
              default_config_files=['/etc/kwapi/rrd.conf'])
     log.setup('kwapi')
-
     root = app.make_app()
     root.run(host='0.0.0.0', port=cfg.CONF.rrd_port)
