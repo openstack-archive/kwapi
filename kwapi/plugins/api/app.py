@@ -46,7 +46,13 @@ def make_app():
 
     @app.before_request
     def attach_config():
-        flask.request.database = collector.database
+        flask.request.collector = collector
+        collector.lock.acquire()
+
+    @app.after_request
+    def unlock(response):
+        collector.lock.release()
+        return response
 
     # Install the middleware wrapper
     if cfg.CONF.acl_enabled:

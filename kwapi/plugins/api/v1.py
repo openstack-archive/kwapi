@@ -31,7 +31,7 @@ def welcome():
 def list_probes_ids():
     """Returns all known probes IDs."""
     message = {}
-    message['probe_ids'] = flask.request.database.keys()
+    message['probe_ids'] = flask.request.collector.database.keys()
     return flask.jsonify(message)
 
 
@@ -39,8 +39,9 @@ def list_probes_ids():
 def list_probes():
     """Returns all information about all known probes."""
     message = {}
-    message['probes'] = flask.request.database
-    return flask.jsonify(message)
+    message['probes'] = flask.request.collector.database
+    result = flask.jsonify(message)
+    return result
 
 
 @blueprint.route('/probes/<probe>/')
@@ -48,7 +49,7 @@ def probe_info(probe):
     """Returns all information about this probe (id, timestamp, kWh, W)."""
     message = {}
     try:
-        message[probe] = flask.request.database[probe]
+        message[probe] = flask.request.collector.database[probe]
     except KeyError:
         flask.abort(404)
     return flask.jsonify(message)
@@ -59,7 +60,10 @@ def probe_value(probe, meter):
     """Returns the probe meter value."""
     message = {}
     try:
-        message[probe] = {meter: flask.request.database[probe][meter]}
+        message[probe] = \
+            {
+                meter: flask.request.collector.database[probe][meter]
+            }
     except KeyError:
         flask.abort(404)
     return flask.jsonify(message)

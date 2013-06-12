@@ -63,6 +63,8 @@ class Driver(Thread):
         """Asks the driver thread to terminate."""
         self.stop_request.set()
         super(Driver, self).join()
+        LOG.info('Unloading driver %s(probe_ids=%s, kwargs=%s)'
+                 % (self.__class__.__name__, self.probe_ids, self.kwargs))
 
     def stop_request_pending(self):
         """Returns true if a stop request is pending."""
