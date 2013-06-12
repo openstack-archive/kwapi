@@ -80,25 +80,31 @@ class Collector:
         """Initializes an empty database and start listening the endpoint."""
         LOG.info('Starting Collector')
         self.database = {}
+        self.lock = threading.Lock()
         thread = threading.Thread(target=self.listen)
         thread.daemon = True
         thread.start()
 
     def add(self, probe, watts):
         """Creates (or updates) consumption data for this probe."""
+        self.lock.acquire()
         if probe in self.database.keys():
             self.database[probe].add(watts)
         else:
             record = Record(timestamp=time.time(), kwh=0.0, watts=watts)
             self.database[probe] = record
+        self.lock.release()
 
     def remove(self, probe):
         """Removes this probe from database."""
-        if probe in self.database.keys():
+        self.lock.acquire()
+        try:
             del self.database[probe]
             return True
-        else:
+        except KeyError:
             return False
+        finally:
+            self.lock.release()
 
     def clean(self):
         """Removes probes from database if they didn't send new values over
@@ -108,11 +114,13 @@ class Collector:
         """
         LOG.info('Cleaning collector')
         # Cleaning
+        self.lock.acquire()
         for probe in self.database.keys():
             if time.time() - self.database[probe]['timestamp'] > \
                     cfg.CONF.cleaning_interval:
                 LOG.info('Removing data of probe %s' % probe)
                 self.remove(probe)
+        self.lock.release()
 
         # Schedule periodic execution of this function
         if cfg.CONF.cleaning_interval > 0:
