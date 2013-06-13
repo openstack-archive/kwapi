@@ -110,12 +110,21 @@ def start_zmq_server():
     """Forwards probe values to the probes_endpoint."""
     context = zmq.Context.instance()
     context.set(zmq.MAX_SOCKETS, 100000)
-    frontend = context.socket(zmq.SUB)
-    frontend.bind('inproc://drivers')
-    frontend.setsockopt(zmq.SUBSCRIBE, '')
-    backend = context.socket(zmq.PUB)
-    backend.bind(cfg.CONF.probes_endpoint)
-    thread.start_new_thread(zmq.device, (zmq.FORWARDER, frontend, backend))
+    frontend = context.socket(zmq.XPUB)
+    frontend.bind(cfg.CONF.probes_endpoint)
+    backend = context.socket(zmq.XSUB)
+    backend.bind('inproc://drivers')
+    poll = zmq.Poller()
+    poll.register(frontend, zmq.POLLIN)
+    poll.register(backend, zmq.POLLIN)
+    while True:
+        items = dict(poll.poll(1000))
+        if items.get(backend) == zmq.POLLIN:
+            msg = backend.recv_multipart()
+            frontend.send_multipart(msg)
+        elif items.get(frontend) == zmq.POLLIN:
+            msg = frontend.recv()
+            backend.send(msg)
 
 
 def signal_handler(signum, frame):
