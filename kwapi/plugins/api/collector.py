@@ -131,7 +131,7 @@ class Collector:
         database. Messages are dictionaries dumped in JSON format.
 
         """
-        LOG.info('Collector listenig to %s' % cfg.CONF.probes_endpoint)
+        LOG.info('Collector listening to %s' % cfg.CONF.probes_endpoint)
 
         context = zmq.Context.instance()
         subscriber = context.socket(zmq.SUB)
