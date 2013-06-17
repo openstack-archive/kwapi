@@ -61,6 +61,7 @@ class Driver(Thread):
 
     def join(self):
         """Asks the driver thread to terminate."""
+        print "JOIN REQ"
         self.stop_request.set()
         super(Driver, self).join()
         LOG.info('Unloading driver %s(probe_ids=%s, kwargs=%s)'

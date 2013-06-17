@@ -19,7 +19,7 @@
 import ast
 import signal
 import thread
-from threading import Lock, Timer
+from threading import Lock, Timer, Thread
 
 from oslo.config import cfg
 import zmq
@@ -107,13 +107,18 @@ def check_drivers_alive():
 
 
 def start_zmq_server():
-    """Forwards probe values to the probes_endpoint."""
+    """Binds the sockets."""
     context = zmq.Context.instance()
     context.set(zmq.MAX_SOCKETS, 100000)
     frontend = context.socket(zmq.XPUB)
     frontend.bind(cfg.CONF.probes_endpoint)
     backend = context.socket(zmq.XSUB)
     backend.bind('inproc://drivers')
+    thread.start_new_thread(run_zmq_forwarder, (frontend, backend))
+
+
+def run_zmq_forwarder(frontend, backend):
+    """Forwards probe values to the probes_endpoint."""
     poll = zmq.Poller()
     poll.register(frontend, zmq.POLLIN)
     poll.register(backend, zmq.POLLIN)
@@ -136,5 +141,10 @@ def signal_handler(signum, frame):
 def terminate():
     """Terminates driver threads."""
     lock.acquire()
+    join_threads = []
     for driver in threads:
-        thread.start_new_thread(driver.join, ())
+        join_thread = Thread(target=driver.join)
+        join_thread.start()
+        join_threads.append(join_thread)
+    for join_thread in join_threads:
+        join_thread.join()
