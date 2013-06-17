@@ -260,7 +260,7 @@ def listen():
     database. Messages are dictionaries dumped in JSON format.
 
     """
-    LOG.info('RRD listenig to %s' % cfg.CONF.probes_endpoint)
+    LOG.info('RRD listening to %s' % cfg.CONF.probes_endpoint)
 
     create_dirs()
 

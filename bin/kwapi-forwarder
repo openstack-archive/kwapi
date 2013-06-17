@@ -38,7 +38,7 @@ cfg.CONF.register_opts(forwarder_opts)
 def forwarder():
     """Listens probes_endpoints and forwards messages to the plugins."""
     LOG = log.getLogger('kwapi')
-    LOG.info('Collector listenig to %s' % cfg.CONF.probes_endpoint)
+    LOG.info('Forwarder listening to %s' % cfg.CONF.probes_endpoint)
     context = zmq.Context.instance()
     frontend = context.socket(zmq.XPUB)
     frontend.bind(cfg.CONF.forwarder_endpoint)
