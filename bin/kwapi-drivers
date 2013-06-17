@@ -17,7 +17,6 @@
 
 import sys
 import signal
-import thread
 
 from oslo.config import cfg
 
@@ -30,7 +29,7 @@ if __name__ == "__main__":
              default_config_files=['/etc/kwapi/drivers.conf'])
     log.setup('kwapi')
 
-    thread.start_new_thread(driver_manager.start_zmq_server, ())
+    driver_manager.start_zmq_server()
     driver_manager.load_all_drivers()
     driver_manager.check_drivers_alive()
 
