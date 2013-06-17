@@ -114,13 +114,11 @@ class Collector:
         """
         LOG.info('Cleaning collector')
         # Cleaning
-        self.lock.acquire()
         for probe in self.database.keys():
             if time.time() - self.database[probe]['timestamp'] > \
                     cfg.CONF.cleaning_interval:
                 LOG.info('Removing data of probe %s' % probe)
                 self.remove(probe)
-        self.lock.release()
 
         # Schedule periodic execution of this function
         if cfg.CONF.cleaning_interval > 0:
