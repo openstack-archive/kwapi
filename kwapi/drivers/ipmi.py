@@ -14,11 +14,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import errno
-import os
 import subprocess
 import time
-import uuid
 
 from kwapi.openstack.common import log
 from driver import Driver
@@ -35,7 +32,7 @@ class Ipmi(Driver):
         Keyword arguments:
         probe_ids -- list containing the probes IDs
                      (a wattmeter monitor sometimes several probes)
-        kwargs -- keywords (cache_directory, interface, host, username,
+        kwargs -- keywords (interface, host, username,
                   password) defining the IPMI parameters
 
         """
@@ -43,33 +40,28 @@ class Ipmi(Driver):
 
     def run(self):
         """Starts the driver thread."""
-        measurements = {}
-        while not self.stop_request_pending():
-            watts = self.get_watts()
-            if watts is not None:
-                measurements['w'] = watts
-                self.send_measurements(self.probe_ids[0], measurements)
-            time.sleep(1)
+        if set_sensor_name():
+            measurements = {}
+            while not self.stop_request_pending():
+                watts = self.get_watts()
+                if watts is not None:
+                    measurements['w'] = watts
+                    self.send_measurements(self.probe_ids[0], measurements)
+                time.sleep(1)
 
-    def get_cache_filename(self):
-        """Returns the cache filename."""
-        return self.kwargs.get('cache_dir') + '/' + \
-            str(uuid.uuid5(uuid.NAMESPACE_DNS, self.probe_ids[0]))
+    def set_sensor_name(self):
+        """Deduces the sensors name from the IPMI listing, or loads it from
+        the config file. Returns True if the sensor name is found.
 
-    def create_cache(self):
-        """Creates the cache file."""
-        cache_file = self.get_cache_filename()
-        try:
-            os.makedirs(self.kwargs.get('cache_dir'))
-        except OSError as exception:
-            if exception.errno != errno.EEXIST:
-                raise
+        """
+        names = []
+        # Listing
         command = 'ipmitool '
         command += '-I ' + self.kwargs.get('interface') + ' '
         command += '-H ' + self.kwargs.get('host') + ' '
-        command += '-U ' + self.kwargs.get('username', 'root') + ' '
+        command += '-U ' + self.kwargs.get('username') + ' '
         command += '-P ' + self.kwargs.get('password') + ' '
-        command += 'sdr dump ' + cache_file
+        command += 'sensor'
         child = subprocess.Popen(command,
                                  shell=True,
                                  stdout=subprocess.PIPE,
@@ -77,26 +69,32 @@ class Ipmi(Driver):
                                  )
         output, error = child.communicate()
         if child.returncode == 0:
-            return cache_file
+            for line in output.split('\n'):
+                if 'Watts' in line:
+                    names.append(line.split('|')[0].strip())
+            if not names:
+                LOG.error('IPMI card does not support wattmeter features')
+                return False
+            elif not self.kwargs.get('sensor') and len(names) == 1:
+                self.kwargs['sensor'] = names[0]
+                return True
+            elif not self.kwargs.get('sensor') in names:
+                LOG.error('Sensor name not found')
+                return False
+            else:
+                return True
         else:
-            LOG.error('Failed to download cache from probe %s: %s'
-                      % (self.probe_ids[0], error))
+            LOG.error('Failed to list the sensors')
             return None
 
     def get_watts(self):
-        """Returns the power consumption."""
-        cache_file = self.get_cache_filename()
-        # Try to create cache (not a problem if this fails)
-        if not os.path.exists(cache_file):
-            self.create_cache()
         # Get power consumption
         command = 'ipmitool '
-        command += '-S ' + cache_file + ' '
         command += '-I ' + self.kwargs.get('interface') + ' '
         command += '-H ' + self.kwargs.get('host') + ' '
-        command += '-U ' + self.kwargs.get('username', 'root') + ' '
+        command += '-U ' + self.kwargs.get('username') + ' '
         command += '-P ' + self.kwargs.get('password') + ' '
-        command += 'sensor reading "System Level"'
+        command += 'sensor reading "' + self.kwargs.get('sensor') + '"'
         child = subprocess.Popen(command,
                                  shell=True,
                                  stdout=subprocess.PIPE,
@@ -105,7 +103,7 @@ class Ipmi(Driver):
         output, error = child.communicate()
         if child.returncode == 0:
             try:
-                return int(output.split('|')[1])
+                return float(output.split('|')[1])
             except ValueError:
                 LOG.error('Received data from probe %s are invalid: %s'
                           % (self.probe_ids[0], output))
