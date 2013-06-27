@@ -96,7 +96,7 @@ class Ipmi(Driver):
         command += '-H ' + self.kwargs.get('host') + ' '
         command += '-U ' + self.kwargs.get('username', 'root') + ' '
         command += '-P ' + self.kwargs.get('password') + ' '
-        command += 'sensor reading "System Level"'
+        command += 'sensor reading "' + self.kwargs.get('sensor_name') + '"'
         child = subprocess.Popen(command,
                                  shell=True,
                                  stdout=subprocess.PIPE,
