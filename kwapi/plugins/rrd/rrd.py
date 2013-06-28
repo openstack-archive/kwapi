@@ -17,11 +17,12 @@
 """Defines functions to build and update rrd database and graph."""
 
 import collections
+import colorsys
 import errno
-import itertools
 import json
 import os
 from threading import Lock
+import struct
 import time
 import uuid
 
@@ -41,6 +42,15 @@ rrd_opts = [
     cfg.FloatOpt('kwh_price',
                  required=True,
                  ),
+    cfg.IntOpt('hues',
+               required=True,
+               ),
+    cfg.IntOpt('min_brightness',
+               required=True,
+               ),
+    cfg.IntOpt('max_brightness',
+               required=True,
+               ),
     cfg.IntOpt('max_watts',
                required=True,
                ),
@@ -50,6 +60,9 @@ rrd_opts = [
     cfg.MultiStrOpt('watch_probe',
                     required=False,
                     ),
+    cfg.StrOpt('color',
+               required=True,
+               ),
     cfg.StrOpt('driver_metering_secret',
                required=True,
                ),
@@ -77,11 +90,29 @@ scales['month'] = {'interval': 2678400, 'resolution': 21600, 'label': 'month'},
 # Resolution = 1 week
 scales['year'] = {'interval': 31622400, 'resolution': 604800, 'label': 'year'},
 
-colors = ['#EA644A', '#EC9D48', '#ECD748', '#54EC48', '#48C4EC', '#7648EC',
-          '#DE48EC', '#8A8187']
 probes = set()
 probe_colors = {}
 lock = Lock()
+
+
+def color_generator():
+    step = (cfg.CONF.max_brightness-cfg.CONF.min_brightness) / \
+        float(cfg.CONF.hues)
+    rgb_base = struct.unpack('BBB',
+                             cfg.CONF.color.strip('#').decode('hex'))
+    i = cfg.CONF.min_brightness
+    while True:
+        hls = colorsys.rgb_to_hls(rgb_base[0]/255.0,
+                                  rgb_base[1]/255.0,
+                                  rgb_base[2]/255.0)
+        new_rgb = colorsys.hls_to_rgb(hls[0],
+                                      (i+step)/100.0,
+                                      hls[2])
+        new_rgb = tuple([int(x*255) for x in new_rgb])
+        i += step
+        if i > cfg.CONF.max_brightness:
+            i = cfg.CONF.min_brightness
+        yield '#' + struct.pack('BBB', *new_rgb).encode('hex')
 
 
 def create_dirs():
@@ -294,7 +325,7 @@ def listen():
                 LOG.error('Malformed message (missing required key)')
             else:
                 if not probe in probes:
-                    color_seq = itertools.cycle(colors)
+                    color_seq = color_generator()
                     lock.acquire()
                     probes.add(probe)
                     for probe in sorted(probes):
