@@ -42,7 +42,7 @@ class Dummy(Driver):
         while not self.stop_request_pending():
             measurements = {}
             for probe_id in self.probe_ids:
-                measurements['w'] = randrange(self.min_value, self.max_value)
+                measurements['w'] = randrange(self.min_value, self.max_value+1)
                 measurements['v'] = 230.0
                 measurements['a'] = measurements['w'] / measurements['v']
                 self.send_measurements(probe_id, measurements)

@@ -42,15 +42,6 @@ rrd_opts = [
     cfg.FloatOpt('kwh_price',
                  required=True,
                  ),
-    cfg.IntOpt('hues',
-               required=True,
-               ),
-    cfg.IntOpt('min_brightness',
-               required=True,
-               ),
-    cfg.IntOpt('max_brightness',
-               required=True,
-               ),
     cfg.IntOpt('max_watts',
                required=True,
                ),
@@ -95,24 +86,34 @@ probe_colors = {}
 lock = Lock()
 
 
-def color_generator():
-    step = (cfg.CONF.max_brightness-cfg.CONF.min_brightness) / \
-        float(cfg.CONF.hues)
+def color_generator(nb_colors):
+    """Generates colors."""
+    min_brightness = 50-nb_colors*15/2.0
+    if min_brightness < 5:
+        min_brightness = 5
+    max_brightness = 50+nb_colors*15/2.0
+    if max_brightness > 95:
+        max_brightness = 95
+    if nb_colors <= 1:
+        min_brightness = 50
+        step = 0
+    else:
+        step = (max_brightness-min_brightness) / (nb_colors-1.0)
     rgb_base = struct.unpack('BBB',
                              cfg.CONF.color.strip('#').decode('hex'))
-    i = cfg.CONF.min_brightness
+    i = min_brightness
     while True:
-        hls = colorsys.rgb_to_hls(rgb_base[0]/255.0,
+        hsv = colorsys.rgb_to_hsv(rgb_base[0]/255.0,
                                   rgb_base[1]/255.0,
                                   rgb_base[2]/255.0)
-        new_rgb = colorsys.hls_to_rgb(hls[0],
-                                      (i+step)/100.0,
-                                      hls[2])
+        new_rgb = colorsys.hsv_to_rgb(hsv[0],
+                                      hsv[1],
+                                      i/100.0)
         new_rgb = tuple([int(x*255) for x in new_rgb])
-        i += step
-        if i > cfg.CONF.max_brightness:
-            i = cfg.CONF.min_brightness
         yield '#' + struct.pack('BBB', *new_rgb).encode('hex')
+        i += step
+        if i > max_brightness:
+            i = min_brightness
 
 
 def create_dirs():
@@ -223,7 +224,7 @@ def build_graph(scale, probe=None):
             if probe is not None:
                 probe_list = [probe]
             else:
-                probe_list = sorted(probes)
+                probe_list = sorted(probes, reverse=True)
             for probe in probe_list:
                 probe_uuid = uuid.uuid5(uuid.NAMESPACE_DNS, probe)
                 rrd_file = get_rrd_filename(probe)
@@ -325,9 +326,9 @@ def listen():
                 LOG.error('Malformed message (missing required key)')
             else:
                 if not probe in probes:
-                    color_seq = color_generator()
+                    color_seq = color_generator(len(probes)+1)
                     lock.acquire()
                     probes.add(probe)
-                    for probe in sorted(probes):
+                    for probe in sorted(probes, reverse=True):
                         probe_colors[probe] = color_seq.next()
                     lock.release()
