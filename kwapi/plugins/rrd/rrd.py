@@ -42,6 +42,9 @@ rrd_opts = [
     cfg.FloatOpt('kwh_price',
                  required=True,
                  ),
+    cfg.IntOpt('hue',
+               required=True,
+               ),
     cfg.IntOpt('max_watts',
                required=True,
                ),
@@ -51,7 +54,7 @@ rrd_opts = [
     cfg.MultiStrOpt('watch_probe',
                     required=False,
                     ),
-    cfg.StrOpt('color',
+    cfg.StrOpt('currency',
                required=True,
                ),
     cfg.StrOpt('driver_metering_secret',
@@ -99,21 +102,14 @@ def color_generator(nb_colors):
         step = 0
     else:
         step = (max_brightness-min_brightness) / (nb_colors-1.0)
-    rgb_base = struct.unpack('BBB',
-                             cfg.CONF.color.strip('#').decode('hex'))
     i = min_brightness
-    while True:
-        hsv = colorsys.rgb_to_hsv(rgb_base[0]/255.0,
-                                  rgb_base[1]/255.0,
-                                  rgb_base[2]/255.0)
-        new_rgb = colorsys.hsv_to_rgb(hsv[0],
-                                      hsv[1],
-                                      i/100.0)
-        new_rgb = tuple([int(x*255) for x in new_rgb])
-        yield '#' + struct.pack('BBB', *new_rgb).encode('hex')
+    while int(i) <= max_brightness:
+        rgb = colorsys.hsv_to_rgb(cfg.CONF.hue/360.0,
+                                  1,
+                                  i/100.0)
+        rgb = tuple([int(x*255) for x in rgb])
+        yield '#' + struct.pack('BBB', *rgb).encode('hex')
         i += step
-        if i > max_brightness:
-            i = min_brightness
 
 
 def create_dirs():
@@ -278,7 +274,7 @@ def build_graph(scale, probe=None):
             args.append('GPRINT:watt_with_unknown:LAST:Last\: %3.1lf W\j')
             args.append('TEXTALIGN:center')
             args.append('GPRINT:kwh:LAST:Total\: %lf kWh')
-            args.append('GPRINT:cost:LAST:Cost\: %lf €')
+            args.append('GPRINT:cost:LAST:Cost\: %lf ' + cfg.CONF.currency)
             LOG.info('Build PNG summary graph')
             rrdtool.graph(args)
             return png_file
