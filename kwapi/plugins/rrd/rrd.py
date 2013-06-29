@@ -110,6 +110,8 @@ def color_generator(nb_colors):
         rgb = tuple([int(x*255) for x in rgb])
         yield '#' + struct.pack('BBB', *rgb).encode('hex')
         i += step
+        if step == 0:
+            break
 
 
 def create_dirs():
