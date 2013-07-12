@@ -64,7 +64,8 @@ def signal_handler(signum, frame):
         raise KeyboardInterrupt
 
 
-if __name__ == '__main__':
+def start():
+    """Starts Kwapi forwarder."""
     cfg.CONF(sys.argv[1:],
              project='kwapi',
              default_config_files=['/etc/kwapi/forwarder.conf']
