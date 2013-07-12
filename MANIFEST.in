@@ -1,1 +1,5 @@
-include etc/kwapi/*.conf
+include AUTHORS
+include CONTRIBUTING.rst
+exclude .gitignore
+exclude .gitreview
+global-exclude *.pyc

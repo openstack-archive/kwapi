@@ -16,6 +16,8 @@
 
 """Set up the API server application instance."""
 
+import sys
+
 import flask
 from oslo.config import cfg
 
@@ -30,6 +32,9 @@ app_opts = [
     cfg.BoolOpt('acl_enabled',
                 required=True,
                 ),
+    cfg.IntOpt('api_port',
+               required=True,
+               ),
 ]
 
 cfg.CONF.register_opts(app_opts)
@@ -59,3 +64,14 @@ def make_app():
         acl.install(app, cfg.CONF)
 
     return app
+
+
+def start():
+    """Starts Kwapi API."""
+    cfg.CONF(sys.argv[1:],
+             project='kwapi',
+             default_config_files=['/etc/kwapi/api.conf']
+             )
+    log.setup('kwapi')
+    root = make_app()
+    root.run(host='0.0.0.0', port=cfg.CONF.api_port)
