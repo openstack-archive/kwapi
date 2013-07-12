@@ -16,15 +16,25 @@
 
 """Set up the RRD server application instance."""
 
+import sys
 import thread
 
 import flask
+from oslo.config import cfg
 
 from kwapi.openstack.common import log
 import rrd
 import v1
 
 LOG = log.getLogger(__name__)
+
+app_opts = [
+    cfg.IntOpt('rrd_port',
+               required=True,
+               ),
+]
+
+cfg.CONF.register_opts(app_opts)
 
 
 def make_app():
@@ -40,3 +50,13 @@ def make_app():
         flask.request.probes = rrd.probes
         flask.request.scales = rrd.scales
     return app
+
+
+def start():
+    """Starts Kwapi RRD."""
+    cfg.CONF(sys.argv[1:],
+             project='kwapi',
+             default_config_files=['/etc/kwapi/rrd.conf'])
+    log.setup('kwapi')
+    root = make_app()
+    root.run(host='0.0.0.0', port=cfg.CONF.rrd_port)

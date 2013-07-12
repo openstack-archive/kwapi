@@ -18,6 +18,7 @@
 
 import ast
 import signal
+import sys
 import thread
 from threading import Lock, Timer, Thread
 
@@ -148,3 +149,21 @@ def terminate():
         join_threads.append(join_thread)
     for join_thread in join_threads:
         join_thread.join()
+
+
+def start():
+    """Starts Kwapi drivers."""
+    cfg.CONF(sys.argv[1:],
+             project='kwapi',
+             default_config_files=['/etc/kwapi/drivers.conf'])
+    log.setup('kwapi')
+
+    start_zmq_server()
+    load_all_drivers()
+    check_drivers_alive()
+
+    signal.signal(signal.SIGTERM, signal_handler)
+    try:
+        signal.pause()
+    except KeyboardInterrupt:
+        terminate()

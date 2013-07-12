@@ -24,18 +24,6 @@ from oslo.config import cfg
 from kwapi.openstack.common import policy
 from kwapi import utils
 
-
-OPTS = [
-    cfg.StrOpt('policy_file',
-               default='policy.json',
-               help='JSON file representing policy'),
-    cfg.StrOpt('policy_default_rule',
-               default='default',
-               help='Rule checked when requested rule is not found'),
-]
-
-cfg.CONF.register_opts(OPTS)
-
 _POLICY_PATH = None
 _POLICY_CACHE = {}
 

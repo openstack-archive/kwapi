@@ -17,52 +17,6 @@
 
 import setuptools
 
-from kwapi.openstack.common import setup as common_setup
-
-requires = common_setup.parse_requirements(['pip-requires'])
-depend_links = common_setup.parse_dependency_links(['pip-requires'])
-project = 'kwapi'
-version = common_setup.get_version(project, '2013.3')
-
-
 setuptools.setup(
-
-    name='kwapi',
-    version=version,
-
-    description='Energy Efficiency Architecture',
-
-    author='François Rossigneux',
-    author_email='francois.rossigneux@inria.fr',
-
-    url='https://github.com/stackforge/kwapi',
-
-    classifiers=[
-        'Development Status :: 3 - Alpha',
-        'Framework :: Setuptools Plugin',
-        'Environment :: OpenStack',
-        'Intended Audience :: Information Technology',
-        'Intended Audience :: System Administrators',
-        'License :: OSI Approved :: Apache Software License',
-        'Operating System :: POSIX :: Linux',
-        'Programming Language :: Python',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
-        'Topic :: System :: Monitoring',
-    ],
-
-    packages=setuptools.find_packages(),
-    package_data={'kwapi.plugins.rrd': ['templates/*', 'static/*']},
-
-    scripts=['bin/kwapi-api',
-             'bin/kwapi-forwarder',
-             'bin/kwapi-drivers',
-             'bin/kwapi-rrd'],
-
-    data_files=[('etc/kwapi', ['etc/kwapi/api.conf',
-                               'etc/kwapi/drivers.conf',
-                               'etc/kwapi/rrd.conf'])],
-
-    install_requires=requires,
-    dependency_links=depend_links,
-)
+    setup_requires=['d2to1>=0.2.10,<0.3', 'pbr>=0.5,<0.6'],
+    d2to1=True)
