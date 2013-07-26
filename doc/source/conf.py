@@ -144,7 +144,6 @@ write_autodoc_index()
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.viewcode',
-    'oslo.sphinx',
 ]
 
 wsme_protocols = ['restjson', 'restxml']
