@@ -20,8 +20,9 @@ import flask
 import keystoneclient.middleware.auth_token as auth_token
 from oslo.config import cfg
 
-from kwapi import policy
+from kwapi.openstack.common import policy
 
+_ENFORCER = None
 OPT_GROUP_NAME = 'keystone_authtoken'
 
 
@@ -46,5 +47,10 @@ def install(app, conf):
 def check():
     """Checks application access."""
     headers = flask.request.headers
-    if not policy.check_is_admin(headers.get('X-Roles', "").split(",")):
+    global _ENFORCER
+    if not _ENFORCER:
+        _ENFORCER = policy.Enforcer()
+    if not _ENFORCER.enforce('context_is_admin',
+                             {},
+                             {'roles': headers.get('X-Roles', "").split(",")}):
         return "Access denied", 401

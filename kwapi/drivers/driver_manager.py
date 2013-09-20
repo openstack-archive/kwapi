@@ -91,7 +91,7 @@ def check_drivers_alive():
             if not driver_thread.is_alive():
                 LOG.warning('%s(probe_ids=%s, kwargs=%s) is crashed'
                             % (driver_thread.__class__.__name__,
-                            driver_thread.probe_ids, driver_thread.kwargs))
+                               driver_thread.probe_ids, driver_thread.kwargs))
                 new_thread = load_driver(driver_thread.__class__.__name__,
                                          driver_thread.probe_ids,
                                          driver_thread.kwargs

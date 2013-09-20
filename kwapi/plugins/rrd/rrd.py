@@ -158,8 +158,8 @@ def create_rrd_file(filename):
         for scale in scales.keys():
             args.append('RRA:AVERAGE:0.5:%s:%s'
                         % (scales[scale][0]['resolution'],
-                        scales[scale][0]['interval'] /
-                        scales[scale][0]['resolution']))
+                           scales[scale][0]['interval'] /
+                           scales[scale][0]['resolution']))
         rrdtool.create(args)
 
 
