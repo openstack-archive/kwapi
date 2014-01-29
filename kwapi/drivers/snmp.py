@@ -24,16 +24,19 @@ from driver import Driver
 LOG = log.getLogger(__name__)
 
 
-class Eaton(Driver):
-    """Driver for Eaton PDUs with 24 outlets."""
+class Snmp(Driver):
+    """Driver for SNMP based PDUs."""
 
     def __init__(self, probe_ids, **kwargs):
-        """Initializes the Eaton driver.
+        """Initializes the SNMP driver.
 
         Keyword arguments:
         probe_ids -- list containing the probes IDs
                      (a wattmeter monitor sometimes several probes)
-        kwargs -- keyword (ip, user) defining the Eaton SNMP parameters
+        kwargs -- keyword (protocol, user or community, ip, oid) defining the
+                  SNMP parameters
+                  Eaton OID is 1.3.6.1.4.1.534.6.6.7.6.5.1.3
+                  Raritan OID is 1.3.6.1.4.1.13742.4.1.2.2.1.7
 
         """
         Driver.__init__(self, probe_ids, kwargs)
@@ -49,19 +52,31 @@ class Eaton(Driver):
                 for watts in watts_list:
                     measurements = {}
                     measurements['w'] = watts
-                    self.send_measurements(self.probe_ids[i], measurements)
+                    if self.probe_ids[i]:
+                        self.send_measurements(self.probe_ids[i], measurements)
                     i += 1
             time.sleep(1)
 
     def get_watts(self):
         """Returns the power consumption."""
+        protocol = self.kwargs.get('protocol')
+        if protocol is '1':
+            community_or_user = cmdgen.CommunityData(
+                self.kwargs.get('community'),
+                mpModel=0)
+        elif protocol is '2c':
+            community_or_user = cmdgen.CommunityData(
+                self.kwargs.get('community'),
+                mpModel=1)
+        elif protocol is '3':
+            community_or_user = cmdgen.UsmUserData(self.kwargs.get('user'))
         errorIndication, errorStatus, errorIndex, varBindTable = \
             self.cmd_gen.bulkCmd(
-                cmdgen.UsmUserData(self.kwargs.get('user')),
+                community_or_user,
                 cmdgen.UdpTransportTarget((self.kwargs.get('ip'), 161)),
                 1, 0,
-                '1.3.6.1.4.1.534.6.6.7.6.5.1.3',
-                maxRows=24,
+                self.kwargs.get('oid'),
+                maxRows=len(self.probe_ids),
             )
         if errorIndication:
             LOG.error(errorIndication)
