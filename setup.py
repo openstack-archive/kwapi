@@ -50,16 +50,16 @@ setuptools.setup(
              'bin/kwapi-rrd',
              'bin/kwapi-forwarder'],
 
-    data_files=[('/etc/kwapi', ['etc/kwapi/api.conf',
+    data_files=[('etc/kwapi', ['etc/kwapi/api.conf',
                                'etc/kwapi/drivers.conf',
                                'etc/kwapi/rrd.conf',
-			       'etc/kwapi/forwarders.conf';
+			       'etc/kwapi/forwarder.conf',
 			       'etc/kwapi/daemon.conf']),
 		('/etc/init.d',['etc/init/kwapi'])],
 
     install_requires=['flask',
                       'pyserial',
-                      'python-keystoneclient',
                       'pyzmq',
-                      'python-rrdtool'],
+                      'python-rrdtool',
+                      'execo'],
 )
