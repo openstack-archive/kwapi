@@ -18,10 +18,10 @@
 import signal
 import sys
 
-from oslo.config import cfg
+from kwapi.utils import cfg
 import zmq
 
-from kwapi.openstack.common import log
+from kwapi.utils import log
 
 forwarder_opts = [
     cfg.MultiStrOpt('probes_endpoint',

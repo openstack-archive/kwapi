@@ -19,10 +19,9 @@
 import sys
 
 import flask
-from oslo.config import cfg
+from kwapi.utils import cfg
 
-from kwapi.openstack.common import log
-import acl
+from kwapi.utils import log
 from collector import Collector
 import v1
 
@@ -41,7 +40,7 @@ cfg.CONF.register_opts(app_opts)
 
 
 def make_app():
-    """Instantiates Flask app, attaches collector database, installs acl."""
+    """Instantiates Flask app, attaches collector database."""
     LOG.info('Starting API')
     app = flask.Flask(__name__)
     app.register_blueprint(v1.blueprint, url_prefix='/v1')
@@ -58,10 +57,6 @@ def make_app():
     def unlock(response):
         collector.lock.release()
         return response
-
-    # Install the middleware wrapper
-    if cfg.CONF.acl_enabled:
-        acl.install(app, cfg.CONF)
 
     return app
 

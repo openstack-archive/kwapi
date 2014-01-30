@@ -17,7 +17,7 @@
 import subprocess
 import time
 
-from kwapi.openstack.common import log
+from kwapi.utils import log
 from driver import Driver
 
 LOG = log.getLogger(__name__)

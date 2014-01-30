@@ -22,10 +22,10 @@ import sys
 import thread
 from threading import Lock, Timer, Thread
 
-from oslo.config import cfg
+from kwapi.utils import cfg
 import zmq
 
-from kwapi.openstack.common import log
+from kwapi.utils import log
 
 LOG = log.getLogger(__name__)
 

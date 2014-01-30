@@ -18,7 +18,7 @@ import time
 
 from pysnmp.entity.rfc3413.oneliner import cmdgen
 
-from kwapi.openstack.common import log
+from kwapi.utils import log
 from driver import Driver
 
 LOG = log.getLogger(__name__)
