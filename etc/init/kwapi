@@ -1,0 +1,78 @@
+#! /bin/sh
+# /etc/init.d/kwapi
+#
+NAME=kwapi
+USER=kwapi
+DESC="Energy monitoring service"
+PREFIX=/usr/local/bin/
+PID_DRIVERS="/var/run/kwapi-drivers.pid"
+PID_FORWARDER="/var/run/kwapi-forwarder.pid"
+PID_API="/var/run/kwapi-api.pid"
+PID_RRD="/var/run/kwapi-rrd.pid"
+
+# Create required directories
+[ -d /var/log/kwapi ] || mkdir -p /var/log/kwapi
+[ -d /var/lib/kwapi ] || mkdir -p /var/lib/kwapi
+
+# Give permissions to $USER
+chown $USER:$USER /var/log/kwapi
+chown $USER:$USER /var/lib/kwapi
+
+
+# Read configuration
+if [ -r /etc/kwapi/daemon.conf ]; then
+    . /etc/kwapi/daemon.conf
+else
+    echo 'Unable to read configuration file, abort ..'
+    exit 1
+fi
+
+# Carry out specific functions when asked to by the system
+case "$1" in
+  start)
+    if $DRIVERS; then
+        echo "Starting kwapi-drivers"
+        start-stop-daemon --start --pidfile $PID_DRIVERS --exec ${PREFIX}kwapi-drivers --chuid $USER --background
+    fi
+    if $FORWARDER; then
+        echo "Starting kwapi-forwarder"
+        start-stop-daemon --start --pidfile $PID_FORWARDER --exec ${PREFIX}kwapi-forwarder --chuid $USER --background
+    fi
+    if $API; then
+        echo "Starting kwapi-api"
+        start-stop-daemon --start --pidfile $PID_API --exec ${PREFIX}kwapi-api --chuid $USER --background
+    fi
+    if $RRD; then
+        echo "Starting kwapi-rrd"
+        start-stop-daemon --start --pidfile $PID_RRD --exec ${PREFIX}kwapi-rrd --chuid $USER --background
+    fi
+    ;;
+  stop)
+    if [ -f $PID_DRIVERS ]; then
+        echo "Stopping kwapi-drivers"
+        start-stop-daemon --stop --pidfile $PID_DRIVERS
+    fi
+    if [ -f $PID_FORWARDER ]; then
+        echo "Stopping kwapi-forwarder"
+        start-stop-daemon --stop --pidfile $PID_FORWARDER
+    fi
+    if [ -f $PID_API ]; then
+        echo "Stopping kwapi-api"
+        start-stop-daemon --stop --pidfile $PID_API
+    fi
+    if [ -f $PID_RRD ]; then
+        echo "Stopping kwapi-rrd"
+        start-stop-daemon --stop --pidfile $PID_RRD
+    fi
+    ;;
+  restart)
+    $O stop
+    $0 start
+  ;;
+  *)
+    echo "Usage: /etc/init.d/kwapi {start|stop}"
+    exit 1
+    ;;
+esac
+
+exit 0

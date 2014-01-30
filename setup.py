@@ -48,13 +48,14 @@ setuptools.setup(
     scripts=['bin/kwapi-api',
              'bin/kwapi-drivers',
              'bin/kwapi-rrd',
-             'bin/kwapi-forwarder'],
+             'bin/kwapi-forwarder',
+             'bin/kwapi-gen-conf'],
 
-    data_files=[('etc/kwapi', ['etc/kwapi/api.conf',
+    data_files=[('/etc/kwapi', ['etc/kwapi/api.conf',
                                'etc/kwapi/drivers.conf',
                                'etc/kwapi/rrd.conf',
-			       'etc/kwapi/forwarder.conf',
-			       'etc/kwapi/daemon.conf']),
+			                   'etc/kwapi/forwarder.conf',
+			                   'etc/kwapi/daemon.conf']),
 		('/etc/init.d',['etc/init/kwapi'])],
 
     install_requires=['flask',
