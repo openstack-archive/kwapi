@@ -15,8 +15,8 @@ PID_RRD="/var/run/kwapi-rrd.pid"
 [ -d /var/lib/kwapi ] || mkdir -p /var/lib/kwapi
 
 # Give permissions to $USER
-chown $USER:$USER /var/log/kwapi
-chown $USER:$USER /var/lib/kwapi
+chown -R $USER:$USER /var/log/kwapi
+chown -R $USER:$USER /var/lib/kwapi
 
 
 # Read configuration
@@ -32,19 +32,19 @@ case "$1" in
   start)
     if $DRIVERS; then
         echo "Starting kwapi-drivers"
-        start-stop-daemon --start --pidfile $PID_DRIVERS --exec ${PREFIX}kwapi-drivers --chuid $USER --background
+        start-stop-daemon --start --make-pidfile --pidfile $PID_DRIVERS --exec ${PREFIX}kwapi-drivers --chuid $USER --background
     fi
     if $FORWARDER; then
         echo "Starting kwapi-forwarder"
-        start-stop-daemon --start --pidfile $PID_FORWARDER --exec ${PREFIX}kwapi-forwarder --chuid $USER --background
+        start-stop-daemon --start --make-pidfile --pidfile $PID_FORWARDER --exec ${PREFIX}kwapi-forwarder --chuid $USER --background
     fi
     if $API; then
         echo "Starting kwapi-api"
-        start-stop-daemon --start --pidfile $PID_API --exec ${PREFIX}kwapi-api --chuid $USER --background
+        start-stop-daemon --start --make-pidfile --pidfile $PID_API --exec ${PREFIX}kwapi-api --chuid $USER --background
     fi
     if $RRD; then
         echo "Starting kwapi-rrd"
-        start-stop-daemon --start --pidfile $PID_RRD --exec ${PREFIX}kwapi-rrd --chuid $USER --background
+        start-stop-daemon --start --make-pidfile --pidfile $PID_RRD --exec ${PREFIX}kwapi-rrd --chuid $USER --background
     fi
     ;;
   stop)
@@ -66,7 +66,7 @@ case "$1" in
     fi
     ;;
   restart)
-    $O stop
+    $0 stop
     $0 start
   ;;
   *)

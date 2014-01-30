@@ -21,9 +21,20 @@ import signal
 from kwapi.drivers import driver_manager
 from kwapi.utils import cfg, log
 
+app_opts = [
+    cfg.StrOpt('log_file',
+               required=True,
+               ),
+]
+
+cfg.CONF.register_opts(app_opts)
+
+
 if __name__ == "__main__":
-    cfg.CONF(sys.argv[1:], project='kwapi', default_config_files=['/etc/kwapi/drivers.conf'])
-    log.setup('kwapi')
+    cfg.CONF(sys.argv[1:],
+             project='kwapi',
+             default_config_files=['/etc/kwapi/drivers.conf'])
+    log.setup(cfg.CONF.log_file)
 
     driver_manager.start_zmq_server()
     driver_manager.load_all_drivers()

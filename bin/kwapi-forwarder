@@ -3,7 +3,21 @@
 import sys
 
 from kwapi.forwarder import start
+from kwapi.utils import cfg, log
+
+app_opts = [
+    cfg.StrOpt('log_file',
+               required=True,
+               ),
+]
+
+cfg.CONF.register_opts(app_opts)
 
 
 if __name__ == "__main__":
+    cfg.CONF(sys.argv[1:],
+             project='kwapi',
+             default_config_files=['/etc/kwapi/forwarder.conf']
+             )
+    log.setup(cfg.CONF.log_file)
     sys.exit(start())

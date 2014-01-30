@@ -153,11 +153,6 @@ def terminate():
 
 def start():
     """Starts Kwapi drivers."""
-    cfg.CONF(sys.argv[1:],
-             project='kwapi',
-             default_config_files=['/etc/kwapi/drivers.conf'])
-    log.setup('kwapi')
-
     start_zmq_server()
     load_all_drivers()
     check_drivers_alive()

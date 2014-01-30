@@ -23,6 +23,8 @@ import zmq
 
 from kwapi.utils import log
 
+LOG = log.getLogger(__name__)
+
 forwarder_opts = [
     cfg.MultiStrOpt('probes_endpoint',
                     required=True,
@@ -37,7 +39,6 @@ cfg.CONF.register_opts(forwarder_opts)
 
 def forwarder():
     """Listens probes_endpoints and forwards messages to the plugins."""
-    LOG = log.getLogger('kwapi')
     LOG.info('Forwarder listening to %s' % cfg.CONF.probes_endpoint)
     context = zmq.Context.instance()
     frontend = context.socket(zmq.XPUB)
@@ -66,11 +67,6 @@ def signal_handler(signum, frame):
 
 def start():
     """Starts Kwapi forwarder."""
-    cfg.CONF(sys.argv[1:],
-             project='kwapi',
-             default_config_files=['/etc/kwapi/forwarder.conf']
-             )
-    log.setup('kwapi')
     signal.signal(signal.SIGTERM, signal_handler)
     try:
         forwarder()

@@ -54,9 +54,5 @@ def make_app():
 
 def start():
     """Starts Kwapi RRD."""
-    cfg.CONF(sys.argv[1:],
-             project='kwapi',
-             default_config_files=['/etc/kwapi/rrd.conf'])
-    log.setup('kwapi')
     root = make_app()
     root.run(host='0.0.0.0', port=cfg.CONF.rrd_port)

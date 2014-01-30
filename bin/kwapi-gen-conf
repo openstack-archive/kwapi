@@ -53,7 +53,9 @@ for sec_name, data in equips.iteritems():
 
 f.close()
 
-bak_conf = Process('[ -f /etc/kwapi/drivers.conf.orig ] && cp /etc/kwapi/drivers.conf.orig /etc/kwapi/drivers.conf || cp /etc/kwapi/drivers.conf /etc/kwapi/drivers.conf.orig').run()
+bak_conf = Process('[ -f /etc/kwapi/drivers.conf.orig ] && cp /etc/kwapi/drivers.conf.orig /etc/kwapi/drivers.conf || cp /etc/kwapi/drivers.conf /etc/kwapi/drivers.conf.orig')
+bak_conf.shell = True
+bak_conf.run()
 cat_conf = Process('cat /tmp/kwapi-drivers-list.conf >> /etc/kwapi/drivers.conf ; rm /tmp/kwapi-drivers-list.conf')
 cat_conf.shell = True
 cat_conf.run()
