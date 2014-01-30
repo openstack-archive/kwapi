@@ -2,7 +2,5 @@ Kwapi
 =====
 
 Documentation for the project can be found at:
-  https://kwapi.readthedocs.org
+   https://github.com/lpouillo/kwapi-g5k
 
-The project home is at:
-  http://launchpad.net/kwapi
