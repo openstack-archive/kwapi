@@ -44,7 +44,6 @@ class Snmp(Driver):
 
     def run(self):
         """Starts the driver thread."""
-        # Take measurements
         while not self.stop_request_pending():
             watts_list = self.get_watts()
             if watts_list is not None:

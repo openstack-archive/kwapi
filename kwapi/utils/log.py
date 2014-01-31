@@ -6,6 +6,7 @@ import logging
 
 getLogger = logging.getLogger
 
+
 def setup(file_name):
     """Setup logging with the given parameters."""
     # Create logger
