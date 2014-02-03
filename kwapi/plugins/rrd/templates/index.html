@@ -17,13 +17,13 @@
                 src += '#' + Date.now();
                 img.attr('src', src);
             }
-            
+
             function reloadAllImages() {
                 $('.graph').each(function() {
                     reloadImage($(this));
                 });
             }
-            
+
             $(document).ready(function () {
                 setInterval('reloadAllImages()', {{ refresh*1000 }});
             });
@@ -44,7 +44,7 @@
                 {% endfor %}
             </ul>
         </div>
-        
+
         <div id="inner">
             <!-- Scale view (all probes for one scale) -->
             {% if view == 'scale' %}
@@ -60,7 +60,7 @@
                 {% else %}
                     <p>No probes found.</p>
                 {% endif %}
-            
+
             <!-- Probe view (all scales for one probe) -->
             {% elif view == 'probe' %}
                 <h2>{{ probe }}</h2>
