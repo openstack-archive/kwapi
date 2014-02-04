@@ -26,11 +26,10 @@ import struct
 import time
 import uuid
 
-from kwapi.utils import cfg
+from kwapi.utils import cfg, log
 import rrdtool
 import zmq
 
-from kwapi.utils import log
 from kwapi import security
 
 LOG = log.getLogger(__name__)
@@ -142,6 +141,8 @@ def get_png_filename(scale, probe):
 
 def get_rrd_filename(probe):
     """Returns the rrd filename."""
+    LOG.info(cfg.CONF.rrd_dir + '/' + str(uuid.uuid5(uuid.NAMESPACE_DNS,
+                                        str(probe))) + '.rrd')
     return cfg.CONF.rrd_dir + '/' + str(uuid.uuid5(uuid.NAMESPACE_DNS,
                                         str(probe))) + '.rrd'
 

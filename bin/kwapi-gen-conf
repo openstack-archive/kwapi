@@ -67,9 +67,8 @@ elif drivers[site] == 'Json_url':
     sections['wattmetre']['probes'] = probes
 
 
-pprint (sections)
-
-exit()
+#pprint (sections)
+#exit()
 
 logger.info('Writing new config')
 f = open('/tmp/kwapi-drivers-list.conf', 'w')
