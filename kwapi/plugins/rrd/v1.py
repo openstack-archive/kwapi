@@ -85,7 +85,9 @@ def send_probe_rrd(probe):
     probe = probe.encode('utf-8')
     rrd_file = rrd.get_rrd_filename(probe)
     try:
-        return flask.send_file(rrd_file, conditional=True)
+        response = flask.send_file(rrd_file, conditional=True)
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response
     except:
         flask.abort(404)
 
