@@ -68,18 +68,7 @@ def welcome_probe(probe):
         flask.abort(404)
 
 
-# @blueprint.route('/rrd/<scale>/')
-# def send_summary_rrd(scale):
-#     """Sends summary graph."""
-#     scale = scale.encode('utf-8')
-#     png_file = rrd.build_graph(scale)
-#     try:
-#         return flask.send_file(png_file, cache_timeout=0, conditional=True)
-#     except:
-#         flask.abort(404)
-
-
-@blueprint.route('/rrd/<probe>.rrd')
+@blueprint.route('/rrd/<probe>/')
 def send_probe_rrd(probe):
     """Sends graph."""
     probe = probe.encode('utf-8')
@@ -90,7 +79,6 @@ def send_probe_rrd(probe):
         return response
     except:
         flask.abort(404)
-
 
 
 @blueprint.route('/graph/<scale>/')

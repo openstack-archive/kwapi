@@ -5,27 +5,35 @@
         <meta charset="utf-8">
         <link rel="stylesheet" href="{{ url_for('v1.static', filename='design.css') }}"/>
         <link rel="icon" type="image/png" href="{{ url_for('v1.static', filename='favicon.png') }}" />
-        <script src="{{ url_for('v1.static', filename='jquery-1.9.1.min.js') }}"></script>
+        <script src="{{ url_for('v1.static', filename='javascriptrrd-1.1.1.wlibs.min.js') }}"></script>
         <script type="text/javascript">
         // <![CDATA[
-            function reloadImage(img) {
-                var src = img.attr('src');
-                param_position = src.indexOf('#a');
-                if(param_position != -1) {
-                    src = src.substring(0, param_position);
-                }
-                src += '#' + Date.now();
-                img.attr('src', src);
+            function reloadGraph(img) {
+                var graph_opts={legend: 'None'};
+                var ds_graph_opts={'w':{color: "#A12F0A", lines: { show: true, fill: true}, yaxis:2}};
+                var id = img.attr('id');
+                {% if scale %}
+                    var rrd_flot_opts={graph_only: true,
+                                       use_rra: true,
+                                       rra: {{ ['minute', 'hour', 'day', 'week', 'month', 'year'].index(scale)}},
+                                       graph_height: "160px",
+                                       graph_width: "245px"
+                                       };
+                    flot_obj=new rrdFlotAsync(id, null, null, graph_opts, ds_graph_opts, rrd_flot_opts);
+                {% else %}
+                    flot_obj=new rrdFlotAsync(id, null, null, graph_opts, ds_graph_opts);
+                {% endif %}
+                flot_obj.reload("http://localhost:8082/rrd/" + id + "/");
             }
 
-            function reloadAllImages() {
+            function reloadAllGraphs() {
                 $('.graph').each(function() {
-                    reloadImage($(this));
+                    reloadGraph($(this));
                 });
             }
 
             $(document).ready(function () {
-                setInterval('reloadAllImages()', {{ refresh*1000 }});
+                setInterval('reloadAllGraphs()', {{ refresh*1000 }});
             });
         // ]]>
         </script>
@@ -44,18 +52,13 @@
                 {% endfor %}
             </ul>
         </div>
-
         <div id="inner">
             <!-- Scale view (all probes for one scale) -->
             {% if view == 'scale' %}
                 {% if probes|count > 0 %}
-                    <h2>Summary</h2>
-                    <!-- Display summary graph -->
-                    <img class="graph" id="summary" src="/graph/{{ scale }}/" alt="Summary graph"/>
-                    <h2>Details</h2>
                     <!-- Display all probe graphs -->
                     {% for probe in probes %}
-                        <a href="/probe/{{ probe }}"><img class="graph" src="/graph/{{ scale }}/{{ probe }}/" alt="Graph {{ probe }}"/></a>
+                        <a href="/probe/{{ probe }}"><div id="{{ probe }}" class="graph"></div></a>
                     {% endfor %}
                 {% else %}
                     <p>No probes found.</p>
@@ -63,11 +66,15 @@
 
             <!-- Probe view (all scales for one probe) -->
             {% elif view == 'probe' %}
-                <h2>{{ probe }}</h2>
-                {% for scale in scales %}
-                    <img class="graph" src="/graph/{{ scale }}/{{ probe }}/" alt="Graph {{ probe }}"/>
-                {% endfor %}
+                <h2>Probe: {{ probe }}</h2>
+                <div id="{{ probe }}" class="graph"></div>
             {% endif %}
+        <div id="bottom"></div>
         </div>
+        <script type="text/javascript">
+        // <![CDATA[
+            reloadAllGraphs();
+        // ]]>
+        </script>
     </body>
 </html>

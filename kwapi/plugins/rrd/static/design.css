@@ -83,12 +83,11 @@ h2 {
     font-weight:normal;
 }
 
-img {
-    padding:10px;
+.graph {
+    float:left;
 }
 
-#summary {
-    display:block;
-    margin-left:auto;
-    margin-right:auto;
+#bottom
+{
+	clear:both;
 }
