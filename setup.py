@@ -62,5 +62,7 @@ setuptools.setup(
                       'pyserial',
                       'pyzmq',
                       'python-rrdtool',
-                      'execo'],
+                      'execo',
+                      'numpy',
+                      'h5py'],
 )
