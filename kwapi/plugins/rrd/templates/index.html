@@ -9,7 +9,9 @@
         <script type="text/javascript">
         // <![CDATA[
             function reloadGraph(img) {
-                var graph_opts={legend: 'None'};
+                var graph_opts={legend: 'None',
+                                tooltipOpts: { content: "%y.2 watts" }
+                                };
                 var ds_graph_opts={'w':{color: "#A12F0A", lines: { show: true, fill: true}, yaxis:2}};
                 var id = img.attr('id');
                 {% if scale %}
@@ -17,11 +19,14 @@
                                        use_rra: true,
                                        rra: {{ ['minute', 'hour', 'day', 'week', 'month', 'year'].index(scale)}},
                                        graph_height: "160px",
-                                       graph_width: "245px"
+                                       graph_width: "232px"
                                        };
                     flot_obj=new rrdFlotAsync(id, null, null, graph_opts, ds_graph_opts, rrd_flot_opts);
                 {% else %}
-                    flot_obj=new rrdFlotAsync(id, null, null, graph_opts, ds_graph_opts);
+                    var rrd_flot_opts={graph_height: "500px",
+                                       graph_width: "1010px"
+                                       };
+                    flot_obj=new rrdFlotAsync(id, null, null, graph_opts, ds_graph_opts, rrd_flot_opts);
                 {% endif %}
                 flot_obj.reload("http://localhost:8082/rrd/" + id + "/");
             }
@@ -58,7 +63,10 @@
                 {% if probes|count > 0 %}
                     <!-- Display all probe graphs -->
                     {% for probe in probes %}
-                        <a href="/probe/{{ probe }}"><div id="{{ probe }}" class="graph"></div></a>
+                        <div class="imageSingle">
+                            <div class="legend">{{ probe }}</div>
+                            <div class="image"><a href="/probe/{{ probe }}"><div id="{{ probe }}" class="graph"></div></a></div>
+                        </div>
                     {% endfor %}
                 {% else %}
                     <p>No probes found.</p>
