@@ -17,6 +17,7 @@
 
 import sys
 
+from kwapi.plugins.rrd import app
 from kwapi.utils import cfg, log
 
 app_opts = [
@@ -29,7 +30,7 @@ cfg.CONF.register_opts(app_opts)
 
 
 if __name__ == '__main__':
-    cfg.CONF(sys.argv[1:], project='kwapi', default_config_files=['/etc/kwapi/rrd.conf'])
+    cfg.CONF(sys.argv[1:], project='kwapi', default_config_files=['/etc/kwapi/hdf5.conf'])
     log.setup(cfg.CONF.log_file)
 
     root = app.make_app()
