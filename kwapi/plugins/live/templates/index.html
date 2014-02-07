@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <title>Kwapi monitoring</title>
+        <meta charset="utf-8">
+        <link rel="stylesheet" href="{{ url_for('v1.static', filename='design.css') }}"/>
+        <link rel="icon" type="image/png" href="{{ url_for('v1.static', filename='favicon.png') }}" />
+        <script src="{{ url_for('v1.static', filename='jquery-1.9.1.min.js') }}"></script>
+    </head>
+    <body>
+        <div id="header"><h1>Kwapi energy monitoring</h1></div>
+
+        <div id="inner">
+            <!-- Scale view (all probes for one scale) -->
+            {% if view == 'all' %}
+                {% if probes|count > 0 %}
+                    <h2>Summary</h2>
+                    <!-- Display summary graph -->
+                    <!-- TODO -->
+                    <h2>Details</h2>
+                    <!-- Display all probe graphs -->
+                    <!-- TODO -->
+                {% else %}
+                    <p>No probes found.</p>
+                {% endif %}
+
+            <!-- Probe view (all scales for one probe) -->
+            {% elif view == 'probe' %}
+                <h2>{{ probe }}</h2>
+                <!-- TODO -->
+            {% endif %}
+        </div>
+    </body>
+</html>
