@@ -68,19 +68,6 @@ def welcome_probe(probe):
         flask.abort(404)
 
 
-@blueprint.route('/rrd/<probe>/')
-def send_probe_rrd(probe):
-    """Sends graph."""
-    probe = probe.encode('utf-8')
-    rrd_file = rrd.get_rrd_filename(probe)
-    try:
-        response = flask.send_file(rrd_file, conditional=True)
-        response.headers.add('Access-Control-Allow-Origin', '*')
-        return response
-    except:
-        flask.abort(404)
-
-
 @blueprint.route('/graph/<scale>/')
 def send_summary_graph(scale):
     """Sends summary graph."""
