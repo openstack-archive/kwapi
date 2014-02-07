@@ -49,7 +49,8 @@ setuptools.setup(
              'bin/kwapi-drivers',
              'bin/kwapi-rrd',
              'bin/kwapi-forwarder',
-             'bin/kwapi-gen-conf'],
+             'bin/kwapi-gen-conf',
+             'bin/kwapi-hdf5'],
 
     data_files=[('/etc/kwapi', ['etc/kwapi/api.conf',
                                'etc/kwapi/drivers.conf',
