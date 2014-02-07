@@ -19,18 +19,15 @@
 import collections
 import colorsys
 import errno
-import json
 import os
 from threading import Lock
 import struct
 import time
 import uuid
 
-from kwapi.utils import cfg
 import rrdtool
-import zmq
 
-from kwapi.utils import log
+from kwapi.utils import cfg, log
 from kwapi import security
 
 LOG = log.getLogger(__name__)
@@ -165,6 +162,14 @@ def create_rrd_file(filename):
 
 def update_rrd(probe, watts):
     """Updates RRD file associated with this probe."""
+    if not probe in probes:
+        color_seq = color_generator(len(probes)+1)
+        lock.acquire()
+        probes.add(probe)
+        for probe in sorted(probes, reverse=True):
+            probe_colors[probe] = color_seq.next()
+        lock.release()
+
     filename = cfg.CONF.rrd_dir + '/' + \
         str(uuid.uuid5(uuid.NAMESPACE_DNS, str(probe))) + '.rrd'
     if not os.path.isfile(filename):
@@ -283,50 +288,3 @@ def build_graph(scale, probe=None):
         else:
             LOG.info('Retrieve PNG summary graph from cache')
             return png_file
-
-
-def listen():
-    """Subscribes to ZeroMQ messages, and adds received measurements to the
-    database. Messages are dictionaries dumped in JSON format.
-
-    """
-    LOG.info('RRD listening to %s' % cfg.CONF.probes_endpoint)
-
-    create_dirs()
-
-    context = zmq.Context.instance()
-    subscriber = context.socket(zmq.SUB)
-    if not cfg.CONF.watch_probe:
-        subscriber.setsockopt(zmq.SUBSCRIBE, '')
-    else:
-        for probe in cfg.CONF.watch_probe:
-            subscriber.setsockopt(zmq.SUBSCRIBE, probe + '.')
-    for endpoint in cfg.CONF.probes_endpoint:
-        subscriber.connect(endpoint)
-
-    while True:
-        [probe, message] = subscriber.recv_multipart()
-        measurements = json.loads(message)
-        if not isinstance(measurements, dict):
-            LOG.error('Bad message type (not a dict)')
-        elif cfg.CONF.signature_checking and \
-            not security.verify_signature(measurements,
-                                          cfg.CONF.driver_metering_secret):
-            LOG.error('Bad message signature')
-        else:
-            try:
-                probe = measurements['probe_id'].encode('utf-8')
-                update_rrd(probe, float(measurements['w']))
-            except (TypeError, ValueError):
-                LOG.error('Malformed power consumption data: %s'
-                          % measurements['w'])
-            except KeyError:
-                LOG.error('Malformed message (missing required key)')
-            else:
-                if not probe in probes:
-                    color_seq = color_generator(len(probes)+1)
-                    lock.acquire()
-                    probes.add(probe)
-                    for probe in sorted(probes, reverse=True):
-                        probe_colors[probe] = color_seq.next()
-                    lock.release()

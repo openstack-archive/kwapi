@@ -20,6 +20,7 @@ import sys
 import thread
 
 import flask
+from kwapi.plugins import listen
 from kwapi.utils import cfg, log
 import rrd
 import v1
@@ -41,7 +42,8 @@ def make_app():
     app = flask.Flask(__name__)
     app.register_blueprint(v1.blueprint)
 
-    thread.start_new_thread(rrd.listen, ())
+    thread.start_new_thread(listen, (rrd.update_rrd,))
+    rrd.create_dirs()
 
     @app.before_request
     def attach_config():
