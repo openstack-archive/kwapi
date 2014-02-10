@@ -4,8 +4,15 @@
         <title>Kwapi monitoring</title>
         <meta charset="utf-8">
         <link rel="stylesheet" href="{{ url_for('v1.static', filename='design.css') }}"/>
+        <link rel="stylesheet" href="{{ url_for('v1.static', filename='jqplot/jquery.jqplot.min.css') }}"/>
         <link rel="icon" type="image/png" href="{{ url_for('v1.static', filename='favicon.png') }}" />
-        <script src="{{ url_for('v1.static', filename='jquery-1.9.1.min.js') }}"></script>
+        <script src="{{ url_for('v1.static', filename='jqplot/jquery.min.js') }}"></script>
+        <script src="{{ url_for('v1.static', filename='jqplot/jquery.jqplot.min.js') }}"></script>
+        <script src="{{ url_for('v1.static', filename='jqplot/plugins/jqplot.categoryAxisRenderer.min.js') }}"></script>
+        <script src="{{ url_for('v1.static', filename='jqplot/plugins/jqplot.highlighter.min.js') }}"></script>
+        <script src="{{ url_for('v1.static', filename='jqplot/plugins/jqplot.canvasTextRenderer.min.js') }}"></script>
+        <script src="{{ url_for('v1.static', filename='jqplot/plugins/jqplot.canvasAxisTickRenderer.min.js') }}"></script>
+        <script src="{{ url_for('v1.static', filename='jqplot/plugins/jqplot.categoryAxisRenderer.min.js') }}"></script>
     </head>
     <body>
         <div id="header"><h1>Kwapi energy monitoring</h1></div>
