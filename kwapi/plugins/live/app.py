@@ -36,7 +36,7 @@ cfg.CONF.register_opts(app_opts)
 
 def make_app():
     """Instantiates Flask app, attaches collector database. """
-    LOG.info('Starting RRD')
+    LOG.info('Starting live')
     app = flask.Flask(__name__)
     app.register_blueprint(v1.blueprint)
     return app

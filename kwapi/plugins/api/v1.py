@@ -32,7 +32,9 @@ def list_probes_ids():
     """Returns all known probes IDs."""
     message = {}
     message['probe_ids'] = flask.request.collector.database.keys()
-    return flask.jsonify(message)
+    response = flask.jsonify(message)
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    return response
 
 
 @blueprint.route('/probes/')
@@ -40,7 +42,9 @@ def list_probes():
     """Returns all information about all known probes."""
     message = {}
     message['probes'] = flask.request.collector.database
-    return flask.jsonify(message)
+    response = flask.jsonify(message)
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    return response
 
 
 @blueprint.route('/probes/<probe>/')
@@ -51,7 +55,9 @@ def probe_info(probe):
         message[probe] = flask.request.collector.database[probe]
     except KeyError:
         flask.abort(404)
-    return flask.jsonify(message)
+    response = flask.jsonify(message)
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    return response
 
 
 @blueprint.route('/probes/<probe>/<meter>/')
@@ -65,4 +71,6 @@ def probe_value(probe, meter):
             }
     except KeyError:
         flask.abort(404)
-    return flask.jsonify(message)
+    response = flask.jsonify(message)
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    return response

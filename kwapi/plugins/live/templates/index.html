@@ -9,10 +9,95 @@
         <script src="{{ url_for('v1.static', filename='jqplot/jquery.min.js') }}"></script>
         <script src="{{ url_for('v1.static', filename='jqplot/jquery.jqplot.min.js') }}"></script>
         <script src="{{ url_for('v1.static', filename='jqplot/plugins/jqplot.categoryAxisRenderer.min.js') }}"></script>
+        <script src="{{ url_for('v1.static', filename='jqplot/plugins/jqplot.dateAxisRenderer.min.js') }}"></script>
         <script src="{{ url_for('v1.static', filename='jqplot/plugins/jqplot.highlighter.min.js') }}"></script>
         <script src="{{ url_for('v1.static', filename='jqplot/plugins/jqplot.canvasTextRenderer.min.js') }}"></script>
         <script src="{{ url_for('v1.static', filename='jqplot/plugins/jqplot.canvasAxisTickRenderer.min.js') }}"></script>
         <script src="{{ url_for('v1.static', filename='jqplot/plugins/jqplot.categoryAxisRenderer.min.js') }}"></script>
+
+        <script type="text/javascript">
+        // <![CDATA[
+        $(document).ready(function(){
+            var t = 1000;
+            var x = (new Date()).getTime();
+            var n = 300;
+            var database = {'a':23}
+
+            function createNewGraph(name) {
+                console.log('Create graph ' + name)
+                $( "<h2>" + name + "</h2>" ).appendTo("#graphs" );
+                $( "<div>" ).attr( "id", name).appendTo( "#graphs" );
+                var data = [];
+                for(i=0; i<n; i++){
+                   data.push([x-(n-1-i)*t, 0]);
+                }
+                var options = {
+                   axes: {
+                      xaxis: {
+                         renderer:$.jqplot.DateAxisRenderer,
+                         tickOptions:{formatString:'%H:%M:%S'},
+                         min : data[0][0],
+                         max: data[data.length-1][0]
+                      },
+                      yaxis: {
+                         min:0
+                      }
+                   },
+                   seriesDefaults: {
+                      showMarker: false,
+                      rendererOptions: {smooth: true}
+                   }
+                };
+                database[name] = {
+                    'graph': $.jqplot (name, [data], options),
+                    'options': options,
+                    'data': data
+                }
+            }
+
+            function doUpdate() {
+                console.log('doUpdate')
+                var json = (function () {
+                    var json = null;
+                    $.ajax({
+                       'async': false,
+                       'global': false,
+                       'url': 'http://localhost:5000/v1/probes/',
+                       'dataType': "json",
+                       'success': function (data) {
+                           json = data;
+                       }
+                    });
+                    return json;
+                })();
+
+                for(name in json.probes)
+                {
+                    if(!(name in database))
+                    {
+                        createNewGraph(name)
+                    }
+                    if(database[name]['data'].length > n-1){
+                       database[name]['data'].shift();
+                    }
+                    var y = json.probes[name].w;
+                    console.log(y);
+                    var x = (new Date()).getTime();
+                    database[name]['data'].push([x,y]);
+                    if(database[name]['graph']) {
+                  	    database[name]['graph'].destroy();
+                    }
+                    database[name]['graph'].series[0].data = database[name]['data'];
+                    database[name]['options'].axes.xaxis.min = database[name]['data'][0][0];
+                    database[name]['options'].axes.xaxis.max = database[name]['data'][database[name]['data'].length-1][0];
+                    database[name]['graph'] = $.jqplot(name, [database[name]['data']], database[name]['options']);
+                }
+                setTimeout(doUpdate, t);
+             }
+            doUpdate();
+        });
+        // ]]>
+        </script>
     </head>
     <body>
         <div id="header"><h1>Kwapi energy monitoring</h1></div>
@@ -20,13 +105,13 @@
         <div id="inner">
             <!-- Scale view (all probes for one scale) -->
             {% if view == 'all' %}
-                {% if probes|count > 0 %}
+                {% if probes|count > -273 %}
                     <h2>Summary</h2>
                     <!-- Display summary graph -->
-                    <!-- TODO -->
+                    <p>//TOTO</p>
                     <h2>Details</h2>
                     <!-- Display all probe graphs -->
-                    <!-- TODO -->
+                    <div id="graphs"></div>
                 {% else %}
                     <p>No probes found.</p>
                 {% endif %}

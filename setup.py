@@ -44,7 +44,7 @@ setuptools.setup(
 
     packages=setuptools.find_packages(),
     package_data={'kwapi.plugins.rrd': ['templates/*', 'static/*'],
-                  'kwapi.plugins.live': ['templates/*', 'static/*']},
+                  'kwapi.plugins.live': ['templates/*', 'static/*.css', 'static/*.png', 'static/*.jpg', 'static/jqplot/*.css', 'static/jqplot/*.js', 'static/jqplot/plugins/*.js']},
 
     scripts=['bin/kwapi-api',
              'bin/kwapi-drivers',
