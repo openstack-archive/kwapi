@@ -43,12 +43,10 @@ setuptools.setup(
     ],
 
     packages=setuptools.find_packages(),
-    package_data={'kwapi.plugins.rrd': ['templates/*', 'static/*'],
-                  'kwapi.plugins.live': ['templates/*', 'static/*.css', 'static/*.png', 'static/*.jpg', 'static/jqplot/*.css', 'static/jqplot/*.js', 'static/jqplot/plugins/*.js']},
+    package_data={'kwapi.plugins.rrd': ['templates/*', 'static/*.css', 'static/*.png', 'static/*.jpg', 'static/*.js', 'static/jqplot/*.css', 'static/jqplot/*.js', 'static/jqplot/plugins/*.js']},
 
     scripts=['bin/kwapi-api',
              'bin/kwapi-drivers',
-             'bin/kwapi-live',
              'bin/kwapi-rrd',
              'bin/kwapi-forwarder',
              'bin/kwapi-gen-conf',
@@ -56,7 +54,6 @@ setuptools.setup(
 
     data_files=[('/etc/kwapi', ['etc/kwapi/api.conf',
                                 'etc/kwapi/drivers.conf',
-                                'etc/kwapi/live.conf',
                                 'etc/kwapi/rrd.conf',
                                 'etc/kwapi/forwarder.conf',
                                 'etc/kwapi/daemon.conf']),
