@@ -1,0 +1,552 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="210mm"
+   height="297mm"
+   id="svg2"
+   version="1.1"
+   inkscape:version="0.48.4 r9939"
+   sodipodi:docname="kwapi_archi.svg">
+  <defs
+     id="defs4" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.98994949"
+     inkscape:cx="178.52533"
+     inkscape:cy="641.21831"
+     inkscape:document-units="px"
+     inkscape:current-layer="g4411"
+     showgrid="false"
+     inkscape:window-width="1920"
+     inkscape:window-height="1141"
+     inkscape:window-x="0"
+     inkscape:window-y="27"
+     inkscape:window-maximized="1" />
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Calque 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <g
+       id="g4384"
+       transform="translate(17.008886,0)"
+       inkscape:export-filename="/home/lolo/Bureau/kwapi-archi.png"
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300">
+      <path
+         transform="matrix(1.4189189,0,0,1,-17.159961,-25.253814)"
+         d="m 248.49753,162.92287 c 0,10.87889 -16.73364,19.69797 -37.37564,19.69797 -20.642,0 -37.37565,-8.81908 -37.37565,-19.69797 0,-10.87889 16.73365,-19.69798 37.37565,-19.69798 20.642,0 37.37564,8.81909 37.37564,19.69798 z"
+         sodipodi:ry="19.697975"
+         sodipodi:rx="37.375645"
+         sodipodi:cy="162.92287"
+         sodipodi:cx="211.12189"
+         id="path3076"
+         style="fill:#e5c7c7;fill-opacity:1"
+         sodipodi:type="arc" />
+      <text
+         sodipodi:linespacing="125%"
+         id="text3078"
+         y="140.42784"
+         x="243.64023"
+         style="font-size:10px;font-style:normal;font-weight:bold;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans Bold"
+         xml:space="preserve"><tspan
+           y="140.42784"
+           x="243.64023"
+           id="tspan3080"
+           sodipodi:role="line">kwapi-drivers</tspan><tspan
+           id="tspan3082"
+           y="152.92784"
+           x="243.64023"
+           sodipodi:role="line" /></text>
+    </g>
+    <g
+       id="g4390"
+       transform="translate(17.008886,0)"
+       inkscape:export-filename="/home/lolo/Bureau/kwapi-archi.png"
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300">
+      <path
+         transform="matrix(1.6216216,0,0,1,-59.954938,61.114228)"
+         d="m 248.49753,162.92287 c 0,10.87889 -16.73364,19.69797 -37.37564,19.69797 -20.642,0 -37.37565,-8.81908 -37.37565,-19.69797 0,-10.87889 16.73365,-19.69798 37.37565,-19.69798 20.642,0 37.37564,8.81909 37.37564,19.69798 z"
+         sodipodi:ry="19.697975"
+         sodipodi:rx="37.375645"
+         sodipodi:cy="162.92287"
+         sodipodi:cx="211.12189"
+         id="path3076-0"
+         style="fill:#fff9b2;fill-opacity:1"
+         sodipodi:type="arc" />
+      <text
+         sodipodi:linespacing="125%"
+         id="text3078-3"
+         y="226.79588"
+         x="235.2955"
+         style="font-size:10px;font-style:normal;font-weight:bold;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans Bold"
+         xml:space="preserve"><tspan
+           id="tspan3194"
+           y="226.79588"
+           x="235.2955"
+           sodipodi:role="line">kwapi-forwarder</tspan><tspan
+           id="tspan3198"
+           y="239.29588"
+           x="235.2955"
+           sodipodi:role="line" /><tspan
+           id="tspan3082-2"
+           y="251.79588"
+           x="235.2955"
+           sodipodi:role="line" /></text>
+    </g>
+    <g
+       id="g4429"
+       transform="translate(17.558405,0)"
+       inkscape:export-filename="/home/lolo/Bureau/kwapi-archi.png"
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300">
+      <rect
+         y="383.6412"
+         x="50.949234"
+         height="31.31473"
+         width="122.22845"
+         id="rect3312"
+         style="fill:#aaccff;fill-opacity:1" />
+      <text
+         sodipodi:linespacing="125%"
+         id="text3314"
+         y="401.82394"
+         x="60.955059"
+         style="font-size:10px;font-style:normal;font-weight:bold;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans Bold"
+         xml:space="preserve"><tspan
+           y="401.82394"
+           x="60.955059"
+           id="tspan3316"
+           sodipodi:role="line">LIVE MONITORING</tspan></text>
+    </g>
+    <g
+       id="g4423"
+       transform="translate(2.4289127,0)"
+       inkscape:export-filename="/home/lolo/Bureau/kwapi-archi.png"
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300">
+      <rect
+         y="383.6412"
+         x="263.14474"
+         height="31.31473"
+         width="67.680206"
+         id="rect3312-3"
+         style="fill:#aaccff;fill-opacity:1" />
+      <text
+         sodipodi:linespacing="125%"
+         id="text3314-3"
+         y="402.93872"
+         x="271.58203"
+         style="font-size:10px;font-style:normal;font-weight:bold;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans Bold"
+         xml:space="preserve"><tspan
+           y="402.93872"
+           x="271.58203"
+           id="tspan3316-2"
+           sodipodi:role="line">GANGLIA</tspan><tspan
+           y="415.43872"
+           x="271.58203"
+           sodipodi:role="line"
+           id="tspan3350" /></text>
+    </g>
+    <g
+       id="g4417"
+       transform="translate(4.6801434,0)"
+       inkscape:export-filename="/home/lolo/Bureau/kwapi-archi.png"
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300">
+      <rect
+         y="383.6412"
+         x="443.96207"
+         height="31.31473"
+         width="67.680206"
+         id="rect3312-3-6"
+         style="fill:#aaccff;fill-opacity:1" />
+      <text
+         sodipodi:linespacing="125%"
+         id="text3314-3-4"
+         y="402.93872"
+         x="455.04095"
+         style="font-size:10px;font-style:normal;font-weight:bold;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans Bold"
+         xml:space="preserve"><tspan
+           y="402.93872"
+           x="455.04095"
+           sodipodi:role="line"
+           id="tspan3392">API G5K</tspan><tspan
+           y="415.43872"
+           x="455.04095"
+           sodipodi:role="line"
+           id="tspan3350-2" /></text>
+    </g>
+    <g
+       id="g4397"
+       transform="translate(0,-0.50507625)"
+       inkscape:export-filename="/home/lolo/Bureau/kwapi-archi.png"
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300">
+      <path
+         transform="matrix(1.1756757,0,0,1,-118.58901,154.12949)"
+         d="m 248.49753,162.92287 c 0,10.87889 -16.73364,19.69797 -37.37564,19.69797 -20.642,0 -37.37565,-8.81908 -37.37565,-19.69797 0,-10.87889 16.73365,-19.69798 37.37565,-19.69798 20.642,0 37.37564,8.81909 37.37564,19.69798 z"
+         sodipodi:ry="19.697975"
+         sodipodi:rx="37.375645"
+         sodipodi:cy="162.92287"
+         sodipodi:cx="211.12189"
+         id="path3076-0-7"
+         style="fill:#efd7a6;fill-opacity:1"
+         sodipodi:type="arc" />
+      <text
+         sodipodi:linespacing="125%"
+         id="text3078-3-1"
+         y="319.81116"
+         x="99.18"
+         style="font-size:10px;font-style:normal;font-weight:bold;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans Bold"
+         xml:space="preserve"><tspan
+           id="tspan3194-5"
+           y="319.81116"
+           x="99.18"
+           sodipodi:role="line">kwapi-rrd</tspan><tspan
+           id="tspan3269"
+           y="332.31116"
+           x="99.18"
+           sodipodi:role="line" /><tspan
+           id="tspan3198-2"
+           y="344.81116"
+           x="99.18"
+           sodipodi:role="line" /><tspan
+           id="tspan3082-2-2"
+           y="357.31116"
+           x="99.18"
+           sodipodi:role="line" /></text>
+    </g>
+    <g
+       id="g4699"
+       transform="translate(-6,0)"
+       inkscape:export-filename="/home/lolo/Bureau/kwapi-archi.png"
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300">
+      <path
+         transform="matrix(1.2432432,0,0,1,42.493739,153.62441)"
+         d="m 248.49753,162.92287 c 0,10.87889 -16.73364,19.69797 -37.37564,19.69797 -20.642,0 -37.37565,-8.81908 -37.37565,-19.69797 0,-10.87889 16.73365,-19.69798 37.37565,-19.69798 20.642,0 37.37564,8.81909 37.37564,19.69798 z"
+         sodipodi:ry="19.697975"
+         sodipodi:rx="37.375645"
+         sodipodi:cy="162.92287"
+         sodipodi:cx="211.12189"
+         id="path3076-0-5"
+         style="fill:#efd7a6;fill-opacity:1"
+         sodipodi:type="arc" />
+      <text
+         sodipodi:linespacing="125%"
+         id="text3078-3-3"
+         y="319.30609"
+         x="265.30896"
+         style="font-size:10px;font-style:normal;font-weight:bold;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans Bold"
+         xml:space="preserve"><tspan
+           id="tspan4695"
+           y="319.30609"
+           x="265.30896"
+           sodipodi:role="line">kwapi-ganglia</tspan><tspan
+           y="331.80609"
+           x="265.30896"
+           sodipodi:role="line"
+           id="tspan4688" /><tspan
+           id="tspan3275"
+           y="344.30609"
+           x="265.30896"
+           sodipodi:role="line" /></text>
+    </g>
+    <g
+       id="g4411"
+       transform="translate(7.2055438,-0.50507625)"
+       inkscape:export-filename="/home/lolo/Bureau/kwapi-archi.png"
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300">
+      <path
+         transform="matrix(1.2162162,0,0,1,218.50691,154.12949)"
+         d="m 248.49753,162.92287 c 0,10.87889 -16.73364,19.69797 -37.37564,19.69797 -20.642,0 -37.37565,-8.81908 -37.37565,-19.69797 0,-10.87889 16.73365,-19.69798 37.37565,-19.69798 20.642,0 37.37564,8.81909 37.37564,19.69798 z"
+         sodipodi:ry="19.697975"
+         sodipodi:rx="37.375645"
+         sodipodi:cy="162.92287"
+         sodipodi:cx="211.12189"
+         id="path3076-0-5-3"
+         style="fill:#efd7a6;fill-opacity:1"
+         sodipodi:type="arc"
+         inkscape:export-filename="/home/lolo/Bureau/kwapi-archi.png"
+         inkscape:export-xdpi="300"
+         inkscape:export-ydpi="300" />
+      <text
+         sodipodi:linespacing="125%"
+         id="text3078-3-3-5"
+         y="319.81116"
+         x="443.94376"
+         style="font-size:10px;font-style:normal;font-weight:bold;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans Bold"
+         xml:space="preserve"
+         inkscape:export-filename="/home/lolo/Bureau/kwapi-archi.png"
+         inkscape:export-xdpi="300"
+         inkscape:export-ydpi="300"><tspan
+           id="tspan3275-9"
+           y="319.81116"
+           x="443.94376"
+           sodipodi:role="line">kwapi-HDF</tspan></text>
+    </g>
+    <g
+       id="g4377"
+       transform="translate(0,-0.50507736)"
+       inkscape:export-filename="/home/lolo/Bureau/kwapi-archi.png"
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300">
+      <rect
+         y="47.260403"
+         x="453.69296"
+         height="30.304577"
+         width="57.578701"
+         id="rect2985-23"
+         style="fill:#cff0c1;fill-opacity:1" />
+      <text
+         sodipodi:linespacing="125%"
+         id="text2991-34"
+         y="66.4533"
+         x="470.11658"
+         style="font-size:10px;font-style:normal;font-weight:bold;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans Bold"
+         xml:space="preserve"><tspan
+           y="66.4533"
+           x="470.11658"
+           id="tspan2993-3"
+           sodipodi:role="line">IPMI</tspan><tspan
+           y="78.9533"
+           x="470.11658"
+           sodipodi:role="line"
+           id="tspan3062" /><tspan
+           id="tspan2995-7"
+           y="91.4533"
+           x="470.11658"
+           sodipodi:role="line" /></text>
+    </g>
+    <g
+       id="g4369"
+       transform="translate(14.988586,-0.50507355)"
+       inkscape:export-filename="/home/lolo/Bureau/kwapi-archi.png"
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300">
+      <g
+         id="g4305">
+        <rect
+           style="fill:#cff0c1;fill-opacity:1"
+           id="rect2985-2"
+           width="87.883278"
+           height="30.304577"
+           x="240.48354"
+           y="47.260399" />
+        <text
+           xml:space="preserve"
+           style="font-size:10px;font-style:normal;font-weight:bold;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans Bold"
+           x="256.72171"
+           y="66.4533"
+           id="text2991-3"
+           sodipodi:linespacing="125%"><tspan
+             sodipodi:role="line"
+             x="256.72171"
+             y="66.4533"
+             id="tspan7203">Wattmetre</tspan><tspan
+             id="tspan3033"
+             sodipodi:role="line"
+             x="256.72171"
+             y="78.9533" /><tspan
+             sodipodi:role="line"
+             x="256.72171"
+             y="91.4533"
+             id="tspan2995-3" /></text>
+      </g>
+    </g>
+    <g
+       id="g4361"
+       transform="translate(13.276678,0.50507736)"
+       inkscape:export-filename="/home/lolo/Bureau/kwapi-archi.png"
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300">
+      <g
+         transform="translate(82,0)"
+         id="g4354">
+        <rect
+           style="fill:#cff0c1;fill-opacity:1"
+           id="rect2985-2-4"
+           width="63.639618"
+           height="30.304577"
+           x="2.5253758"
+           y="46.250248" />
+        <text
+           xml:space="preserve"
+           style="font-size:10px;font-style:normal;font-weight:bold;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans Bold"
+           x="17.753387"
+           y="65.443146"
+           id="text2991-3-0"
+           sodipodi:linespacing="125%"><tspan
+             id="tspan4345"
+             sodipodi:role="line"
+             x="17.753387"
+             y="65.443146">SNMP</tspan><tspan
+             id="tspan3033-3"
+             sodipodi:role="line"
+             x="17.753387"
+             y="77.943146" /><tspan
+             sodipodi:role="line"
+             x="17.753387"
+             y="90.443146"
+             id="tspan2995-3-3" /></text>
+      </g>
+    </g>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 299.41376,77.059902 0,41.087438"
+       id="path4670"
+       inkscape:connector-type="polyline"
+       inkscape:connector-curvature="0"
+       inkscape:connection-start="#g4369"
+       inkscape:connection-start-point="d4"
+       inkscape:connection-end="#g4384"
+       inkscape:connection-end-point="d4"
+       inkscape:export-filename="/home/lolo/Bureau/kwapi-archi.png"
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 453.69296,73.821854 337.84056,121.76643"
+       id="path4672"
+       inkscape:connector-type="polyline"
+       inkscape:connector-curvature="0"
+       inkscape:connection-start="#g4377"
+       inkscape:connection-start-point="d4"
+       inkscape:connection-end="#g4384"
+       inkscape:connection-end-point="d4"
+       inkscape:export-filename="/home/lolo/Bureau/kwapi-archi.png"
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 299.41376,157.19076 0,47.44705"
+       id="path4674"
+       inkscape:connector-type="polyline"
+       inkscape:connector-curvature="0"
+       inkscape:connection-start="#g4384"
+       inkscape:connection-start-point="d4"
+       inkscape:connection-end="#g4390"
+       inkscape:connection-end-point="d4"
+       inkscape:export-filename="/home/lolo/Bureau/kwapi-archi.png"
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 271.48894,239.25178 157.5411,301.33564"
+       id="path4676"
+       inkscape:connector-type="polyline"
+       inkscape:connector-curvature="0"
+       inkscape:connection-start="#g4390"
+       inkscape:connection-start-point="d4"
+       inkscape:connection-end="#g4397"
+       inkscape:connection-end-point="d4"
+       inkscape:export-filename="/home/lolo/Bureau/kwapi-archi.png"
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 334.94599,241.99263 118.61577,59.9402"
+       id="path4680"
+       inkscape:connector-type="polyline"
+       inkscape:connector-curvature="0"
+       inkscape:connection-end-point="d4"
+       inkscape:connection-end="#g4411"
+       inkscape:connection-start-point="d4"
+       inkscape:connection-start="#g4390"
+       inkscape:export-filename="/home/lolo/Bureau/kwapi-archi.png"
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 129.62186,336.24526 0,47.39594"
+       id="path4682"
+       inkscape:connector-type="polyline"
+       inkscape:connector-curvature="0"
+       inkscape:connection-start="#g4397"
+       inkscape:connection-start-point="d4"
+       inkscape:connection-end="#g4429"
+       inkscape:connection-end-point="d4"
+       inkscape:export-filename="/home/lolo/Bureau/kwapi-archi.png"
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 482.48231,336.2339 0,47.4073"
+       id="path4686"
+       inkscape:connector-type="polyline"
+       inkscape:connector-curvature="0"
+       inkscape:connection-start="#g4411"
+       inkscape:connection-start-point="d4"
+       inkscape:connection-end="#g4417"
+       inkscape:connection-end-point="d4"
+       inkscape:export-filename="/home/lolo/Bureau/kwapi-archi.png"
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 161.44167,76.105668 268.58258,123.91213"
+       id="path7178"
+       inkscape:connector-type="polyline"
+       inkscape:connector-curvature="0"
+       inkscape:connection-start="#g4361"
+       inkscape:connection-start-point="d4"
+       inkscape:connection-end="#g4384"
+       inkscape:connection-end-point="d4"
+       inkscape:export-filename="/home/lolo/Bureau/kwapi-archi.png"
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 299.32064,243.43103 -0.25653,53.42908"
+       id="path7180"
+       inkscape:connector-type="polyline"
+       inkscape:connector-curvature="0"
+       inkscape:connection-start="#g4390"
+       inkscape:connection-start-point="d4"
+       inkscape:connection-end="#g4699"
+       inkscape:connection-end-point="d4"
+       inkscape:export-filename="/home/lolo/Bureau/kwapi-archi.png"
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 299.07526,336.23429 0.25446,47.40691"
+       id="path7182"
+       inkscape:connector-type="polyline"
+       inkscape:connector-curvature="0"
+       inkscape:connection-start="#g4699"
+       inkscape:connection-start-point="d4"
+       inkscape:connection-end="#g4423"
+       inkscape:connection-end-point="d4"
+       inkscape:export-filename="/home/lolo/Bureau/kwapi-archi.png"
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300" />
+  </g>
+</svg>
