@@ -68,6 +68,21 @@ def welcome_probe(probe):
         flask.abort(404)
 
 
+@blueprint.route('/rrd/<probe>/')
+def send_rrd(probe):
+    """Sends summary graph."""
+    probe = probe.encode('utf-8')
+    rrd_file = rrd.get_rrd_filename(probe)
+    try:
+        return flask.send_file(rrd_file,
+                               as_attachment=True,
+                               attachment_filename=probe + '.rrd',
+                               cache_timeout=0,
+                               conditional=True)
+    except:
+        flask.abort(404)
+
+
 @blueprint.route('/graph/<scale>/')
 def send_summary_graph(scale):
     """Sends summary graph."""

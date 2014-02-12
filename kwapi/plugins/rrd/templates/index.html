@@ -4,29 +4,73 @@
         <title>Kwapi monitoring</title>
         <meta charset="utf-8">
         <link rel="stylesheet" href="{{ url_for('v1.static', filename='design.css') }}"/>
+        <link rel="stylesheet" href="{{ url_for('v1.static', filename='select2/select2.css') }}"/>
         <link rel="icon" type="image/png" href="{{ url_for('v1.static', filename='favicon.png') }}" />
         <script src="{{ url_for('v1.static', filename='jquery-1.9.1.min.js') }}"></script>
+        <script src="{{ url_for('v1.static', filename='select2/select2.min.js') }}"></script>
         <script type="text/javascript">
         // <![CDATA[
             function reloadImage(img) {
                 var src = img.attr('src');
-                param_position = src.indexOf('#a');
-                if(param_position != -1) {
-                    src = src.substring(0, param_position);
-                }
                 src = src.split('#')[0];
                 src += '#' + Date.now();
                 img.attr('src', src);
             }
-            
+
             function reloadAllImages() {
-                $('.graph').each(function() {
+                $('.graph:visible').each(function() {
                     reloadImage($(this));
                 });
             }
-            
+
+            function selectAll() {
+                deselectAll();
+                var selected = [];
+                $('select option').each(function(i, e) {
+                    selected[selected.length] = $(e).attr('value');
+                    $('select').trigger({
+                        type: 'select2-selecting',
+                        val: $(e).attr('value')
+                    });
+                });
+                $('select').select2('val', selected);
+            }
+
+            function deselectAll() {
+                $('select').each(function () {
+                    $(this).select2('val', '');
+                });
+                var selected = [];
+                $('select option').each(function(i, e) {
+                    selected[selected.length] = $(e).attr('value');
+                    $('select').trigger({
+                        type: 'select2-removing',
+                        val: $(e).attr('value')
+                    });
+                });
+            }
+
             $(document).ready(function () {
                 setInterval('reloadAllImages()', {{ refresh*1000 }});
+
+                $('select').select2({
+                    placeholder: 'Select probes'
+                });
+
+                deselectAll();
+
+                $(document.body).on('select2-selecting', 'select', function(e) {
+                    var probe = '<a href="/probe/' + e.val + '"><img class="graph" id="' + e.val + '" src="/graph/{{ scale }}/' + e.val + '/" alt="Graph ' + e.val + '"/></a>';
+                    $('#probes').append(probe);
+                });
+
+                $(document.body).on('select2-removing', 'select', function(e) {
+                    $('#' + e.val).parent().remove();
+                });
+
+                $('#select-all').click(selectAll);
+
+                $('#deselect-all').click(deselectAll);
             });
         // ]]>
         </script>
@@ -45,7 +89,7 @@
                 {% endfor %}
             </ul>
         </div>
-        
+
         <div id="inner">
             <!-- Scale view (all probes for one scale) -->
             {% if view == 'scale' %}
@@ -55,19 +99,27 @@
                     <img class="graph" id="summary" src="/graph/{{ scale }}/" alt="Summary graph"/>
                     <h2>Details</h2>
                     <!-- Display all probe graphs -->
+                    <div class="select-bar">
+                    <select multiple>
                     {% for probe in probes %}
-                        <a href="/probe/{{ probe }}"><img class="graph" src="/graph/{{ scale }}/{{ probe }}/" alt="Graph {{ probe }}"/></a>
+                        <option value="{{ probe }}">{{ probe }}</option>
                     {% endfor %}
+                    </select>
+                    <button type="button" id="select-all">All</button>
+                    <button type="button" id="deselect-all">Clear</button>
+                    </div>
+                    <div id="probes"></div>
                 {% else %}
                     <p>No probes found.</p>
                 {% endif %}
-            
+
             <!-- Probe view (all scales for one probe) -->
             {% elif view == 'probe' %}
                 <h2>{{ probe }}</h2>
                 {% for scale in scales %}
                     <img class="graph" src="/graph/{{ scale }}/{{ probe }}/" alt="Graph {{ probe }}"/>
                 {% endfor %}
+                <p style="text-align:center"><a href="/rrd/{{ probe }}/">Download RRD</a></p>
             {% endif %}
         </div>
     </body>
