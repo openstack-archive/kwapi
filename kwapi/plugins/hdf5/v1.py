@@ -16,13 +16,16 @@
 
 """Defines functions to build and update hdf5 files."""
 
-from execo_g5k import get
+
 
 from kwapi.utils import cfg, log
-from kwapi.plugins import 
+from kwapi.plugins import listen
 import zmq
 
+
+
 LOG = log.getLogger(__name__)
+
 
 def create_probe_dir(probe):
     """Creates all required directories."""
@@ -37,7 +40,9 @@ def create_probe_dir(probe):
 def create_hdf5_file(probe):
     """ """ 
     probe_dir = create_probe_dir(probe)
-    f = h5py.File(probe_dir+'myfile.hdf5','w')
+    f = h5py.File(probe_dir+probe+'.hdf5','w')
+    
+    f.close()
     
     
     

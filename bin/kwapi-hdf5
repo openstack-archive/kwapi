@@ -17,7 +17,7 @@
 
 import sys
 
-from kwapi.plugins.rrd import app
+from kwapi.plugins.hdf5 import app
 from kwapi.utils import cfg, log
 
 app_opts = [
@@ -34,4 +34,4 @@ if __name__ == '__main__':
     log.setup(cfg.CONF.log_file)
 
     root = app.make_app()
-    root.run(host='0.0.0.0', port=cfg.CONF.rrd_port)
+    root.run()
