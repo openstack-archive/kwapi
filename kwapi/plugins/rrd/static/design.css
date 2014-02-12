@@ -87,6 +87,11 @@ img {
     padding:10px;
 }
 
+button {
+    width:60px;
+    margin-top:10px;
+}
+
 #summary {
     display:block;
     margin-left:auto;
