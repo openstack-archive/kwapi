@@ -18,7 +18,7 @@
             }
 
             function reloadAllImages() {
-                $('.graph:visible').each(function() {
+                $('.graph').each(function() {
                     reloadImage($(this));
                 });
             }
@@ -34,6 +34,7 @@
                     });
                 });
                 $('select').select2('val', selected);
+                reloadAllImages();
             }
 
             function deselectAll() {
@@ -53,23 +54,28 @@
             $(document).ready(function () {
                 setInterval('reloadAllImages()', {{ refresh*1000 }});
 
+                // Apply select2 on HTML select
                 $('select').select2({
                     placeholder: 'Select probes'
                 });
 
+                // Clear the page
                 deselectAll();
 
+                // Event handler for adding a probe
                 $(document.body).on('select2-selecting', 'select', function(e) {
                     var probe = '<a href="/probe/' + e.val + '"><img class="graph" id="' + e.val + '" src="/graph/{{ scale }}/' + e.val + '/" alt="Graph ' + e.val + '"/></a>';
                     $('#probes').append(probe);
+                    reloadAllImages();
                 });
-
+                
+                // Event handler for deleting a probe
                 $(document.body).on('select2-removing', 'select', function(e) {
                     $('#' + e.val).parent().remove();
                 });
 
+                // Bind buttons to event handlers
                 $('#select-all').click(selectAll);
-
                 $('#deselect-all').click(deselectAll);
             });
         // ]]>
