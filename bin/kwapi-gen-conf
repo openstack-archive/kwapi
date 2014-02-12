@@ -14,26 +14,28 @@ _community = 'public'
 
 
 _raritan_oid = '1.3.6.1.4.1.13742.4.1.2.2.1.7'
-#_apc_oid =  '1.3.6.1.4.1.318.1.1.12.1.16'
+_apc_oid =  '1.3.6.1.4.1.318.1.1.12.1.16'
+
+
 #
 #ip = socket.gethostbyname(socket.gethostname())
 #get_ip = Process('host '+ip).run()
 #site = get_ip.stdout.split(" ")[-1].strip().split('.')[1]
 
-site = 'reims'
-
-pdus = {}
-
-for pdu in get_resource_attributes('/sites/'+site+'/pdus/')['items']:
-    if pdu.has_key('sensors'):
-        for sensor in pdu['sensors']:
-            if sensor.has_key('power'):
-                print pdu['uid']
+#for site in get_g5k_sites:
+#
+#pdus = {}
+#
+#for pdu in get_resource_attributes('/sites/'+site+'/pdus/')['items']:
+#    print pdu['uid']
+#    if pdu.has_key('sensors'):
+#        for sensor in pdu['sensors']:
+#            if sensor.has_key('power'):
+                
+                
     
     
 
-exit()
-pprint (pdus_data)
 
 
 
