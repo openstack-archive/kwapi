@@ -7,6 +7,7 @@
         <link rel="stylesheet" href="{{ url_for('v1.static', filename='select2/select2.css') }}"/>
         <link rel="icon" type="image/png" href="{{ url_for('v1.static', filename='favicon.png') }}" />
         <script src="{{ url_for('v1.static', filename='jquery-1.9.1.min.js') }}"></script>
+        <script src="{{ url_for('v1.static', filename='jquery.cookie-1.4.0.min.js') }}"></script>
         <script src="{{ url_for('v1.static', filename='select2/select2.min.js') }}"></script>
         <script type="text/javascript">
         // <![CDATA[
@@ -54,13 +55,17 @@
             $(document).ready(function () {
                 setInterval('reloadAllImages()', {{ refresh*1000 }});
 
-                // Apply select2 on HTML select
+                // Init select probe list
+                var cookie = $.cookie('probes');
+                if(!cookie) {
+                    var probes = [];
+                } else {
+                    var probes = JSON.parse(cookie);
+                }
                 $('select').select2({
                     placeholder: 'Select probes'
                 });
-
-                // Clear the page
-                deselectAll();
+                $('select').select2('val', probes);
 
                 // Event handler for adding a probe
                 $(document.body).on('select2-selecting', 'select', function(e) {
@@ -68,7 +73,7 @@
                     $('#probes').append(probe);
                     reloadAllImages();
                 });
-                
+
                 // Event handler for deleting a probe
                 $(document.body).on('select2-removing', 'select', function(e) {
                     $('#' + e.val).parent().remove();
@@ -77,6 +82,26 @@
                 // Bind buttons to event handlers
                 $('#select-all').click(selectAll);
                 $('#deselect-all').click(deselectAll);
+
+                // Display the graph for each preselected probes
+                $.each(probes, function(index, value) {
+                    $('select').trigger({
+                        type: 'select2-selecting',
+                        val: value
+                    });
+                });
+
+                {% if view == 'scale' %}
+                    // Set a cookie storing the probe list
+                    $(window).unload(function() {
+                        var value = $('select').val();
+                        if(value == null) {
+                            $.removeCookie('probes', {path: '/'});
+                        } else {
+                            $.cookie('probes', JSON.stringify(value), {path: '/'});
+                        }
+                    });
+                {% endif %}
             });
         // ]]>
         </script>
