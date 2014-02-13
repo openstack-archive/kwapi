@@ -23,6 +23,7 @@ import flask
 from oslo.config import cfg
 
 from kwapi.openstack.common import log
+from kwapi.plugins import listen
 import rrd
 import v1
 
@@ -43,7 +44,8 @@ def make_app():
     app = flask.Flask(__name__)
     app.register_blueprint(v1.blueprint)
 
-    thread.start_new_thread(rrd.listen, ())
+    thread.start_new_thread(listen, (rrd.update_rrd,))
+    rrd.create_dirs()
 
     @app.before_request
     def attach_config():

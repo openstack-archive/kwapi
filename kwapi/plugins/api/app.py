@@ -17,11 +17,13 @@
 """Set up the API server application instance."""
 
 import sys
+import thread
 
 import flask
 from oslo.config import cfg
 
 from kwapi.openstack.common import log
+from kwapi.plugins import listen
 import acl
 from collector import Collector
 import v1
@@ -48,6 +50,8 @@ def make_app():
 
     collector = Collector()
     collector.clean()
+
+    thread.start_new_thread(listen, (collector.add,))
 
     @app.before_request
     def attach_config():
