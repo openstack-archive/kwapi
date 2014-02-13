@@ -18,6 +18,7 @@ import json
 
 import zmq
 
+from kwapi import security
 from kwapi.utils import cfg, log
 
 LOG = log.getLogger(__name__)
