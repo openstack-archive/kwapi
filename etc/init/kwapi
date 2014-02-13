@@ -49,7 +49,7 @@ case "$1" in
     fi
     if $HDF5; then
         echo "Starting kwapi-hdf5"
-        start-stop-daemon --start --make-pidfile --pidfile $PID_RRD --exec ${PREFIX}kwapi-hdf5 --chuid $USER --background
+        start-stop-daemon --start --make-pidfile --pidfile $PID_HDF5 --exec ${PREFIX}kwapi-hdf5 --chuid $USER --background
     fi
     ;;
   stop)
