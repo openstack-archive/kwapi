@@ -76,7 +76,7 @@
 
                 // Event handler for deleting a probe
                 $(document.body).on('select2-removing', 'select', function(e) {
-                    $('#' + e.val).parent().remove();
+                    $('#' + e.val.replace(/\./g, '\\.')).parent().remove();
                 });
 
                 // Bind buttons to event handlers
