@@ -48,7 +48,7 @@ def create_hdf5_file(probe):
     
 
 
-def update_hdf5_file(probe, measurements):
+def update_hdf5(probe, measurements):
     """A method to add data t """
     
     # if not file exists 

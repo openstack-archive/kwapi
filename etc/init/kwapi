@@ -71,7 +71,7 @@ case "$1" in
     fi
     if [ -f $PID_HDF5 ]; then
         echo "Stopping kwapi-hdf5"
-        start-stop-daemon --stop --pidfile $PID_HDF5 
+        start-stop-daemon --stop --pidfile $PID_HDF5
     fi
     ;;
   restart)
