@@ -28,7 +28,7 @@
             function selectJobId() {
                 deselectAll();
                 job = $('#job-field').val();
-                $.getJSON('https://api.grid5000.fr/3.0/sites/luxembourg/jobs/' + job, function(data) {
+                $.getJSON('https://api.grid5000.fr/3.0/sites/{{ hostname }}/jobs/' + job, function(data) {
                     var items = data.assigned_nodes;
                     var selected = [];
                     $.each(items, function(i, e) {
@@ -130,7 +130,7 @@
         </script>
     </head>
     <body>
-        <div id="header"><h1>Kwapi energy monitoring</h1></div>
+        <div id="header"><h1>{{ hostname.capitalize() }} energy monitoring</h1></div>
         <!-- Horizontal menu bar -->
         <div class="menu">
             <ul>

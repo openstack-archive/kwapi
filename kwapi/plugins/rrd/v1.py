@@ -45,6 +45,7 @@ def welcome_scale(scale):
         flask.abort(404)
     try:
         return flask.render_template('index.html',
+                                     hostname=flask.request.hostname,
                                      probes=sorted(flask.request.probes),
                                      refresh=cfg.CONF.refresh_interval,
                                      scales=flask.request.scales,
@@ -60,6 +61,7 @@ def welcome_probe(probe):
         flask.abort(404)
     try:
         return flask.render_template('index.html',
+                                     hostname=flask.request.hostname,
                                      probe=probe,
                                      refresh=cfg.CONF.refresh_interval,
                                      scales=flask.request.scales,
