@@ -20,6 +20,7 @@ import sys
 import thread
 
 import flask
+
 from kwapi.plugins import listen
 from kwapi.utils import cfg, log
 import rrd

@@ -92,6 +92,10 @@ button {
     margin-top:10px;
 }
 
+input {
+    width:100px;
+}
+
 #summary {
     display:block;
     margin-left:auto;
