@@ -33,80 +33,85 @@ _apc_oid =  '1.3.6.1.4.1.318.1.1.12.1.16'
 #            if sensor.has_key('power'):
                 
                 
+site = 'nancy' 
     
-    
-
-
-
-
-
 drivers = {'reims': 'Snmp', 'lyon': 'Json_url', 'nancy': 'Snmp'}
 
 
 logger.info('Retrieving hosts plug mapping')
 sections = {}
 
-if drivers[site] == 'Snmp':
-    # Retrieving pdu port - host name mapping
-    mapping = {}
-    for cluster in get_site_clusters(site):
-        for node in get_cluster_hosts(cluster):
-            attr = get_host_attributes(node)["sensors"]["power"]["via"]["pdu"]
-            sec_name = attr["uid"].split('.')[0]
+mapping = {}
+for cluster in get_site_clusters(site):
+    for node in get_cluster_hosts(cluster):
+        print node
+        attr = get_host_attributes(node)["sensors"]["power"]["via"]
+        for pow_sen in attr:
+            try:
+                if 'pdu' in pow_sen and 'port' in pow_sen['pdu']:
+                    print pow_sen['pdu']
+            except:
+                print attr
 
-            if sec_name not in sections:
-                sections[sec_name] = {'driver': drivers[site],
-                    'parameters': {'community': _community, 'ip': attr["uid"],
-                    'oid': _raritan_oid, 'protocol': '1'}}
-                mapping[sec_name] = []
-            node = site+'.'+node.split('.')[0]
-            if attr.has_key('port'):
-                mapping[sec_name].append( (node, attr["port"]) )
-
-    for sec_name in sections.keys():
-        if len(mapping[sec_name]) >0:
-            print sec_name
-            pprint (mapping[sec_name])
-        mapping[sec_name] = sorted(mapping[sec_name], key=lambda x: x[1])
-        # Generating probe list
-        probes = []
-        i_probe = 1
-        for probe, outlet in mapping[sec_name]:
-            if outlet == i_probe:
-                probes.append(probe)
-            else:
-                probes.append(None)
-            i_probe += 1
-        sections[sec_name]['probes'] = probes
-
-
-elif drivers[site] == 'Json_url':
-    sections['wattmetre'] = {'driver': drivers[site],
-                    'parameters': {'url': 'http://wattmetre.lyon.grid5000.fr/GetWatts-json.php'}}
-    probes = []
-    for cluster in get_site_clusters(site):
-        for node in get_cluster_hosts(cluster):
-            probes.append(node.split('.')[0])
-    sections['wattmetre']['probes'] = probes
-
-
-logger.info('Writing new config')
-f = open('/tmp/kwapi-drivers-list.conf', 'w')
-for sec_name, data in sections.iteritems():
-    sec = "["+sec_name+"]\n"
-    sec += "probes = ["
-    for probe in probes:
-        if probe:
-            sec += "'"+probe+"'"
-        else:
-            sec += str(None)
-        sec += ", "
-    sec += "]\n"
-    sec += "driver = "+data['driver']+"\n"
-    sec += "parameters = "+str(data['parameters'])+"\n\n"
-    f.write(sec)
-
-f.close()
+            
+exit()
+#
+#            #["via"]["pdu"]
+#            sec_name = attr["uid"].split('.')[0]
+#
+#            if sec_name not in sections:
+#                sections[sec_name] = {'driver': drivers[site],
+#                    'parameters': {'community': _community, 'ip': attr["uid"],
+#                    'oid': _raritan_oid, 'protocol': '1'}}
+#                mapping[sec_name] = []
+#            node = site+'.'+node.split('.')[0]
+#            if attr.has_key('port'):
+#                mapping[sec_name].append( (node, attr["port"]) )
+#
+#    for sec_name in sections.keys():
+#        if len(mapping[sec_name]) >0:
+#            print sec_name
+#            pprint (mapping[sec_name])
+#        mapping[sec_name] = sorted(mapping[sec_name], key=lambda x: x[1])
+#        # Generating probe list
+#        probes = []
+#        i_probe = 1
+#        for probe, outlet in mapping[sec_name]:
+#            if outlet == i_probe:
+#                probes.append(probe)
+#            else:
+#                probes.append(None)
+#            i_probe += 1
+#        sections[sec_name]['probes'] = probes
+#
+#
+#elif drivers[site] == 'Json_url':
+#    sections['wattmetre'] = {'driver': drivers[site],
+#                    'parameters': {'url': 'http://wattmetre.lyon.grid5000.fr/GetWatts-json.php'}}
+#    probes = []
+#    for cluster in get_site_clusters(site):
+#        for node in get_cluster_hosts(cluster):
+#            probes.append(node.split('.')[0])
+#    sections['wattmetre']['probes'] = probes
+#
+#
+#logger.info('Writing new config')
+#f = open('/tmp/kwapi-drivers-list.conf', 'w')
+#for sec_name, data in sections.iteritems():
+#    sec = "["+sec_name+"]\n"
+#    sec += "probes = ["
+#    for probe in probes:
+#        if probe:
+#            sec += "'"+probe+"'"
+#        else:
+#            sec += str(None)
+#        sec += ", "
+#    sec += "]\n"
+#    sec += "driver = "+data['driver']+"\n"
+#    sec += "parameters = "+str(data['parameters'])+"\n\n"
+#    f.write(sec)
+#
+#f.close()
 
 
 exit()
