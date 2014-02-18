@@ -26,21 +26,35 @@
             }
 
             function selectJobId() {
+                $("#loading-div-background").show();
                 deselectAll();
                 job = $('#job-field').val();
-                $.getJSON('https://api.grid5000.fr/3.0/sites/luxembourg/jobs/' + job, function(data) {
-                    var items = data.assigned_nodes;
-                    var selected = [];
-                    $.each(items, function(i, e) {
-                        e = e.split('.');
-                        e = e[1] + '.' + e[0];
-                        selected[selected.length] = e;
-                        $('select').trigger({
-                            type: 'select2-selecting',
-                            val: e
-                        });
-                    });
-                    $('select').select2('val', selected);
+                $.ajax({
+                    url: '/nodes/' + job + '/',
+                    dataType: 'json',
+                    success: function(data) {
+                        var items = data.nodes;
+                        if(items.length === 0) {
+                            alert('No hosts found');
+                        }
+                        var selected = [];
+                        $.each(items, function(i, e) {
+                            e = e.split('.');
+                            e = e[1] + '.' + e[0];
+                            selected[selected.length] = e;
+                            $('select').trigger({
+                                type: 'select2-selecting',
+                                val: e
+                            });
+                        })
+                        $('select').select2('val', selected);
+                        $("#loading-div-background").hide();
+                    },
+                    timeout: 10000,
+                    error: function(jqXHR, status, errorThrown) {
+                        alert('Timeout');
+                        $("#loading-div-background").hide();
+                    }
                 });
             }
 
@@ -77,6 +91,8 @@
 
                 $('#job-field').numeric({decimal: false, negative: false});
 
+                $("#loading-div-background").css({opacity: 0.75});
+
                 // Init select probe list
                 var cookie = $.cookie('probes');
                 if(!cookie) {
@@ -91,7 +107,7 @@
 
                 // Event handler for adding a probe
                 $(document.body).on('select2-selecting', 'select', function(e) {
-                    var probe = '<a href="/probe/' + e.val + '"><img class="graph" id="' + e.val + '" src="/graph/{{ scale }}/' + e.val + '/" alt="Graph ' + e.val + '"/></a>';
+                    var probe = '<a href="/probe/' + e.val + '/' + '"><img class="graph" id="' + e.val + '" src="/graph/{{ scale }}/' + e.val + '/" alt="Graph ' + e.val + '"/></a>';
                     $('#probes').append(probe);
                     reloadAllImages();
                 });
@@ -130,7 +146,7 @@
         </script>
     </head>
     <body>
-        <div id="header"><h1>Kwapi energy monitoring</h1></div>
+        <div id="header"><h1>{{ hostname.capitalize() }} energy monitoring</h1></div>
         <!-- Horizontal menu bar -->
         <div class="menu">
             <ul>
@@ -174,6 +190,11 @@
                 {% endfor %}
                 <p style="text-align:center"><a href="/rrd/{{ probe }}/">Download RRD</a></p>
             {% endif %}
+        </div>
+        <div id="loading-div-background">
+            <div id="loading-div" class="ui-corner-all" >
+                <h2>Please wait...</h2>
+            </div>
         </div>
     </body>
 </html>

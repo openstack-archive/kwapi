@@ -16,6 +16,7 @@
 
 """This blueprint defines all URLs and answers."""
 
+from execo_g5k.oar import get_oar_job_nodes
 import flask
 from jinja2 import TemplateNotFound
 
@@ -45,6 +46,7 @@ def welcome_scale(scale):
         flask.abort(404)
     try:
         return flask.render_template('index.html',
+                                     hostname=flask.request.hostname,
                                      probes=sorted(flask.request.probes),
                                      refresh=cfg.CONF.refresh_interval,
                                      scales=flask.request.scales,
@@ -60,12 +62,25 @@ def welcome_probe(probe):
         flask.abort(404)
     try:
         return flask.render_template('index.html',
+                                     hostname=flask.request.hostname,
                                      probe=probe,
                                      refresh=cfg.CONF.refresh_interval,
                                      scales=flask.request.scales,
                                      view='probe')
     except TemplateNotFound:
         flask.abort(404)
+
+
+@blueprint.route('/nodes/<job>/')
+def get_nodes(job):
+    """Returns nodes assigned to a job."""
+    return flask.jsonify(
+        {
+            'job': job,
+            'nodes': [node.address for node in
+                      get_oar_job_nodes(int(job), 'lyon')]
+        }
+    )
 
 
 @blueprint.route('/rrd/<probe>/')
