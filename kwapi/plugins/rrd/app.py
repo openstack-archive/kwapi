@@ -16,6 +16,7 @@
 
 """Set up the RRD server application instance."""
 
+import socket
 import sys
 import thread
 
@@ -46,8 +47,13 @@ def make_app():
     thread.start_new_thread(listen, (rrd.update_rrd,))
     rrd.create_dirs()
 
+    hostname = socket.gethostname()
+    hostname = hostname.split('.')
+    hostname = hostname[1] if len(hostname) >= 2 else hostname[0]
+
     @app.before_request
     def attach_config():
+        flask.request.hostname = hostname
         flask.request.probes = rrd.probes
         flask.request.scales = rrd.scales
     return app
