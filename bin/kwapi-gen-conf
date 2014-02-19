@@ -5,18 +5,18 @@
 #
 
 
-from socket import gethostname
+from socket import getfqdn
 from pprint import pprint
 from execo import Process, logger
 from execo_g5k import get_site_clusters, get_cluster_hosts, get_host_attributes, get_resource_attributes
 
 
 _community = 'public'
-_protocol = '1'
+_protocol = 'v1'
 
 # Determining site
-#site = gethostname().split('.')[1]
-site = 'nancy'
+site = getfqdn().split('.')[1]
+#site = 'nancy'
 
 logger.info('Generating configuration of kwapi-drivers for %s',
             site)
@@ -76,7 +76,6 @@ for equip, data in equips.iteritems():
 
 f.close()
 
-exit()
 
 logger.info('Adding drivers from API to /etc/kwapi/drivers.conf')
 bak_conf = Process('[ -f /etc/kwapi/drivers.conf.orig ] && cp /etc/kwapi/drivers.conf.orig /etc/kwapi/drivers.conf || cp /etc/kwapi/drivers.conf /etc/kwapi/drivers.conf.orig')
