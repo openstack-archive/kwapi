@@ -15,8 +15,8 @@
 # under the License.
 
 """This blueprint defines all URLs and answers."""
-
-from execo_g5k.oar import get_oar_job_nodes
+import socket
+from execo_g5k.api_utils import get_resource_attributes
 import flask
 from jinja2 import TemplateNotFound
 
@@ -74,11 +74,15 @@ def welcome_probe(probe):
 @blueprint.route('/nodes/<job>/')
 def get_nodes(job):
     """Returns nodes assigned to a job."""
+    site = socket.gethostname().split('.')
+    site = site[1] if len(site) >= 2 else site[0] 
+    print get_resource_attributes( 
+    '/sites/' + str(site) +'/jobs/' + str(job))['assigned_nodes']
     return flask.jsonify(
         {
             'job': job,
-            'nodes': [node.address for node in
-                      get_oar_job_nodes(int(job), 'lyon')]
+            'nodes': get_resource_attributes(
+    '/sites/' + str(site) +'/jobs/' + str(job))['assigned_nodes']  
         }
     )
 

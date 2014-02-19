@@ -47,8 +47,7 @@ def make_app():
     thread.start_new_thread(listen, (rrd.update_rrd,))
     rrd.create_dirs()
 
-    hostname = socket.gethostname()
-    hostname = hostname.split('.')
+    hostname = socket.gethostname().split('.')
     hostname = hostname[1] if len(hostname) >= 2 else hostname[0]
 
     @app.before_request
