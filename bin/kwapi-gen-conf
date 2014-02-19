@@ -1,115 +1,84 @@
 #!/usr/bin/env python
-#from socket import getfqdn
-import socket
+# This file is part of kwapi-g5k
+# 
+# It allows to configure automatically the probes using the reference API
+#
+
+
+from socket import gethostname
 from pprint import pprint
 from execo import Process, logger
 from execo_g5k import get_site_clusters, get_cluster_hosts, get_host_attributes, get_resource_attributes
 
-logger.info('Adding drivers from API to /etc/kwapi/drivers.conf')
 
-logger.warning('Using dummy value for community, driver and oid, before g5k api provides these informations')
 _community = 'public'
+_protocol = '1'
 
+# Determining site
+#site = gethostname().split('.')[1]
+site = 'nancy'
 
+logger.info('Generating configuration of kwapi-drivers for %s',
+            site)
 
+logger.info('Retrieving monitoring equipements information')
+equips = {}
+for pdu in get_resource_attributes('/sites/'+site+'/pdus/')['items']:
+    if pdu.has_key('sensors'):
+        for sensor in pdu['sensors']:
+            if sensor.has_key('power') and sensor['power']['per_outlets']:
+                if 'snmp' in sensor['power']:
+                    equips[pdu['uid']] = {'driver': 'Snmp', 
+                                        'oid': sensor['power']['snmp']['outlet_prefix_oid'],
+                                        'mapping': []}
+                            
 
-_raritan_oid = '1.3.6.1.4.1.13742.4.1.2.2.1.7'
-_apc_oid =  '1.3.6.1.4.1.318.1.1.12.1.16'
-
-
-#
-#ip = socket.gethostbyname(socket.gethostname())
-#get_ip = Process('host '+ip).run()
-#site = get_ip.stdout.split(" ")[-1].strip().split('.')[1]
-
-#for site in get_g5k_sites:
-#
-#pdus = {}
-#
-#for pdu in get_resource_attributes('/sites/'+site+'/pdus/')['items']:
-#    print pdu['uid']
-#    if pdu.has_key('sensors'):
-#        for sensor in pdu['sensors']:
-#            if sensor.has_key('power'):
-                
-                
-    
-    
-
-
-
-
-
-drivers = {'reims': 'Snmp', 'lyon': 'Json_url', 'nancy': 'Snmp'}
-
-
+pprint(equips)       
 logger.info('Retrieving hosts plug mapping')
-sections = {}
+for cluster in get_site_clusters(site):
+    nodes = get_resource_attributes('/sites/' + site + '/clusters/' + cluster + \
+                                    '/nodes')['items']
+    for node in nodes:
+        power = node['sensors']['power'] 
+        if power['available']:
+            if 'pdu' in power['via']:                
+                for pdu in power['via']['pdu']:     
+                    equips[pdu['uid'].split('.')[0]]['mapping'].append((node['uid'], pdu['port']))
+pprint(equips)    
 
-if drivers[site] == 'Snmp':
-    # Retrieving pdu port - host name mapping
-    mapping = {}
-    for cluster in get_site_clusters(site):
-        for node in get_cluster_hosts(cluster):
-            attr = get_host_attributes(node)["sensors"]["power"]["via"]["pdu"]
-            sec_name = attr["uid"].split('.')[0]
+logger.info('Generating probe list') 
+for equip in equips.itervalues():
+    if len(equip['mapping']) > 0:
+        equip['mapping'] = sorted(equip['mapping'], key=lambda x: x[1])
+        equip['probes'] = [None] * equip['mapping'][-1][1]        
+        for probe, outlet in equip['mapping']:
+            equip['probes'][outlet-1] = probe
+        
+pprint(equips)    
 
-            if sec_name not in sections:
-                sections[sec_name] = {'driver': drivers[site],
-                    'parameters': {'community': _community, 'ip': attr["uid"],
-                    'oid': _raritan_oid, 'protocol': '1'}}
-                mapping[sec_name] = []
-            node = site+'.'+node.split('.')[0]
-            if attr.has_key('port'):
-                mapping[sec_name].append( (node, attr["port"]) )
-
-    for sec_name in sections.keys():
-        if len(mapping[sec_name]) >0:
-            print sec_name
-            pprint (mapping[sec_name])
-        mapping[sec_name] = sorted(mapping[sec_name], key=lambda x: x[1])
-        # Generating probe list
-        probes = []
-        i_probe = 1
-        for probe, outlet in mapping[sec_name]:
-            if outlet == i_probe:
-                probes.append(probe)
-            else:
-                probes.append(None)
-            i_probe += 1
-        sections[sec_name]['probes'] = probes
-
-
-elif drivers[site] == 'Json_url':
-    sections['wattmetre'] = {'driver': drivers[site],
-                    'parameters': {'url': 'http://wattmetre.lyon.grid5000.fr/GetWatts-json.php'}}
-    probes = []
-    for cluster in get_site_clusters(site):
-        for node in get_cluster_hosts(cluster):
-            probes.append(node.split('.')[0])
-    sections['wattmetre']['probes'] = probes
-
-
-logger.info('Writing new config')
+logger.info('Writing new configuration file')
 f = open('/tmp/kwapi-drivers-list.conf', 'w')
-for sec_name, data in sections.iteritems():
-    sec = "["+sec_name+"]\n"
+for equip, data in equips.iteritems():
+    sec = "["+equip+"]\n"
     sec += "probes = ["
-    for probe in probes:
+    for probe in data['probes']:
         if probe:
-            sec += "'"+probe+"'"
+            sec += "'" + site + '.' + probe +"'"
         else:
             sec += str(None)
         sec += ", "
     sec += "]\n"
     sec += "driver = "+data['driver']+"\n"
-    sec += "parameters = "+str(data['parameters'])+"\n\n"
+    sec += "parameters = "+str({'community': _community, 'ip': equip + '.' + site + \
+                                '.grid5000.fr',
+                    'oid': data['oid'], 'protocol': _protocol})+"\n\n"
     f.write(sec)
 
 f.close()
 
-
 exit()
+
+logger.info('Adding drivers from API to /etc/kwapi/drivers.conf')
 bak_conf = Process('[ -f /etc/kwapi/drivers.conf.orig ] && cp /etc/kwapi/drivers.conf.orig /etc/kwapi/drivers.conf || cp /etc/kwapi/drivers.conf /etc/kwapi/drivers.conf.orig')
 bak_conf.shell = True
 bak_conf.run()
