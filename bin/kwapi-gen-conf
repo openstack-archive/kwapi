@@ -16,7 +16,7 @@ _protocol = '1'
 
 # Determining site
 site = getfqdn().split('.')[1]
-#site = 'nancy'
+#site = 'rennes'
 
 logger.info('Generating configuration of kwapi-drivers for %s',
             site)
@@ -41,9 +41,16 @@ for cluster in get_site_clusters(site):
     for node in nodes:
         power = node['sensors']['power'] 
         if power['available']:
-            if 'pdu' in power['via']:                
-                for pdu in power['via']['pdu']:     
-                    equips[pdu['uid'].split('.')[0]]['mapping'].append((node['uid'], pdu['port']))
+            if 'pdu' in power['via']:               
+                if isinstance(power['via']['pdu'], list): 
+                    for pdu in power['via']['pdu']:     
+                        equips[pdu['uid'].split('.')[0]]['mapping'].append((node['uid'], pdu['port']))
+                else:
+                    pdu = power['via']['pdu']
+                    if 'port' in pdu:
+                        logger.warning('node ' + node['uid'] + ' has str instead of list for power[\'via\']')
+                        print pdu['uid'], node['uid'], pdu['port']
+                        equips[pdu['uid'].split('.')[0]]['mapping'].append((node['uid'], pdu['port']))
 pprint(equips)    
 
 logger.info('Generating probe list') 
@@ -59,23 +66,23 @@ pprint(equips)
 logger.info('Writing new configuration file')
 f = open('/tmp/kwapi-drivers-list.conf', 'w')
 for equip, data in equips.iteritems():
-    sec = "["+equip+"]\n"
-    sec += "probes = ["
-    for probe in data['probes']:
-        if probe:
-            sec += "'" + site + '.' + probe +"'"
-        else:
-            sec += str(None)
-        sec += ", "
-    sec += "]\n"
-    sec += "driver = "+data['driver']+"\n"
-    sec += "parameters = "+str({'community': _community, 'ip': equip + '.' + site + \
-                                '.grid5000.fr',
-                    'oid': data['oid'], 'protocol': _protocol})+"\n\n"
-    f.write(sec)
+    if 'probes' in data:
+        sec = "["+equip+"]\n"
+        sec += "probes = ["
+        for probe in data['probes']:
+            if probe:
+                sec += "'" + site + '.' + probe +"'"
+            else:
+                sec += str(None)
+            sec += ", "
+        sec += "]\n"
+        sec += "driver = "+data['driver']+"\n"
+        sec += "parameters = "+str({'community': _community, 'ip': equip + '.' + site + \
+                                    '.grid5000.fr',
+                        'oid': data['oid'], 'protocol': _protocol})+"\n\n"
+        f.write(sec)
 
 f.close()
-
 
 logger.info('Adding drivers from API to /etc/kwapi/drivers.conf')
 bak_conf = Process('[ -f /etc/kwapi/drivers.conf.orig ] && cp /etc/kwapi/drivers.conf.orig /etc/kwapi/drivers.conf || cp /etc/kwapi/drivers.conf /etc/kwapi/drivers.conf.orig')
