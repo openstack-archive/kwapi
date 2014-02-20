@@ -76,7 +76,7 @@ def welcome_probe(probe):
 @blueprint.route('/nodes/<job>/')
 def get_nodes(job):
     """Returns nodes assigned to a job."""
-    site = socket.gethostname().split('.')
+    site = socket.getfqdn().split('.')
     site = site[1] if len(site) >= 2 else site[0]
     path = '/sites/' + site + '/jobs/' + job
     nodes = get_resource_attributes(path)['assigned_nodes']

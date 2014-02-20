@@ -12,7 +12,7 @@ from execo_g5k import get_site_clusters, get_cluster_hosts, get_host_attributes,
 
 
 _community = 'public'
-_protocol = 'v1'
+_protocol = '1'
 
 # Determining site
 site = getfqdn().split('.')[1]

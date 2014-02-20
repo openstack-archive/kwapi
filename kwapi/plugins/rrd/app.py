@@ -47,8 +47,10 @@ def make_app():
     thread.start_new_thread(listen, (rrd.update_rrd,))
     rrd.create_dirs()
 
-    hostname = socket.gethostname().split('.')
+    hostname = socket.getfqdn().split('.')
+    print hostname
     hostname = hostname[1] if len(hostname) >= 2 else hostname[0]
+    print hostname
 
     @app.before_request
     def attach_config():
