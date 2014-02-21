@@ -29,7 +29,6 @@ class Json_url(Driver):
 
     def __init__(self, probe_ids, **kwargs):
         """Initializes the Json URL driver.
-
         Keyword arguments:
         probe_ids -- list containing the probes IDs
                      (a wattmeter monitor sometimes several probes)
@@ -40,10 +39,11 @@ class Json_url(Driver):
 
     def run(self):
         """Starts the driver thread."""
-        while not self.stop_request_pending():
+        while not self.stop_request_pending():            
             json_content = json.load(urllib2.urlopen(self.kwargs.get('url')))
             for probe_id in self.probe_ids:
-                probe = json_content.get(probe_id)
+                probe = json_content.get(probe_id.split('.')[1])
+                # Grid5000 specific as we declare probes as site.cluster-#
                 if probe:
                     measurements = {}
                     measurements['w'] = probe['watt']
