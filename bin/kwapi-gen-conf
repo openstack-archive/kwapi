@@ -43,13 +43,13 @@ for cluster in get_site_clusters(site):
         if power['available']:
             if 'pdu' in power['via']:               
                 if isinstance(power['via']['pdu'], list): 
-                    for pdu in power['via']['pdu']:     
-                        equips[pdu['uid'].split('.')[0]]['mapping'].append((node['uid'], pdu['port']))
+                    for pdu in power['via']['pdu']:
+                        if 'port' in pdu:     
+                            equips[pdu['uid'].split('.')[0]]['mapping'].append((node['uid'], pdu['port']))
                 else:
                     pdu = power['via']['pdu']
                     if 'port' in pdu:
-                        logger.warning('node ' + node['uid'] + ' has str instead of list for power[\'via\']')
-                        print pdu['uid'], node['uid'], pdu['port']
+                        logger.warning('node ' + node['uid'] + ' has str instead of list for power[\'via\']')     
                         equips[pdu['uid'].split('.')[0]]['mapping'].append((node['uid'], pdu['port']))
 pprint(equips)    
 
