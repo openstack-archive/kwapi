@@ -61,7 +61,6 @@ for cluster in get_site_clusters(site):
                         logger.warning('node ' + node['uid'] + ' has str instead of list for power[\'via\']')     
                         equips[pdu['uid'].split('.')[0]]['mapping'].append((node['uid'], pdu['port']))
             if 'www' in power['via']:
-                print node['uid'], power.keys()
                 if not 'per_outlets' in power or power['per_outlets']:  
                     equips[pdu['uid']]['probes'].append(node['uid'])
                 
