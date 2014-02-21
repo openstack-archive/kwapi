@@ -31,17 +31,17 @@ for pdu in get_resource_attributes('/sites/'+site+'/pdus/')['items']:
                 if 'snmp' in sensor['power']:
                     equips[pdu['uid']] = {'driver': 'Snmp', 'parameters': 
                         {'community': _community, 'protocol': '1',
-                         'ip': equip + '.' + site + '.grid5000.fr',
+                         'ip': pdu['uid'] + '.' + site + '.grid5000.fr',
                          'oid': sensor['power']['snmp']['outlet_prefix_oid'] },
                                         'mapping': [],
                                         'probes': []}
                 if 'wattmetre' in sensor['power']:
                     equips[pdu['uid']] = {'driver': 'Json_url', 'parameters': 
-                        {'www': sensor['power']['wattmetre']['www']['url']},
+                        {'url': sensor['power']['wattmetre']['www']['url']},
                                         'probes': []}
                             
 
-pprint(equips)       
+#pprint(equips)       
 
 logger.info('Retrieving hosts plug mapping')
 for cluster in get_site_clusters(site):
@@ -65,7 +65,7 @@ for cluster in get_site_clusters(site):
                     equips[pdu['uid']]['probes'].append(node['uid'])
                 
                 
-pprint(equips)    
+#pprint(equips)    
 
 logger.info('Generating probe list for Snmp drivers') 
 for equip in equips.itervalues():
@@ -80,7 +80,6 @@ pprint(equips)
 logger.info('Writing new configuration file')
 f = open('/tmp/kwapi-drivers-list.conf', 'w')
 for equip, data in equips.iteritems():
-    
     if 'probes' in data:
         sec = "\n["+equip+"]\n"
         sec += "probes = ["
