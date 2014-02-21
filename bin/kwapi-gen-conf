@@ -16,7 +16,7 @@ _protocol = '1'
 
 # Determining site
 site = getfqdn().split('.')[1]
-#site = 'rennes'
+#site = 'lyon'
 
 logger.info('Generating configuration of kwapi-drivers for %s',
             site)
@@ -26,14 +26,23 @@ equips = {}
 for pdu in get_resource_attributes('/sites/'+site+'/pdus/')['items']:
     if pdu.has_key('sensors'):
         for sensor in pdu['sensors']:
+            print sensor['power']
             if sensor.has_key('power') and sensor['power']['per_outlets']:
                 if 'snmp' in sensor['power']:
-                    equips[pdu['uid']] = {'driver': 'Snmp', 
-                                        'oid': sensor['power']['snmp']['outlet_prefix_oid'],
-                                        'mapping': []}
+                    equips[pdu['uid']] = {'driver': 'Snmp', 'parameters': 
+                        {'community': _community, 'protocol': '1',
+                         'ip': equip + '.' + site + '.grid5000.fr',
+                         'oid': sensor['power']['snmp']['outlet_prefix_oid'] },
+                                        'mapping': [],
+                                        'probes': []}
+                if 'wattmetre' in sensor['power']:
+                    equips[pdu['uid']] = {'driver': 'Json_url', 'parameters': 
+                        {'www': sensor['power']['wattmetre']['www']['url']},
+                                        'probes': []}
                             
 
 pprint(equips)       
+
 logger.info('Retrieving hosts plug mapping')
 for cluster in get_site_clusters(site):
     nodes = get_resource_attributes('/sites/' + site + '/clusters/' + cluster + \
@@ -51,11 +60,17 @@ for cluster in get_site_clusters(site):
                     if 'port' in pdu:
                         logger.warning('node ' + node['uid'] + ' has str instead of list for power[\'via\']')     
                         equips[pdu['uid'].split('.')[0]]['mapping'].append((node['uid'], pdu['port']))
+            if 'www' in power['via']:
+                print node['uid'], power.keys()
+                if not 'per_outlets' in power or power['per_outlets']:  
+                    equips[pdu['uid']]['probes'].append(node['uid'])
+                
+                
 pprint(equips)    
 
-logger.info('Generating probe list') 
+logger.info('Generating probe list for Snmp drivers') 
 for equip in equips.itervalues():
-    if len(equip['mapping']) > 0:
+    if 'mapping' in equip and len(equip['mapping']) > 0:
         equip['mapping'] = sorted(equip['mapping'], key=lambda x: x[1])
         equip['probes'] = [None] * equip['mapping'][-1][1]        
         for probe, outlet in equip['mapping']:
@@ -66,8 +81,9 @@ pprint(equips)
 logger.info('Writing new configuration file')
 f = open('/tmp/kwapi-drivers-list.conf', 'w')
 for equip, data in equips.iteritems():
+    
     if 'probes' in data:
-        sec = "["+equip+"]\n"
+        sec = "\n["+equip+"]\n"
         sec += "probes = ["
         for probe in data['probes']:
             if probe:
@@ -77,12 +93,11 @@ for equip, data in equips.iteritems():
             sec += ", "
         sec += "]\n"
         sec += "driver = "+data['driver']+"\n"
-        sec += "parameters = "+str({'community': _community, 'ip': equip + '.' + site + \
-                                    '.grid5000.fr',
-                        'oid': data['oid'], 'protocol': _protocol})+"\n\n"
+        sec += "parameters = "+str(data['parameters']) + "\n"
         f.write(sec)
 
 f.close()
+
 
 logger.info('Adding drivers from API to /etc/kwapi/drivers.conf')
 bak_conf = Process('[ -f /etc/kwapi/drivers.conf.orig ] && cp /etc/kwapi/drivers.conf.orig /etc/kwapi/drivers.conf || cp /etc/kwapi/drivers.conf /etc/kwapi/drivers.conf.orig')
