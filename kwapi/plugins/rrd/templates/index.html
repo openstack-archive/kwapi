@@ -26,13 +26,12 @@
             }
 
             function selectJobId() {
-
                 deselectAll();
                 job = $('#job-field').val();
                 if(!job) {
                     return;
                 }
-                $("#loading-div-background").show();
+                $('#loading-div-background').show();
                 $.ajax({
                     url: '/nodes/' + job + '/',
                     dataType: 'json',
@@ -45,19 +44,26 @@
                         $.each(items, function(i, e) {
                             e = e.split('.');
                             e = e[1] + '.' + e[0];
-                            selected[selected.length] = e;
-                            $('select').trigger({
-                                type: 'select2-selecting',
-                                val: e
-                            });
+                            if(probeInSelect(e)) {
+                                selected[selected.length] = e;
+                                $('select').trigger({
+                                    type: 'select2-selecting',
+                                    val: e
+                                });
+                            }
+                            else
+                            {
+                                $('#not-found').append('<li>' + e + ' is not monitored</li>');
+                                $('#probes-not-found').show();
+                            }
                         })
                         $('select').select2('val', selected);
-                        $("#loading-div-background").hide();
+                        $('#loading-div-background').hide();
                     },
                     timeout: 10000,
                     error: function(jqXHR, status, errorThrown) {
                         alert('Timeout');
-                        $("#loading-div-background").hide();
+                        $('#loading-div-background').hide();
                     }
                 });
             }
@@ -88,6 +94,18 @@
                         val: $(e).attr('value')
                     });
                 });
+                $('#probes-not-found').hide();
+                $('#not-found').empty();
+            }
+
+            function probeInSelect(probe) {
+                var found = false;
+                $('select option').each(function(i, e) {
+                    if(probe == $(e).attr('value')) {
+                        found = true;
+                    }
+                });
+                return found;
             }
 
             $(document).ready(function () {
@@ -95,7 +113,7 @@
 
                 $('#job-field').numeric({decimal: false, negative: false});
 
-                $("#loading-div-background").css({opacity: 0.75});
+                $('#loading-div-background').css({opacity: 0.75});
 
                 // Init select probe list
                 var cookie = $.cookie('probes');
@@ -182,6 +200,9 @@
                     <button type="button" id="select-all">All</button>
                     <button type="button" id="deselect-all">Clear</button>
                     <div id="probes"></div>
+                    <div id="probes-not-found" style="display:none">Probes not found:
+                        <ul id="not-found"></ul>
+                    </div>
                 {% else %}
                     <p>No probes found.</p>
                 {% endif %}

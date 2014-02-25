@@ -48,9 +48,7 @@ def make_app():
     rrd.create_dirs()
 
     hostname = socket.getfqdn().split('.')
-    print hostname
     hostname = hostname[1] if len(hostname) >= 2 else hostname[0]
-    print hostname
 
     @app.before_request
     def attach_config():
