@@ -14,7 +14,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-"""Set up the RRD server application instance."""
+"""Set up the HDF5 server application instance."""
 
 import sys
 import thread
@@ -41,18 +41,14 @@ def make_app():
     """Instantiates Flask app, attaches collector database. """
     LOG.info('Starting HDF5')
     app = flask.Flask(__name__)
-    app.register_blueprint(v1.blueprint, url_prefix='/v1')
+#    app.register_blueprint(v1.blueprint, url_prefix='/v1')
 
     thread.start_new_thread(listen, (hdf5.update_hdf5,))
-    
-    @app.before_request
-    def attach_config():
-        flask.request.probes = rrd.probes
-        flask.request.scales = rrd.scales
+
     return app
 
 
 def start():
-    """Starts Kwapi RRD."""
+    """Starts Kwapi HDF5."""
     root = make_app()
-    root.run(host='0.0.0.0', port=cfg.CONF.rrd_port)
+    root.run(host='0.0.0.0', port=cfg.CONF.hdf5_port)

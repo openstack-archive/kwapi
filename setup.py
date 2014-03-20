@@ -45,12 +45,7 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     package_data={'kwapi.plugins.rrd': ['templates/*', 'static/*.css', 'static/*.png', 'static/*.jpg', 'static/*.js', 'static/select2/*']},
 
-    scripts=['bin/kwapi-api',
-             'bin/kwapi-drivers',
-             'bin/kwapi-rrd',
-             'bin/kwapi-forwarder',
-             'bin/kwapi-g5k-conf',
-             'bin/kwapi-hdf5'],
+    scripts=['bin/kwapi-g5k-conf'],
 
     data_files=[('/etc/kwapi', ['etc/kwapi/api.conf',
                                 'etc/kwapi/drivers.conf',
