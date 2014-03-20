@@ -57,13 +57,14 @@ def update_hdf5(probe, watts):
         measurements[probe] = []
     measurements[probe].append((int(time()), watts))
     if len(measurements[probe]) > 5:
-        thread.start_new_thread(write_hdf5_file, ())
-        
-def write_hdf5_file():
+        zipped = zip(*measurements[probe])
+        write_hdf5_file(probe, np.array(zipped[0]), np.array(zipped[1]))
+        measurements[probe] = []
+
+def write_hdf5_file(probe, timestamps, measurements):
+    print timestamps, measurements
     store = HDFStore(cfg.CONF.hdf5_dir + '/store.h5')
-    for probe in measurements.keys():
-        zipped = zip(*measurements)
-        df = DataFrame(np.array(zipped[1]), index=np.array(zipped[0]))
-        path = get_probe_path(probe)
-        store.append(path, df)
+    df = DataFrame(measurements, index=timestamps)
+    path = get_probe_path(probe)
+    store.append(path, df)
     store.close()
