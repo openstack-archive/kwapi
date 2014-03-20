@@ -61,5 +61,16 @@ setuptools.setup(
                       'python-rrdtool',
                       'execo',
                       'numpy',
-                      'h5py'],
+                      'pandas',
+                      'tables',
+                      'numexpr'],
+    entry_points={
+        'console_scripts': [
+            'kwapi-api = kwapi.plugins.api.app:start',
+            'kwapi-drivers = kwapi.drivers.driver_manager:start',
+            'kwapi-forwarder = kwapi.forwarder:start',
+            'kwapi-rrd = kwapi.plugins.rrd.app:start',
+            'kwapi-hdf5 = kwapi.plugins.hdf5.app:start',]
+    }
+    
 )
