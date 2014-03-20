@@ -12,8 +12,6 @@ PID_RRD="/var/run/kwapi-rrd.pid"
 PID_HDF5="/var/run/kwapi-hdf5.pid"
 
 
-echo `env`
-
 # Create required directories
 [ -d /var/log/kwapi ] || mkdir -p /var/log/kwapi
 [ -d /var/lib/kwapi ] || mkdir -p /var/lib/kwapi
