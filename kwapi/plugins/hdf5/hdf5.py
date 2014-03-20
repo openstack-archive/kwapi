@@ -1,3 +1,6 @@
+import os
+import thread
+import errno
 from pandas import HDFStore, DataFrame
 from random import randint
 from time import time
@@ -9,39 +12,58 @@ from kwapi.utils import cfg, log
 
 LOG = log.getLogger(__name__)
 
+hdf5_opts = [
+    cfg.BoolOpt('signature_checking',
+                required=True,
+                ),
+    cfg.MultiStrOpt('probes_endpoint',
+                    required=True,
+                    ),
+    cfg.MultiStrOpt('watch_probe',
+                    required=False,
+                    ),
+    cfg.StrOpt('driver_metering_secret',
+               required=True,
+               ),
+    cfg.StrOpt('hdf5_dir',
+               required=True,
+               ),
+]
+
+cfg.CONF.register_opts(hdf5_opts)
+
+
 measurements = {}
 
 def get_probe_path(probe):
-    cluster = get_host_cluster(probe)
-    return cluster + '/' + probe.replace('-', '_')
+    host = probe.split('.')[1]
+    cluster = get_host_cluster(host)
+    
+    return cluster + '/' + host.replace('-', '_')
 
-def create_probe_dir(probe):
+def create_dir():
     """Creates all required directories."""
-    probe_dir = cfg.CONF.hdf5_dir
     try:
-       os.makedirs(probe_dir)
+       os.makedirs(cfg.CONF.hdf5_dir)
     except OSError as exception:
        if exception.errno != errno.EEXIST:
            raise
-    return probe_dir
             
-def create_hdf5_file():
-    """Creates a HDF5 file."""
-    probe_dir = create_probe_dir(probe)
-    f = h5py.File(probe_dir + 'store.h5', 'w')
-    f.close()
+    
     
 def update_hdf5(probe, watts):
     """Updates HDF5 file associated with this probe."""
     if probe not in measurements:
         measurements[probe] = []
     measurements[probe].append((int(time()), watts))
-    if len(measurements[probe]) > 10:
+    if len(measurements[probe]) > 5:
         thread.start_new_thread(write_hdf5_file, ())
         
 def write_hdf5_file():
+    store = HDFStore(cfg.CONF.hdf5_dir + '/store.h5')
     for probe in measurements.keys():
         zipped = zip(*measurements)
         df = DataFrame(np.array(zipped[1]), index=np.array(zipped[0]))
         path = get_probe_path(probe)
         store.append(path, df)
+    store.close()
