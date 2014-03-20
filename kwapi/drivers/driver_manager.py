@@ -36,6 +36,9 @@ driver_manager_opts = [
     cfg.StrOpt('probes_endpoint',
                required=True,
                ),
+    cfg.StrOpt('log_file',
+               required=True,
+               ),
 ]
 
 cfg.CONF.register_opts(driver_manager_opts)
@@ -153,6 +156,11 @@ def terminate():
 
 def start():
     """Starts Kwapi drivers."""
+    cfg.CONF(sys.argv[1:],
+             project='kwapi',
+             default_config_files=['/etc/kwapi/drivers.conf'])
+    log.setup(cfg.CONF.log_file)
+    
     start_zmq_server()
     load_all_drivers()
     check_drivers_alive()

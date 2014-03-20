@@ -33,6 +33,9 @@ app_opts = [
     cfg.IntOpt('api_port',
                required=True,
                ),
+    cfg.StrOpt('log_file',
+               required=True,
+               ),
 ]
 
 cfg.CONF.register_opts(app_opts)
@@ -64,5 +67,9 @@ def make_app():
 
 def start():
     """Starts Kwapi API."""
+    cfg.CONF(sys.argv[1:],
+             project='kwapi',
+             default_config_files=['/etc/kwapi/api.conf'])
+    log.setup(cfg.CONF.log_file)
     root = make_app()
     root.run(host='0.0.0.0', port=cfg.CONF.api_port)

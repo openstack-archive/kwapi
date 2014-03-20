@@ -29,9 +29,15 @@ import hdf5
 LOG = log.getLogger(__name__)
 
 app_opts = [
+    cfg.MultiStrOpt('probes_endpoint',
+                    required=True,
+                    ),
     cfg.IntOpt('hdf5_port',
                required=True,
-               ),            
+               ),  
+    cfg.StrOpt('log_file',
+               required=True,
+               ),          
 ]
 
 cfg.CONF.register_opts(app_opts)
@@ -42,7 +48,8 @@ def make_app():
     LOG.info('Starting HDF5')
     app = flask.Flask(__name__)
 #    app.register_blueprint(v1.blueprint, url_prefix='/v1')
-
+    
+    hdf5.create_dir()
     thread.start_new_thread(listen, (hdf5.update_hdf5,))
 
     return app
@@ -50,5 +57,9 @@ def make_app():
 
 def start():
     """Starts Kwapi HDF5."""
+    cfg.CONF(sys.argv[1:],
+             project='kwapi',
+             default_config_files=['/etc/kwapi/hdf5.conf'])
+    log.setup(cfg.CONF.log_file)
     root = make_app()
     root.run(host='0.0.0.0', port=cfg.CONF.hdf5_port)

@@ -32,6 +32,9 @@ forwarder_opts = [
     cfg.StrOpt('forwarder_endpoint',
                required=True,
                ),
+    cfg.StrOpt('log_file',
+               required=True,
+               ),
 ]
 
 cfg.CONF.register_opts(forwarder_opts)
@@ -67,6 +70,11 @@ def signal_handler(signum, frame):
 
 def start():
     """Starts Kwapi forwarder."""
+    cfg.CONF(sys.argv[1:],
+             project='kwapi',
+             default_config_files=['/etc/kwapi/forwarder.conf']
+             )
+    log.setup(cfg.CONF.log_file)
     signal.signal(signal.SIGTERM, signal_handler)
     try:
         forwarder()

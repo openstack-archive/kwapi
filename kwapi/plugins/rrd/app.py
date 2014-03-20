@@ -30,7 +30,13 @@ import v1
 LOG = log.getLogger(__name__)
 
 app_opts = [
+    cfg.MultiStrOpt('probes_endpoint',
+                    required=True,
+                    ),
     cfg.IntOpt('rrd_port',
+               required=True,
+               ),
+    cfg.StrOpt('log_file',
                required=True,
                ),
 ]
@@ -60,5 +66,9 @@ def make_app():
 
 def start():
     """Starts Kwapi RRD."""
+    cfg.CONF(sys.argv[1:],
+             project='kwapi',
+             default_config_files=['/etc/kwapi/rrd.conf'])
+    log.setup(cfg.CONF.log_file)
     root = make_app()
     root.run(host='0.0.0.0', port=cfg.CONF.rrd_port)
