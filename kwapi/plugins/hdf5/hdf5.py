@@ -48,21 +48,21 @@ def create_dir():
     except OSError as exception:
        if exception.errno != errno.EEXIST:
            raise
-            
-    
+       
     
 def update_hdf5(probe, watts):
-    """Updates HDF5 file associated with this probe."""
+    """Updates HDF5 file associated with this probe.""" 
     if probe not in measurements:
         measurements[probe] = []
-    measurements[probe].append((int(time()), watts))
-    if len(measurements[probe]) > 5:
-        zipped = zip(*measurements[probe])
+    measurements[probe].append((round(time(), 3), watts))
+    if len(measurements[probe]) == 10:
+        zipped = map(list, zip(*measurements[probe]))
+        LOG.info('%s %s', zipped[0], zipped[1])
         write_hdf5_file(probe, np.array(zipped[0]), np.array(zipped[1]))
         measurements[probe] = []
+        
 
 def write_hdf5_file(probe, timestamps, measurements):
-    print timestamps, measurements
     store = HDFStore(cfg.CONF.hdf5_dir + '/store.h5')
     df = DataFrame(measurements, index=timestamps)
     path = get_probe_path(probe)

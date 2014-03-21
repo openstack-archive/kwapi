@@ -47,7 +47,7 @@ def make_app():
     """Instantiates Flask app, attaches collector database. """
     LOG.info('Starting HDF5')
     app = flask.Flask(__name__)
-#    app.register_blueprint(v1.blueprint, url_prefix='/v1')
+    app.register_blueprint(v1.blueprint, url_prefix='/v1')
     
     hdf5.create_dir()
     thread.start_new_thread(listen, (hdf5.update_hdf5,))
