@@ -44,15 +44,29 @@ class Snmp(Driver):
 
     def run(self):
         """Starts the driver thread."""
+        
         while not self.stop_request_pending():
             watts_list = self.get_watts()
+            agg_values = {}
             if watts_list is not None:
                 i = 0
                 for watts in watts_list:
-                    measurements = {}
-                    measurements['w'] = watts
                     if self.probe_ids[i]:
-                        self.send_measurements(self.probe_ids[i], measurements)
+                        send = True
+                        measurements = {}
+                        if self.probe_ids.count(self.probe_ids[i]) == 1:
+                            measurements['w'] = watts
+                        else:
+                            if self.probe_ids[i:].count(self.probe_ids[i]) == 1:
+                                measurements['w'] = watts + agg_values[self.probe_ids[i]]
+                                agg_values[self.probe_ids[i]] = 0
+                            else:
+                                if not self.probe_ids[i] in agg_values:
+                                    agg_values[self.probe_ids[i]] = 0
+                                agg_values[self.probe_ids[i]] += watts
+                                send = False
+                        if send:
+                            self.send_measurements(self.probe_ids[i], measurements)
                     i += 1
             time.sleep(1)
 
