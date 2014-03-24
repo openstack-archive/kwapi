@@ -10,11 +10,11 @@
 \addtobeamertemplate{footline}{\insertframenumber/\inserttotalframenumber}
 
 \usepackage[utf8]{inputenc} \usepackage[english]{babel}
-\usepackage{graphicx} \usepackage{geometry} 
-\usepackage{pifont} 
+\usepackage{graphicx} \usepackage{geometry}
+\usepackage{pifont}
 \usepackage{hyperref}
 \usepackage{xspace}
-\usepackage{fancyvrb} 
+\usepackage{fancyvrb}
 \DefineVerbatimEnvironment{verbatim}{Verbatim}{formatcom=\color{blue}}
 
 
@@ -40,38 +40,38 @@ Lefèbvre \and Simon Delamare}
 
 % Delete this, if you do not want the table of contents to pop up at
 % the beginning of each subsection:
-% \AtBeginSection[]
-% {
-% \begin{frame}<beamer>
-% \frametitle{Outline}
-% \tableofcontents[currentsection,currentsubsection,hideothersubsections]
-% \end{frame}
-% }
+\AtBeginSection[]
+{
+\begin{frame}<beamer>
+\frametitle{Outline}
+\tableofcontents[currentsection,currentsubsection,hideothersubsections]
+\end{frame}
+}
 
 \begin{document}
 \begin{frame}
 \titlepage
 \end{frame}
 % \maketitle
-% 
+%
 % \frame{\tableofcontents}
-% 
-\section{Introduction}
+%
+\section*{Introduction}
 
 \begin{frame}{Contexte}
 \begin{itemize}
-   \item Consommation mondiale des datacenters augmente à fond avec l'explosion
-   du cloud
-   \item Pose un problème pour le futur avec l'exascale et \ldots
-   \item Augmenter le flops/Watt
-   \item besoin d'expérimenter sur Grid'5000
-   \begin{itemize} 
-     \item matériel
-     \item applicative
-     \item système 
-   \end{itemize} 
+  \item Consommation mondiale des datacenters augmente à fond avec l'explosion
+  du cloud
+  \item Pose un problème pour le futur avec l'exascale et \ldots
+  \item Augmenter le flops/Watt
+  \item besoin d'expérimenter sur Grid'5000
+  \begin{itemize}
+    \item matériel
+    \item applicative
+    \item système
+  \end{itemize}
 \end{itemize}
-    
+
 \alert{Besoin d'une infrastructure de monitoring énergétique, distribuée sur
 les sites et à haute résolution}
 \end{frame}
@@ -79,11 +79,11 @@ les sites et à haute résolution}
 
 \section{Fonctionnalités}
 
-\begin{frame}{\'Etat actuel des mesures}
+\begin{frame}{Les mesures actuelles}
 api\_pdu.py pour générer le tableau actuel
 \end{frame}
 
-\begin{frame}{Outils existants}
+\begin{frame}{Outils existants pour récupérer les données}
 
 \begin{block}{API}
 
@@ -93,8 +93,8 @@ api\_pdu.py pour générer le tableau actuel
 \begin{minipage}{0.77\linewidth}
 \begin{itemize}
   \item Wattmetre Omega 3
-  \item Visualisation ``temps réelle'' des mesures 
-  \item Récupération des logs des machines 
+  \item Visualisation ``temps réelle'' des mesures
+  \item Récupération des logs des machines
 \end{itemize}
 \end{minipage}
 \hfill
@@ -107,8 +107,9 @@ api\_pdu.py pour générer le tableau actuel
 
 \begin{frame}{Que veut-on ?}
 \begin{itemize}
+  \item uniformiser l'infra de monitoring
   \item remplacer les scripts qui mettent à jour ganglia
-  \item fournir aux utilisateurs les données de mesures pendant 1 an
+  \item fournir aux utilisateurs les données de mesures précises pendant 1 an
   \item permettre une visualisation live des expériences
 \end{itemize}
 \end{frame}
@@ -116,7 +117,6 @@ api\_pdu.py pour générer le tableau actuel
 
 
 \section{Architecture}
-\frame{\tableofcontents[currentsection]}
 
 \begin{frame}{Vue générale}
 \begin{minipage}{0.47\linewidth}
@@ -131,10 +131,10 @@ api\_pdu.py pour générer le tableau actuel
 \begin{frame}{Besoins}
 \begin{itemize}
   \item une VM par site
-  \item 100 To par an   
+  \item 100 To par an
 \end{itemize}
 
-
+Information dans l'API Grid'5000
 \end{frame}
 
 \begin{frame}{Récupération des données sur les équipements}
@@ -145,9 +145,24 @@ api\_pdu.py pour générer le tableau actuel
 \end{itemize}
 \end{frame}
 
-\begin{frame}{Sauvegarde haute résolution}
-    
+\begin{frame}{Visualisation temps-réelle}
+
 \end{frame}
+
+
+\begin{frame}{Données haute résolution}
+
+\end{frame}
+
+\begin{frame}{Mise à jour de Ganglia}
+
+\end{frame}
+
+\begin{frame}{Intégration dans l'API Grid'5000}
+
+\end{frame}
+
+
 
 \section{Tests}
 
@@ -169,7 +184,7 @@ Hyacynthe à Luxembroug
 \end{frame}
 
 
-\section{Conclusion}
+\section*{Conclusion}
 
 \begin{frame}{Bilan}
 
