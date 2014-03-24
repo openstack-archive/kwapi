@@ -55,6 +55,7 @@ def listen(function):
                 probe = measurements['probe_id'].encode('utf-8')
                 function(probe, float(measurements['w']))
             except (TypeError, ValueError):
+                raise
                 LOG.error('Malformed power consumption data: %s'
                           % measurements['w'])
             except KeyError:

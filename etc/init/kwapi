@@ -20,7 +20,6 @@ PID_HDF5="/var/run/kwapi-hdf5.pid"
 chown -R $USER:$USER /var/log/kwapi
 chown -R $USER:$USER /var/lib/kwapi
 
-
 # Read configuration
 if [ -r /etc/kwapi/daemon.conf ]; then
     . /etc/kwapi/daemon.conf
