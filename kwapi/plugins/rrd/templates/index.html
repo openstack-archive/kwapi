@@ -80,6 +80,7 @@
                 });
                 $('select').select2('val', selected);
                 reloadAllImages();
+                $("#zip").text('Download all probes RRD');
             }
 
             function deselectAll() {
@@ -96,6 +97,7 @@
                 });
                 $('#probes-not-found').hide();
                 $('#not-found').empty();
+                $("#zip").text('Download all probes RRD');
             }
 
             function probeInSelect(probe) {
@@ -107,6 +109,12 @@
                 });
                 return found;
             }
+
+            $(function(){
+                $("#zip").click(function(){
+                    $(this).attr("href", "/zip/?probes=" + $('select').select2('val'));
+                });
+            });
 
             $(document).ready(function () {
                 setInterval('reloadAllImages()', {{ refresh*1000 }});
@@ -131,12 +139,18 @@
                 $(document.body).on('select2-selecting', 'select', function(e) {
                     var probe = '<a href="/probe/' + e.val + '/' + '"><img class="graph" id="' + e.val + '" src="/graph/{{ scale }}/' + e.val + '/" alt="Graph ' + e.val + '"/></a>';
                     $('#probes').append(probe);
+                    $("#zip").text('Download selected probes RRD');
                     reloadAllImages();
                 });
 
                 // Event handler for deleting a probe
                 $(document.body).on('select2-removing', 'select', function(e) {
                     $('#' + e.val.replace(/\./g, '\\.')).parent().remove();
+                    if($('select').select2('val') == '') {
+                        $("#zip").text('Download all probes RRD');
+                    } else {
+                        $("#zip").text('Download selected probes RRD');
+                    }
                 });
 
                 // Bind buttons to event handlers
@@ -199,6 +213,7 @@
                     <input type="text" id="job-field"/><button type="button" id="job-button">Job</button>
                     <button type="button" id="select-all">All</button>
                     <button type="button" id="deselect-all">Clear</button>
+                    <a style="float:right; margin-top:10px" id="zip" href="/zip/">Download all probes RRD</a>
                     <div id="probes"></div>
                     <div id="probes-not-found" style="display:none">Probes not found:
                         <ul id="not-found"></ul>
@@ -209,11 +224,10 @@
 
             <!-- Probe view (all scales for one probe) -->
             {% elif view == 'probe' %}
-                <h2>{{ probe }}</h2>
+                <h2>{{ probe }} <a style="float:right" id="zip" href="/rrd/{{ probe }}/">Download RRD</a></h2>
                 {% for scale in scales %}
                     <img class="graph" src="/graph/{{ scale }}/{{ probe }}/" alt="Graph {{ probe }}"/>
                 {% endfor %}
-                <p style="text-align:center"><a href="/rrd/{{ probe }}/">Download RRD</a></p>
             {% endif %}
         </div>
         <div id="loading-div-background">

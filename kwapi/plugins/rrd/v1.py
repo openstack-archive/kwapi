@@ -17,6 +17,8 @@
 """This blueprint defines all URLs and answers."""
 
 import socket
+import tempfile
+import zipfile
 
 from execo_g5k.api_utils import get_resource_attributes
 import flask
@@ -84,8 +86,8 @@ def get_nodes(job):
 
 
 @blueprint.route('/rrd/<probe>/')
-def send_rrd(probe):
-    """Sends summary graph."""
+def send_rrd(probe=None):
+    """Sends rrd files."""
     probe = probe.encode('utf-8')
     rrd_file = rrd.get_rrd_filename(probe)
     try:
@@ -96,6 +98,29 @@ def send_rrd(probe):
                                conditional=True)
     except:
         flask.abort(404)
+
+
+@blueprint.route('/zip/')
+def send_zip():
+    """Sends zip file."""
+    probes = flask.request.args.get('probes')
+    if probes:
+        probes = probes.split(',')
+        for probe in probes:
+            if probe not in flask.request.probes:
+                flask.abort(404)
+    else:
+        probes = flask.request.probes
+    tmp_file = tempfile.NamedTemporaryFile()
+    zip_file = zipfile.ZipFile(tmp_file.name, 'w')
+    for probe in probes:
+        rrd_file = rrd.get_rrd_filename(probe)
+        zip_file.write(rrd_file, probe)
+    return flask.send_file(tmp_file.name,
+                           as_attachment=True,
+                           attachment_filename='rrd.zip',
+                           cache_timeout=0,
+                           conditional=True)
 
 
 @blueprint.route('/graph/<scale>/')

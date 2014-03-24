@@ -83,6 +83,10 @@ h2 {
     font-weight:normal;
 }
 
+h2 a {
+    font:12px Arial;
+}
+
 img {
     padding:10px;
 }

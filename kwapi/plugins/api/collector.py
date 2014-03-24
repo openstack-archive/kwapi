@@ -14,16 +14,10 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import json
 import threading
 import time
 
-from kwapi.plugins import listen
-from kwapi.utils import cfg
-import zmq
-
-from kwapi.utils import log
-from kwapi import security
+from kwapi.utils import cfg, log
 
 LOG = log.getLogger(__name__)
 

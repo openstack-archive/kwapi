@@ -28,7 +28,6 @@ import uuid
 import rrdtool
 
 from kwapi.utils import cfg, log
-from kwapi import security
 
 LOG = log.getLogger(__name__)
 
