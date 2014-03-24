@@ -115,7 +115,7 @@ def send_zip():
     zip_file = zipfile.ZipFile(tmp_file.name, 'w')
     for probe in probes:
         rrd_file = rrd.get_rrd_filename(probe)
-        zip_file.write(rrd_file, 'rrd/' + probe)
+        zip_file.write(rrd_file, '/rrd/' + probe + '.rrd')
     return flask.send_file(tmp_file.name,
                            as_attachment=True,
                            attachment_filename='rrd.zip',
