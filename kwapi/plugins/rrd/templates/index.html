@@ -79,8 +79,9 @@
                     });
                 });
                 $('select').select2('val', selected);
+                $('#summary').attr('src', '/graph/{{ scale }}/');
                 reloadAllImages();
-                $("#zip").text('Download all probes RRD');
+                $('#zip').text('Download all probes RRD');
             }
 
             function deselectAll() {
@@ -95,9 +96,11 @@
                         val: $(e).attr('value')
                     });
                 });
+                $('#summary').attr('src', '/graph/{{ scale }}/');
+                reloadAllImages();
                 $('#probes-not-found').hide();
                 $('#not-found').empty();
-                $("#zip").text('Download all probes RRD');
+                $('#zip').text('Download all probes RRD');
             }
 
             function probeInSelect(probe) {
@@ -111,8 +114,8 @@
             }
 
             $(function(){
-                $("#zip").click(function(){
-                    $(this).attr("href", "/zip/?probes=" + $('select').select2('val'));
+                $('#zip').click(function(){
+                    $(this).attr('href', '/zip/?probes=' + $('select').select2('val'));
                 });
             });
 
@@ -139,7 +142,12 @@
                 $(document.body).on('select2-selecting', 'select', function(e) {
                     var probe = '<a href="/probe/' + e.val + '/' + '"><img class="graph" id="' + e.val + '" src="/graph/{{ scale }}/' + e.val + '/" alt="Graph ' + e.val + '"/></a>';
                     $('#probes').append(probe);
-                    $("#zip").text('Download selected probes RRD');
+                    var probes = $('select').select2('val')
+                    if(jQuery.inArray(e.val, $('select').select2('val')) == -1) {
+                        probes.push(e.val);
+                    }
+                    $('#summary').attr('src', '/graph/{{ scale }}/?probes=' + probes);
+                    $('#zip').text('Download selected probes RRD');
                     reloadAllImages();
                 });
 
@@ -147,9 +155,11 @@
                 $(document.body).on('select2-removing', 'select', function(e) {
                     $('#' + e.val.replace(/\./g, '\\.')).parent().remove();
                     if($('select').select2('val') == '') {
-                        $("#zip").text('Download all probes RRD');
+                        $('#zip').text('Download all probes RRD');
+                        $('#summary').attr('src', '/graph/{{ scale }}/');
                     } else {
-                        $("#zip").text('Download selected probes RRD');
+                        $('#zip').text('Download selected probes RRD');
+                        $('#summary').attr('src', '/graph/{{ scale }}/?probes=' + $('select').select2('val'));
                     }
                 });
 
@@ -224,7 +234,7 @@
 
             <!-- Probe view (all scales for one probe) -->
             {% elif view == 'probe' %}
-                <h2>{{ probe }} <a style="float:right" id="zip" href="/rrd/{{ probe }}/">Download RRD</a></h2>
+                <h2>{{ probe }} <a style="float:right" id="zip" href="/zip/?probes={{ probe }}">Download RRD</a></h2>
                 {% for scale in scales %}
                     <img class="graph" src="/graph/{{ scale }}/{{ probe }}/" alt="Graph {{ probe }}"/>
                 {% endfor %}

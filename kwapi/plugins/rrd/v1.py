@@ -85,21 +85,6 @@ def get_nodes(job):
     return flask.jsonify({'job': job, 'nodes': nodes})
 
 
-@blueprint.route('/rrd/<probe>/')
-def send_rrd(probe=None):
-    """Sends rrd files."""
-    probe = probe.encode('utf-8')
-    rrd_file = rrd.get_rrd_filename(probe)
-    try:
-        return flask.send_file(rrd_file,
-                               as_attachment=True,
-                               attachment_filename=probe + '.rrd',
-                               cache_timeout=0,
-                               conditional=True)
-    except:
-        flask.abort(404)
-
-
 @blueprint.route('/zip/')
 def send_zip():
     """Sends zip file."""
@@ -131,8 +116,18 @@ def send_zip():
 @blueprint.route('/graph/<scale>/')
 def send_summary_graph(scale):
     """Sends summary graph."""
+    probes = flask.request.args.get('probes')
+    if probes:
+        probes = probes.split(',')
+        probes = [probe.encode('utf-8') for probe in probes]
+        for probe in probes:
+            if probe not in flask.request.probes:
+                flask.abort(404)
+    else:
+        probes = list(flask.request.probes)
     scale = scale.encode('utf-8')
-    png_file = rrd.build_graph(scale)
+    png_file = rrd.build_graph(scale, probes)
+    print "COUCOUCOUCOU", png_file
     try:
         return flask.send_file(png_file, cache_timeout=0, conditional=True)
     except:

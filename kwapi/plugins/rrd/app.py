@@ -59,7 +59,7 @@ def make_app():
     @app.before_request
     def attach_config():
         flask.request.hostname = hostname
-        flask.request.probes = rrd.probes
+        flask.request.probes = rrd.probes_set
         flask.request.scales = rrd.scales
     return app
 
