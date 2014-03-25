@@ -178,7 +178,7 @@ def update_rrd(probe, watts):
         LOG.error('Error updating RRD: %s' % e)
 
 
-def build_graph(scale, probes=None):
+def build_graph(scale, probes, summary=True):
     """Builds the graph for the probes, or a summary graph."""
     if scale not in scales.keys() or len(probes_set) == 0:
         return
@@ -201,20 +201,20 @@ def build_graph(scale, probes=None):
         return png_file
     # Build required (PNG file not found or outdated)
     scale_label = ' (' + scales[scale][0]['label'] + ')'
-    if len(probes) == 1:
+    if summary:
+        # Specific arguments for summary graph
+        args = [png_file,
+                '--title', 'Summary' + scale_label,
+                '--width', '694',
+                '--height', '261',
+                ]
+    else:
         # Specific arguments for probe graph
         args = [png_file,
                 '--title', probes[0] + scale_label,
                 '--width', '497',
                 '--height', '187',
                 '--upper-limit', str(cfg.CONF.max_watts),
-                ]
-    else:
-        # Specific arguments for summary graph
-        args = [png_file,
-                '--title', 'Summary' + scale_label,
-                '--width', '694',
-                '--height', '261',
                 ]
     # Common arguments
     args += ['--start', '-' + str(scales[scale][0]['interval']),

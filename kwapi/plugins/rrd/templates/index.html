@@ -234,7 +234,7 @@
 
             <!-- Probe view (all scales for one probe) -->
             {% elif view == 'probe' %}
-                <h2>{{ probe }} <a style="float:right" id="zip" href="/zip/?probes={{ probe }}">Download RRD</a></h2>
+                <h2>{{ probe }} <a style="float:right" href="/zip/?probes={{ probe }}">Download RRD</a></h2>
                 {% for scale in scales %}
                     <img class="graph" src="/graph/{{ scale }}/{{ probe }}/" alt="Graph {{ probe }}"/>
                 {% endfor %}
