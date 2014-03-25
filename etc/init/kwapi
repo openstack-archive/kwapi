@@ -1,24 +1,30 @@
 #! /bin/sh
-# /etc/init.d/kwapi
+### BEGIN INIT INFO
+# Provides:          kwapi
+# Required-Start:    $network
+# Required-Stop:     $network
+# Default-Start:     2 3 5
+# Default-Stop:      0 6
+# short-description: configure kwapi to monitor energy on sites
+# Description: energy monitoring, RRD, live visualization, long-term storage, ganglia
+### END INIT INFO
+
+# Author: Laurent Pouilloux
 #
-NAME=kwapi
-USER=kwapi
-DESC="Energy monitoring service"
 PREFIX=/usr/local/bin/
-PID_DRIVERS="/var/run/kwapi-drivers.pid"
-PID_FORWARDER="/var/run/kwapi-forwarder.pid"
-PID_API="/var/run/kwapi-api.pid"
-PID_RRD="/var/run/kwapi-rrd.pid"
-PID_HDF5="/var/run/kwapi-hdf5.pid"
+DESC="Energy monitoring service"
+NAME=kwapi
+SCRIPTNAME=/etc/init.d/kwapi
+USER=kwapi
 
 
 # Create required directories
 [ -d /var/log/kwapi ] || mkdir -p /var/log/kwapi
 [ -d /var/lib/kwapi ] || mkdir -p /var/lib/kwapi
-
 # Give permissions to $USER
-chown -R $USER:$USER /var/log/kwapi
-chown -R $USER:$USER /var/lib/kwapi
+#chown -R $USER:$USER /var/log/kwapi
+#chown -R $USER:$USER /var/lib/kwapi
+
 
 # Read configuration
 if [ -r /etc/kwapi/daemon.conf ]; then
@@ -28,6 +34,65 @@ else
     exit 1
 fi
 
+elements="DRIVERS FORWARDER API RRD HDF5"
+
+for element in $elements
+do
+    toto=`echo $element`
+    echo $(`echo $element`)
+    
+done
+
+exit 
+
+daemon_start () {
+    name=$1
+    echo "Starting ${name}"
+    PID=$(pid_element $name)
+    start-stop-daemon --start --make-pidfile --pidfile $PID --exec ${PREFIX}$name --chuid $USER --background
+}
+
+pid_element () {
+    echo /var/run/$1.pid
+}
+
+if $DRIVERS; then    
+    daemon_start kwapi-drivers 
+fi
+
+exit 
+
+
+exit
+
+
+echo $PLUGINS
+exit
+
+
+exit
+
+
+PID_DRIVERS="/var/run/kwapi-drivers.pid"
+PID_FORWARDER="/var/run/kwapi-forwarder.pid"
+PID_API="/var/run/kwapi-api.pid"
+PID_RRD="/var/run/kwapi-rrd.pid"
+PID_HDF5="/var/run/kwapi-hdf5.pid"
+
+
+
+
+
+# Read configuration
+if [ -r /etc/kwapi/daemon.conf ]; then
+    . /etc/kwapi/daemon.conf
+else
+    echo 'Unable to read configuration file, abort ..'
+    exit 1
+fi
+
+
+env
 # Carry out specific functions when asked to by the system
 case "$1" in
   start)
