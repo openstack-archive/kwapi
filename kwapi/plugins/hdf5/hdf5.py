@@ -57,7 +57,7 @@ def update_hdf5(probe, watts):
     measurements[probe].append((round(time(), 3), watts))
     if len(measurements[probe]) == 10:
         zipped = map(list, zip(*measurements[probe]))
-        LOG.info('%s %s', zipped[0], zipped[1])
+        LOG.debug('%s %s', zipped[0], zipped[1])
         write_hdf5_file(probe, np.array(zipped[0]), np.array(zipped[1]))
         measurements[probe] = []
         
