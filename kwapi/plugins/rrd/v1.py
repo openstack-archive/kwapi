@@ -114,8 +114,13 @@ def send_zip():
     tmp_file = tempfile.NamedTemporaryFile()
     zip_file = zipfile.ZipFile(tmp_file.name, 'w')
     for probe in probes:
+        probe = probe.encode('utf-8')
         rrd_file = rrd.get_rrd_filename(probe)
         zip_file.write(rrd_file, '/rrd/' + probe + '.rrd')
+        for scale in ['minute', 'hour', 'day', 'week', 'month', 'year']:
+            rrd.build_graph(scale, probe)
+            png_file = rrd.get_png_filename(scale, probe)
+            zip_file.write(png_file, '/png/' + probe + '/' + scale + '.png')
     return flask.send_file(tmp_file.name,
                            as_attachment=True,
                            attachment_filename='rrd.zip',
