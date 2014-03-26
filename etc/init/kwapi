@@ -38,13 +38,15 @@ pid_element () {
 }
 
 daemon_start () {
-    echo "Starting ${1,,}"
+    EXEC=${1//_/-}
+    echo "Starting ${EXEC,,}"
     PID=$(pid_element $1)
-    start-stop-daemon --start --make-pidfile --pidfile $PID --exec ${PREFIX}${1,,} --chuid $USER --background
+    start-stop-daemon --start --make-pidfile --pidfile $PID --exec ${PREFIX}${EXEC,,} --chuid $USER --background
 }
 
 daemon_stop () {
-    echo "Stopping ${1,,}"
+    EXEC=${1//_/-}
+    echo "Stopping ${EXEC,,}"
     PID=$(pid_element $1)
     start-stop-daemon --stop --pidfile $PID
 }
