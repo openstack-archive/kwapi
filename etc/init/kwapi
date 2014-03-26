@@ -48,7 +48,9 @@ daemon_start () {
     EXEC=${1//_/-}
     log_action_msg "Starting ${EXEC,,}"
     PID=$(pid_element $1)
+    echo "start-stop-daemon -v --start --make-pidfile --pidfile $PID --exec ${PREFIX}${EXEC,,} --chuid $USER --background" 
     start-stop-daemon -v --start --make-pidfile --pidfile $PID --exec ${PREFIX}${EXEC,,} --chuid $USER --background
+    sleep 1
 }
 
 daemon_stop () {
