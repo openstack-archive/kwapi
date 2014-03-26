@@ -180,11 +180,11 @@ def update_rrd(probe, watts):
 
 def build_graph(scale, probes, summary=True):
     """Builds the graph for the probes, or a summary graph."""
+    if not isinstance(probes, list):
+        probes = [probes]
     probes = [probe for probe in probes if probe in probes_set]
     if scale not in scales.keys() or len(probes_set) == 0:
         return
-    if not isinstance(probes, list):
-        probes = [probes]
     # Only one probe
     if len(probes) == 1:
         png_file = get_png_filename(scale, probes)
@@ -198,7 +198,7 @@ def build_graph(scale, probes, summary=True):
     # Get the file from cache
     if os.path.exists(png_file) and os.path.getmtime(png_file) > \
             time.time() - scales[scale][0]['resolution']:
-        LOG.info('Retrieve PNG summary graph from cache')
+        LOG.info('Retrieve PNG graph from cache')
         return png_file
     # Build required (PNG file not found or outdated)
     scale_label = ' (' + scales[scale][0]['label'] + ')'
@@ -288,6 +288,6 @@ def build_graph(scale, probes, summary=True):
     args.append('TEXTALIGN:center')
     args.append('GPRINT:kwh:LAST:Total\: %lf kWh')
     args.append('GPRINT:cost:LAST:Cost\: %lf ' + cfg.CONF.currency)
-    LOG.info('Build PNG summary graph')
+    LOG.info('Build PNG graph')
     rrdtool.graph(args)
     return png_file
