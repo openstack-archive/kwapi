@@ -41,7 +41,9 @@ daemon_start () {
     EXEC=${1//_/-}
     echo "Starting ${EXEC,,}"
     PID=$(pid_element $1)
+    echo "start-stop-daemon --start --make-pidfile --pidfile $PID --exec ${PREFIX}${EXEC,,} --chuid $USER --background"
     start-stop-daemon --start --make-pidfile --pidfile $PID --exec ${PREFIX}${EXEC,,} --chuid $USER --background
+    sleep 1
 }
 
 daemon_stop () {
@@ -57,7 +59,7 @@ case "$1" in
     for element in $kwapi_elements
     do
         if eval "$"$element; then
-            daemon_start $element  
+            daemon_start $element
         fi
     done
     ;;
