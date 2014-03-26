@@ -50,14 +50,13 @@
                                     type: 'select2-selecting',
                                     val: e
                                 });
+                                $('select').select2('val', selected);
                             }
-                            else
-                            {
+                            else {
                                 $('#not-found').append('<li>' + e + ' is not monitored</li>');
                                 $('#probes-not-found').show();
                             }
                         })
-                        $('select').select2('val', selected);
                         $('#loading-div-background').hide();
                     },
                     timeout: 10000,
@@ -120,7 +119,7 @@
             });
 
             $(document).ready(function () {
-                setInterval('reloadAllImages()', {{ refresh*1000 }});
+                setInterval('reloadAllImages()', {{ refresh*10000 }});
 
                 $('#job-field').numeric({decimal: false, negative: false});
 
@@ -142,7 +141,7 @@
                 $(document.body).on('select2-selecting', 'select', function(e) {
                     var probe = '<a href="/probe/' + e.val + '/' + '"><img class="graph" id="' + e.val + '" src="/graph/{{ scale }}/' + e.val + '/" alt="Graph ' + e.val + '"/></a>';
                     $('#probes').append(probe);
-                    var probes = $('select').select2('val')
+                    var probes = $('select').select2('val');
                     if(jQuery.inArray(e.val, $('select').select2('val')) == -1) {
                         probes.push(e.val);
                     }
