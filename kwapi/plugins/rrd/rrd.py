@@ -186,8 +186,8 @@ def build_graph(scale, probes, summary=True):
     if scale not in scales.keys() or len(probes_set) == 0:
         return
     # Only one probe
-    if len(probes) == 1:
-        png_file = get_png_filename(scale, probes)
+    if len(probes) == 1 and not summary:
+        png_file = get_png_filename(scale, probes[0])
     # All probes
     elif not probes or set(probes) == probes_set:
         png_file = cfg.CONF.png_dir + '/' + scale + '/summary.png'

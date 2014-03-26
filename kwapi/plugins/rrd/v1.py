@@ -100,29 +100,32 @@ def send_zip():
         probes = flask.request.probes
     tmp_file = tempfile.NamedTemporaryFile()
     zip_file = zipfile.ZipFile(tmp_file.name, 'w')
-    probes = [probe.encode('utf-8') for probe in probes]
-    files = False
-    for probe in probes:
+    probes = [probe.encode('utf-8') for probe in probes
+              if os.path.exists(rrd.get_rrd_filename(probe))]
+    if len(probes) == 1:
+        probe = probes[0]
         rrd_file = rrd.get_rrd_filename(probe)
-        if os.path.exists(rrd_file):
-            files = True
-        else:
-            continue
         zip_file.write(rrd_file, '/rrd/' + probe + '.rrd')
         for scale in ['minute', 'hour', 'day', 'week', 'month', 'year']:
             png_file = rrd.build_graph(scale, probe, False)
-            zip_file.write(png_file, '/png/' + probe + '/' + scale + '.png')
-    for scale in ['minute', 'hour', 'day', 'week', 'month', 'year']:
-        png_file = rrd.build_graph(scale, probes, True)
-        zip_file.write(png_file, '/png/summary-' + scale + '.png')
-    if files:
-        return flask.send_file(tmp_file.name,
-                               as_attachment=True,
-                               attachment_filename='rrd.zip',
-                               cache_timeout=0,
-                               conditional=True)
+            zip_file.write(png_file, '/png/' + probe + '-' + scale + '.png')
+    elif len(probes) > 1:
+        for probe in probes:
+            rrd_file = rrd.get_rrd_filename(probe)
+            zip_file.write(rrd_file, '/rrd/' + probe + '.rrd')
+            for scale in ['minute', 'hour', 'day', 'week', 'month', 'year']:
+                png_file = rrd.build_graph(scale, probe, False)
+                zip_file.write(png_file, '/png/' + probe + '/' + scale + '.png')
+        for scale in ['minute', 'hour', 'day', 'week', 'month', 'year']:
+            png_file = rrd.build_graph(scale, probes, True)
+            zip_file.write(png_file, '/png/summary-' + scale + '.png')
     else:
         flask.abort(404)
+    return flask.send_file(tmp_file,
+                           as_attachment=True,
+                           attachment_filename='rrd.zip',
+                           cache_timeout=0,
+                           conditional=True)
 
 
 @blueprint.route('/graph/<scale>/')
@@ -139,12 +142,15 @@ def send_summary_graph(scale):
         probes = list(flask.request.probes)
     scale = scale.encode('utf-8')
     png_file = rrd.build_graph(scale, probes, True)
-    png_file_tmp = tempfile.NamedTemporaryFile()
-    shutil.copy2(png_file, png_file_tmp.name)
+    tmp_file = tempfile.NamedTemporaryFile()
+    shutil.copy2(png_file, tmp_file.name)
     if png_file != cfg.CONF.png_dir + '/' + scale + '/summary.png':
         os.unlink(png_file)
     try:
-        return flask.send_file(png_file_tmp, cache_timeout=0, conditional=True)
+        return flask.send_file(tmp_file,
+                               mimetype='image/png',
+                               cache_timeout=0,
+                               conditional=True)
     except:
         flask.abort(404)
 
