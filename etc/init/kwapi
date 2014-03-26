@@ -17,6 +17,13 @@ NAME=kwapi
 SCRIPTNAME=/etc/init.d/kwapi
 USER=kwapi
 
+# Load the VERBOSE setting and other rcS variables
+. /lib/init/vars.sh
+
+# Define LSB log_* functions.
+# Depend on lsb-base (>= 3.0-6) to ensure that this file is present.
+. /lib/lsb/init-functions
+
 # Create required directories
 [ -d /var/log/kwapi ] || mkdir -p /var/log/kwapi
 [ -d /var/lib/kwapi ] || mkdir -p /var/lib/kwapi
@@ -39,16 +46,14 @@ pid_element () {
 
 daemon_start () {
     EXEC=${1//_/-}
-    echo "Starting ${EXEC,,}"
+    log_action_msg "Starting ${EXEC,,}"
     PID=$(pid_element $1)
-    echo "start-stop-daemon --start --make-pidfile --pidfile $PID --exec ${PREFIX}${EXEC,,} --chuid $USER --background"
-    start-stop-daemon --start --make-pidfile --pidfile $PID --exec ${PREFIX}${EXEC,,} --chuid $USER --background
-    sleep 1
+    start-stop-daemon -v --start --make-pidfile --pidfile $PID --exec ${PREFIX}${EXEC,,} --chuid $USER --background
 }
 
 daemon_stop () {
     EXEC=${1//_/-}
-    echo "Stopping ${EXEC,,}"
+    log_action_msg "Stopping ${EXEC,,}"
     PID=$(pid_element $1)
     start-stop-daemon --stop --pidfile $PID
 }
