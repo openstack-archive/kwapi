@@ -180,6 +180,7 @@ def update_rrd(probe, watts):
 
 def build_graph(scale, probes, summary=True):
     """Builds the graph for the probes, or a summary graph."""
+    probes = [probe for probe in probes if probe in probes_set]
     if scale not in scales.keys() or len(probes_set) == 0:
         return
     if not isinstance(probes, list):

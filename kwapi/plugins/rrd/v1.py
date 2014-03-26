@@ -96,25 +96,33 @@ def send_zip():
     probes = flask.request.args.get('probes')
     if probes:
         probes = probes.split(',')
-        for probe in probes:
-            if probe not in flask.request.probes:
-                flask.abort(404)
     else:
         probes = flask.request.probes
     tmp_file = tempfile.NamedTemporaryFile()
     zip_file = zipfile.ZipFile(tmp_file.name, 'w')
     probes = [probe.encode('utf-8') for probe in probes]
+    files = False
     for probe in probes:
         rrd_file = rrd.get_rrd_filename(probe)
+        if os.path.exists(rrd_file):
+            files = True
+        else:
+            continue
         zip_file.write(rrd_file, '/rrd/' + probe + '.rrd')
         for scale in ['minute', 'hour', 'day', 'week', 'month', 'year']:
             png_file = rrd.build_graph(scale, probe, False)
             zip_file.write(png_file, '/png/' + probe + '/' + scale + '.png')
-    return flask.send_file(tmp_file.name,
-                           as_attachment=True,
-                           attachment_filename='rrd.zip',
-                           cache_timeout=0,
-                           conditional=True)
+    for scale in ['minute', 'hour', 'day', 'week', 'month', 'year']:
+        png_file = rrd.build_graph(scale, probes, True)
+        zip_file.write(png_file, '/png/summary-' + scale + '.png')
+    if files:
+        return flask.send_file(tmp_file.name,
+                               as_attachment=True,
+                               attachment_filename='rrd.zip',
+                               cache_timeout=0,
+                               conditional=True)
+    else:
+        flask.abort(404)
 
 
 @blueprint.route('/graph/<scale>/')
