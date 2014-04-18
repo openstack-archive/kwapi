@@ -178,30 +178,44 @@ def update_rrd(probe, watts):
         LOG.error('Error updating RRD: %s' % e)
 
 
-def build_graph(scale, probes, summary=True):
+def build_graph(start, end, probes, summary=True):
     """Builds the graph for the probes, or a summary graph."""
+    cachable = False
+    intervals = {}
+    for scale in scales:
+        intervals[scales[scale][0]['interval']] = {
+            'resolution': scales[scale][0]['resolution'],
+            'name': scale
+        }
+    scale = None
+    if end - start in intervals:
+        scale = intervals[end - start]['name']
+        if end >= int(time.time()) - scales[scale][0]['resolution']:
+            cachable = True
     if not isinstance(probes, list):
         probes = [probes]
     probes = [probe for probe in probes if probe in probes_set]
-    if scale not in scales.keys() or len(probes_set) == 0:
+    if len(probes_set) == 0:
         return
     # Only one probe
-    if len(probes) == 1 and not summary:
+    if len(probes) == 1 and not summary and cachable:
         png_file = get_png_filename(scale, probes[0])
     # All probes
-    elif not probes or set(probes) == probes_set:
+    elif not probes or set(probes) == probes_set and cachable:
         png_file = cfg.CONF.png_dir + '/' + scale + '/summary.png'
         probes = list(probes_set)
-    # Specific combinaison of probes, so store the file in tmp directory
+    # Specific combinaison of probes
     else:
         png_file = '/tmp/' + str(uuid.uuid4()) + '.png'
     # Get the file from cache
-    if os.path.exists(png_file) and os.path.getmtime(png_file) > \
+    if cachable and os.path.exists(png_file) and os.path.getmtime(png_file) > \
             time.time() - scales[scale][0]['resolution']:
         LOG.info('Retrieve PNG graph from cache')
         return png_file
     # Build required (PNG file not found or outdated)
-    scale_label = ' (' + scales[scale][0]['label'] + ')'
+    scale_label = ''
+    if scale:
+        scale_label = ' (' + scales[scale][0]['label'] + ')'
     if summary:
         # Specific arguments for summary graph
         args = [png_file,
@@ -218,8 +232,8 @@ def build_graph(scale, probes, summary=True):
                 '--upper-limit', str(cfg.CONF.max_watts),
                 ]
     # Common arguments
-    args += ['--start', '-' + str(scales[scale][0]['interval']),
-             '--end', 'now',
+    args += ['--start', str(start),
+             '--end', str(end),
              '--full-size-mode',
              '--imgformat', 'PNG',
              '--alt-y-grid',
@@ -227,7 +241,7 @@ def build_graph(scale, probes, summary=True):
              '--lower-limit', '0',
              '--rigid',
              ]
-    if scale == 'minute':
+    if end - start <= 300:
         args += ['--x-grid', 'SECOND:30:MINUTE:1:MINUTE:1:0:%H:%M']
     cdef_watt = 'CDEF:watt='
     cdef_watt_with_unknown = 'CDEF:watt_with_unknown='
@@ -277,7 +291,7 @@ def build_graph(scale, probes, summary=True):
     # RPN expressions must contain DEF or CDEF variables, so we pop a
     # CDEF value
     args.append('CDEF:kwh=watt,POP,wattavg,1000.0,/,%s,3600.0,/,*'
-                % str(scales[scale][0]['interval']))
+                % str(end - start))
     # Compute cost
     args.append('CDEF:cost=watt,POP,kwh,%f,*' % cfg.CONF.kwh_price)
     # Legend

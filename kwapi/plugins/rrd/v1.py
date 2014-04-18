@@ -16,10 +16,12 @@
 
 """This blueprint defines all URLs and answers."""
 
+import collections
 import os
 import shutil
 import socket
 import tempfile
+import time
 import zipfile
 
 from execo_g5k.api_utils import get_resource_attributes
@@ -51,8 +53,7 @@ def welcome():
 
 @blueprint.route('/last/<scale>/')
 def welcome_scale(scale):
-    if scale not in flask.request.scales:
-        flask.abort(404)
+    """Shows a specific scale of a probe."""
     try:
         return flask.render_template('index.html',
                                      hostname=flask.request.hostname,
@@ -60,6 +61,8 @@ def welcome_scale(scale):
                                      refresh=cfg.CONF.refresh_interval,
                                      scales=flask.request.scales,
                                      scale=scale,
+                                     start=int(time.time()) - flask.request.scales[scale][0]['interval'],
+                                     end=int(time.time()),
                                      view='scale')
     except TemplateNotFound:
         flask.abort(404)
@@ -67,14 +70,21 @@ def welcome_scale(scale):
 
 @blueprint.route('/probe/<probe>/')
 def welcome_probe(probe):
+    """Shows all graphs of a probe."""
     if probe not in flask.request.probes:
         flask.abort(404)
     try:
+        scales = collections.OrderedDict()
+        for scale in flask.request.scales:
+            scales[scale] = {
+                'start': int(time.time()) - flask.request.scales[scale][0]['interval'],
+                'end': int(time.time())
+            }
         return flask.render_template('index.html',
                                      hostname=flask.request.hostname,
                                      probe=probe,
                                      refresh=cfg.CONF.refresh_interval,
-                                     scales=flask.request.scales,
+                                     scales=scales,
                                      view='probe')
     except TemplateNotFound:
         flask.abort(404)
@@ -86,8 +96,20 @@ def get_nodes(job):
     site = socket.getfqdn().split('.')
     site = site[1] if len(site) >= 2 else site[0]
     path = '/sites/' + site + '/jobs/' + job
-    nodes = get_resource_attributes(path)['assigned_nodes']
-    return flask.jsonify({'job': job, 'nodes': nodes})
+    job_properties = get_resource_attributes(path)
+    nodes = job_properties['assigned_nodes']
+    try:
+        started_at = job_properties['started_at']
+    except KeyError:
+        started_at = 'Undefined'
+    try:
+        stopped_at = job_properties['stopped_at']
+    except KeyError:
+        stopped_at = 'Undefined'
+    return flask.jsonify({'job': int(job),
+                          'started_at': started_at,
+                          'stopped_at': stopped_at,
+                          'nodes': nodes})
 
 
 @blueprint.route('/zip/')
@@ -107,17 +129,17 @@ def send_zip():
         rrd_file = rrd.get_rrd_filename(probe)
         zip_file.write(rrd_file, '/rrd/' + probe + '.rrd')
         for scale in ['minute', 'hour', 'day', 'week', 'month', 'year']:
-            png_file = rrd.build_graph(scale, probe, False)
+            png_file = rrd.build_graph(int(time.time()) - flask.request.scales[scale][0]['interval'], int(time.time()), probe, False)
             zip_file.write(png_file, '/png/' + probe + '-' + scale + '.png')
     elif len(probes) > 1:
         for probe in probes:
             rrd_file = rrd.get_rrd_filename(probe)
             zip_file.write(rrd_file, '/rrd/' + probe + '.rrd')
             for scale in ['minute', 'hour', 'day', 'week', 'month', 'year']:
-                png_file = rrd.build_graph(scale, probe, False)
+                png_file = rrd.build_graph(int(time.time()) - flask.request.scales[scale][0]['interval'], int(time.time()), probe, False)
                 zip_file.write(png_file, '/png/' + probe + '/' + scale + '.png')
         for scale in ['minute', 'hour', 'day', 'week', 'month', 'year']:
-            png_file = rrd.build_graph(scale, probes, True)
+            png_file = rrd.build_graph(int(time.time()) - flask.request.scales[scale][0]['interval'], int(time.time()), probes, True)
             zip_file.write(png_file, '/png/summary-' + scale + '.png')
     else:
         flask.abort(404)
@@ -128,8 +150,8 @@ def send_zip():
                            conditional=True)
 
 
-@blueprint.route('/graph/<scale>/')
-def send_summary_graph(scale):
+@blueprint.route('/summary-graph/<start>/<end>/')
+def send_summary_graph(start, end):
     """Sends summary graph."""
     probes = flask.request.args.get('probes')
     if probes:
@@ -140,11 +162,12 @@ def send_summary_graph(scale):
                 flask.abort(404)
     else:
         probes = list(flask.request.probes)
-    scale = scale.encode('utf-8')
-    png_file = rrd.build_graph(scale, probes, True)
+    start = start.encode('utf-8')
+    end = end.encode('utf-8')
+    png_file = rrd.build_graph(int(start), int(end), probes, True)
     tmp_file = tempfile.NamedTemporaryFile()
     shutil.copy2(png_file, tmp_file.name)
-    if png_file != cfg.CONF.png_dir + '/' + scale + '/summary.png':
+    if not png_file.endswith('summary.png'):
         os.unlink(png_file)
     try:
         return flask.send_file(tmp_file,
@@ -155,12 +178,13 @@ def send_summary_graph(scale):
         flask.abort(404)
 
 
-@blueprint.route('/graph/<scale>/<probe>/')
-def send_probe_graph(scale, probe):
+@blueprint.route('/graph/<probe>/<start>/<end>/')
+def send_probe_graph(probe, start, end):
     """Sends graph."""
     probe = probe.encode('utf-8')
-    scale = scale.encode('utf-8')
-    png_file = rrd.build_graph(scale, probe, False)
+    start = start.encode('utf-8')
+    end = end.encode('utf-8')
+    png_file = rrd.build_graph(int(start), int(end), probe, False)
     try:
         return flask.send_file(png_file, cache_timeout=0, conditional=True)
     except:

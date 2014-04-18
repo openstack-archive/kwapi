@@ -12,16 +12,62 @@
         <script src="{{ url_for('v1.static', filename='select2/select2.min.js') }}"></script>
         <script type="text/javascript">
         // <![CDATA[
-            function reloadImage(img) {
-                var src = img.attr('src');
-                src = src.split('#')[0];
-                src += '#' + Date.now();
-                img.attr('src', src);
+            function startRefreshing() {
+                stopRefreshing();
+                timer = setInterval('reloadAllImages("last")', {{ refresh*1000 }});
             }
 
-            function reloadAllImages() {
+            function startRefreshingFixedStart() {
+                stopRefreshing();
+                timer = setInterval('reloadAllImages("fixedStart")', {{ refresh*1000 }});
+            }
+
+            function stopRefreshing() {
+                if(typeof timer != 'undefined') {
+                    clearInterval(timer);
+                }
+            }
+
+            function modifyPeriod(start, end) {
                 $('.graph').each(function() {
-                    reloadImage($(this));
+                    var src = $(this).attr('src');
+                    var probes = '';
+                    if(src.indexOf('?') != -1) {
+                        probes = src.substring(src.indexOf('?'));
+                        src = src.substring(0, src.indexOf('?'));
+                    }
+                    var src_list = src.split('/');
+                    src_list.pop();
+                    src_list.pop();
+                    src_list.pop();
+                    $(this).attr('src', src_list.join('/') + '/' + start + '/' + end + '/' + probes);
+                });
+            }
+
+            function reloadImage(img, mode) {
+                var src = img.attr('src');
+                var probes = '';
+                if(src.indexOf('?') != -1) {
+                    probes = src.substring(src.indexOf('?'));
+                    src = src.substring(0, src.indexOf('?'));
+                }
+                var src_list = src.split('/');
+                src_list.pop();
+                var end = src_list.pop();
+                var start = src_list.pop();
+                var interval = end - start;
+                var newEnd = Math.ceil(Date.now() / 1000);
+                if(mode == 'last') {
+                    var newStart = newEnd - interval;
+                } else if(mode == 'fixedStart') {
+                    var newStart = start;
+                }
+                img.attr('src', src_list.join('/') + '/' + newStart + '/' + newEnd + '/' + probes);
+            }
+
+            function reloadAllImages(mode) {
+                $('.graph').each(function() {
+                    reloadImage($(this), mode);
                 });
             }
 
@@ -36,6 +82,14 @@
                     url: '/nodes/' + job + '/',
                     dataType: 'json',
                     success: function(data) {
+                        stopRefreshing();
+                        if(data.started_at == 'Undefined' ||
+                           data.started_at >= Math.ceil(Date.now() / 1000)) {
+                            alert('Job has not started');
+                            $('#loading-div-background').hide();
+                            startRefreshing();
+                            return;
+                        }
                         var items = data.nodes;
                         if(items.length === 0) {
                             alert('No hosts found');
@@ -58,16 +112,28 @@
                             }
                         })
                         $('#loading-div-background').hide();
+                        var fixedStart = false;
+                        if(data.stopped_at == 'Undefined') {
+                            data.stopped_at = Math.ceil(Date.now() / 1000);
+                            fixedStart = true
+                        }
+                        modifyPeriod(data.started_at, data.stopped_at);
+                        if(fixedStart) {
+                            startRefreshingFixedStart();
+                        }
+                        $('.active').removeClass('active');
                     },
                     timeout: 10000,
                     error: function(jqXHR, status, errorThrown) {
-                        alert('Timeout');
+                        alert('Timeout or Error occured');
                         $('#loading-div-background').hide();
                     }
                 });
             }
 
             function selectAll() {
+                $('.activable').addClass('active');
+                startRefreshing();
                 deselectAll();
                 var selected = [];
                 $('select option').each(function(i, e) {
@@ -78,12 +144,14 @@
                     });
                 });
                 $('select').select2('val', selected);
-                $('#summary').attr('src', '/graph/{{ scale }}/');
-                reloadAllImages();
+                $('#summary').attr('src', '/summary-graph/{{ start }}/{{ end }}/');
+                reloadAllImages('last');
                 $('#zip').text('Download all probes RRD');
             }
 
             function deselectAll() {
+                $('.activable').addClass('active');
+                startRefreshing();
                 $('select').each(function () {
                     $(this).select2('val', '');
                 });
@@ -95,8 +163,8 @@
                         val: $(e).attr('value')
                     });
                 });
-                $('#summary').attr('src', '/graph/{{ scale }}/');
-                reloadAllImages();
+                $('#summary').attr('src', '/summary-graph/{{ start }}/{{ end }}/');
+                reloadAllImages('last');
                 $('#probes-not-found').hide();
                 $('#not-found').empty();
                 $('#zip').text('Download all probes RRD');
@@ -112,14 +180,14 @@
                 return found;
             }
 
-            $(function(){
+            $(function() {
                 $('#zip').click(function(){
                     $(this).attr('href', '/zip/?probes=' + $('select').select2('val'));
                 });
             });
 
             $(document).ready(function () {
-                setInterval('reloadAllImages()', {{ refresh*1000 }});
+                startRefreshing();
 
                 $('#job-field').numeric({decimal: false, negative: false});
 
@@ -139,27 +207,30 @@
 
                 // Event handler for adding a probe
                 $(document.body).on('select2-selecting', 'select', function(e) {
-                    var probe = '<a href="/probe/' + e.val + '/' + '"><img class="graph" id="' + e.val + '" src="/graph/{{ scale }}/' + e.val + '/" alt="Graph ' + e.val + '"/></a>';
+                    $('.activable').addClass('active');
+                    var probe = '<a href="/probe/' + e.val + '/' + '"><img class="graph" id="' + e.val + '" src="/graph/' + e.val + '/{{ start }}/{{ end }}/" alt="Graph ' + e.val + '"/></a>';
                     $('#probes').append(probe);
                     var probes = $('select').select2('val');
                     if(jQuery.inArray(e.val, $('select').select2('val')) == -1) {
                         probes.push(e.val);
                     }
-                    $('#summary').attr('src', '/graph/{{ scale }}/?probes=' + probes);
+                    $('#summary').attr('src', '/summary-graph/{{ start }}/{{ end }}/?probes=' + probes);
                     $('#zip').text('Download selected probes RRD');
-                    reloadAllImages();
+                    reloadAllImages('last');
                 });
 
                 // Event handler for deleting a probe
                 $(document.body).on('select2-removing', 'select', function(e) {
+                    $('.activable').addClass('active');
                     $('#' + e.val.replace(/\./g, '\\.')).parent().remove();
                     if($('select').select2('val') == '') {
                         $('#zip').text('Download all probes RRD');
-                        $('#summary').attr('src', '/graph/{{ scale }}/');
+                        $('#summary').attr('src', '/summary-graph/{{ start }}/{{ end }}/');
                     } else {
                         $('#zip').text('Download selected probes RRD');
-                        $('#summary').attr('src', '/graph/{{ scale }}/?probes=' + $('select').select2('val'));
+                        $('#summary').attr('src', '/summary-graph/{{ start }}/{{ end }}/?probes=' + $('select').select2('val'));
                     }
+                    reloadAllImages('last');
                 });
 
                 // Bind buttons to event handlers
@@ -197,7 +268,7 @@
             <ul>
                 {% for label in scales %}
                     {% if label == scale %}
-                        <li><a class="active" href="/last/{{ label }}/">{{ label }}</a></li>
+                        <li><a class="active activable" href="/last/{{ label }}/">{{ label }}</a></li>
                     {% else %}
                         <li><a href="/last/{{ label }}/">{{ label }}</a></li>
                     {% endif %}
@@ -206,12 +277,12 @@
         </div>
 
         <div id="inner">
-            <!-- Scale view (all probes for one scale) -->
+            <!-- Period view (all probes for one period) -->
             {% if view == 'scale' %}
                 {% if probes|count > 0 %}
                     <h2>Summary</h2>
                     <!-- Display summary graph -->
-                    <img class="graph" id="summary" src="/graph/{{ scale }}/" alt="Summary graph"/>
+                    <img class="graph" id="summary" src="/summary-graph/{{ start }}/{{ end }}/" alt="Summary graph"/>
                     <h2>Details</h2>
                     <!-- Display all probe graphs -->
                     <select multiple>
@@ -235,7 +306,7 @@
             {% elif view == 'probe' %}
                 <h2>{{ probe }} <a style="float:right" href="/zip/?probes={{ probe }}">Download RRD</a></h2>
                 {% for scale in scales %}
-                    <img class="graph" src="/graph/{{ scale }}/{{ probe }}/" alt="Graph {{ probe }}"/>
+                    <img class="graph" src="/graph/{{ probe }}/{{ scales[scale]['start'] }}/{{ scales[scale]['end'] }}/" alt="Graph {{ probe }}"/>
                 {% endfor %}
             {% endif %}
         </div>
