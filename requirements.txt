@@ -12,3 +12,4 @@ python-keystoneclient
 pyzmq
 python-rrdtool
 webob
+execo>=2.3

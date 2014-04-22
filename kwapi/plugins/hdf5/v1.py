@@ -57,14 +57,14 @@ def retrieve_measurements():
     """Returns measurements."""
     hostname = socket.getfqdn().split('.')
     site = hostname[1] if len(hostname) >= 2 else hostname[0]
-    
+
     args = flask.request.args
     probes = None
     if 'job_id' in args:
         job_info = get_resource_attributes('sites/' + site + '/jobs/' + args['job_id'])
         start_time = job_info['started_at']
         end_time = start_time + job_info['walltime']
-        nodes = list(set(job_info['resources_by_type']['cores'])) 
+        nodes = list(set(job_info['resources_by_type']['cores']))
         probes = [site + '.' + node.split('.')[0] for node in nodes]
     elif 'probes' in args:
         LOG.info(args['probes'].split(','))
@@ -80,7 +80,7 @@ def retrieve_measurements():
                 where=['index>=' +str(start_time), 'index<=' +str(end_time)])
             for ts, mes in df.iterrows():
                 message['probes'][probe].append((ts, mes[0]))
-            
+
     response = flask.jsonify(message)
     response.headers.add('Access-Control-Allow-Origin', '*')
     return response
