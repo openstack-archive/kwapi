@@ -96,7 +96,7 @@ for equip in equips.itervalues():
 logger.info('Writing new configuration file')
 f = open('/tmp/kwapi-drivers-list.conf', 'w')
 for equip, data in equips.iteritems():
-    if 'probes' in data:
+    if 'probes' in data and data['probes']:
         sec = "\n["+equip+"]\n"
         sec += "probes = ["
         for probe in data['probes']:
