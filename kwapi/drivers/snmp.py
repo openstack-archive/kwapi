@@ -44,10 +44,11 @@ class Snmp(Driver):
 
     def run(self):
         """Starts the driver thread."""
-        
+
         while not self.stop_request_pending():
             watts_list = self.get_watts()
             agg_values = {}
+
             if watts_list is not None:
                 i = 0
                 for watts in watts_list:
@@ -91,6 +92,7 @@ class Snmp(Driver):
                 self.kwargs.get('oid'),
                 maxRows=len(self.probe_ids),
             )
+
         if errorIndication:
             LOG.error(errorIndication)
             return None
@@ -98,7 +100,7 @@ class Snmp(Driver):
             if errorStatus:
                 LOG.error('%s at %s' % (
                     errorStatus.prettyPrint(),
-                    errorIndex and varBindTable[-1][int(errorIndex)-1] or '?'
+                    errorIndex and varBindTable[-1][int(errorIndex) - 1] or '?'
                 ))
                 return None
             else:
