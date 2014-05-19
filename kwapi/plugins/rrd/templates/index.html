@@ -98,11 +98,15 @@
                         $.each(items, function(i, e) {
                             e = e.split('.');
                             e = e[1] + '.' + e[0];
-                            if(probeInSelect(e)) {
-                                selected[selected.length] = e;
+                            probe = probeInSelect(e);
+                            if($.inArray(probe, selected) != -1) {
+                                return;
+                            }
+                            if(probe) {
+                                selected[selected.length] = probe;
                                 $('select').trigger({
                                     type: 'select2-selecting',
-                                    val: e
+                                    val: probe
                                 });
                                 $('select').select2('val', selected);
                             }
@@ -172,9 +176,16 @@
 
             function probeInSelect(probe) {
                 var found = false;
+                probeSplit = probe.split('-');
+                probeBase = probeSplit[0];
+                probeNum = probeSplit[probeSplit.length-1];
                 $('select option').each(function(i, e) {
-                    if(probe == $(e).attr('value')) {
-                        found = true;
+                    multiProbeSplit = $(e).attr('value').split('-');
+                    multiProbeBase = multiProbeSplit[0];
+                    while((elem=multiProbeSplit.pop()) != null) {
+                        if(probeBase == multiProbeBase && probeNum == elem) {
+                            found = $(e).attr('value');
+                        }
                     }
                 });
                 return found;
