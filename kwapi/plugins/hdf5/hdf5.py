@@ -1,13 +1,10 @@
 import os
-import thread
 import errno
+import socket
 from pandas import HDFStore, DataFrame
-from random import randint
 from time import time
 import numpy as np
-from execo_g5k import get_host_cluster, get_cluster_hosts
-from execo import Timer, sleep
-
+from execo_g5k import get_host_cluster
 from kwapi.utils import cfg, log
 
 LOG = log.getLogger(__name__)
@@ -32,26 +29,40 @@ hdf5_opts = [
 
 cfg.CONF.register_opts(hdf5_opts)
 
-
 measurements = {}
+
 
 def get_probe_path(probe):
     host = probe.split('.')[1]
     cluster = get_host_cluster(host)
-    
-    return cluster + '/' + host.replace('-', '_')
+    if cluster:
+        return cluster + '/' + host.replace('-', '_')
+
+
+def get_probes_list():
+    hostname = socket.getfqdn().split('.')
+    site = hostname[1] if len(hostname) >= 2 else hostname[0]
+    probes = []
+    store = HDFStore(cfg.CONF.hdf5_dir + '/store.h5')
+    for df in store.keys():
+        _, cluster, host = df.split('/')
+        radicals = host.split('_')[1:]
+        for radical in radicals:
+            probes.append(cluster + '-' + radical + '.' + site + '.grid5000.fr')
+    return probes
+
 
 def create_dir():
     """Creates all required directories."""
     try:
-       os.makedirs(cfg.CONF.hdf5_dir)
+        os.makedirs(cfg.CONF.hdf5_dir)
     except OSError as exception:
-       if exception.errno != errno.EEXIST:
-           raise
-       
-    
+        if exception.errno != errno.EEXIST:
+            raise
+
+
 def update_hdf5(probe, watts):
-    """Updates HDF5 file associated with this probe.""" 
+    """Updates HDF5 file associated with this probe."""
     if probe not in measurements:
         measurements[probe] = []
     measurements[probe].append((round(time(), 3), watts))
@@ -60,7 +71,7 @@ def update_hdf5(probe, watts):
         LOG.debug('%s %s', zipped[0], zipped[1])
         write_hdf5_file(probe, np.array(zipped[0]), np.array(zipped[1]))
         measurements[probe] = []
-        
+
 
 def write_hdf5_file(probe, timestamps, measurements):
     store = HDFStore(cfg.CONF.hdf5_dir + '/store.h5')
