@@ -16,12 +16,12 @@ _protocol = '1'
 
 # Determining site
 site = getfqdn().split('.')[1]
-# site = 'nancy'
+# site = 'lyon'
 
 logger.info('Generating configuration of kwapi-drivers for %s',
             site)
 
-logger.info('Retrieving monitoring equipements information')
+logger.info('Retrieving monitoring equipments information')
 equips = {}
 for pdu in get_resource_attributes('/sites/'+site+'/pdus/')['items']:
     if pdu.has_key('sensors'):
@@ -31,7 +31,7 @@ for pdu in get_resource_attributes('/sites/'+site+'/pdus/')['items']:
                     if sensor['power']['per_outlets']:
                         oid = sensor['power']['snmp']['outlet_prefix_oid']
                     else:
-                        oid = sensor['power']['snmp']['total_oids']
+                        oid = sensor['power']['snmp']['total_oids'][0][0:-2]
                     equips[pdu['uid']] = {'driver': 'Snmp', 'parameters': 
                         {'community': _community, 'protocol': '1',
                          'ip': pdu['uid'] + '.' + site + '.grid5000.fr',
@@ -48,12 +48,11 @@ for cluster in get_site_clusters(site):
     nodes = get_resource_attributes('/sites/' + site + '/clusters/' + cluster + \
                                     '/nodes')['items']
     for node in nodes:
-
         if not node.has_key('sensors'):
             print node['uid']
             continue
         power = node['sensors']['power']
-#         print node['uid'], power
+        
         if power['available']:
             if 'pdu' in power['via']:               
                 if isinstance(power['via']['pdu'], list): 
@@ -61,15 +60,22 @@ for cluster in get_site_clusters(site):
                         if 'port' in pdu:     
                             equips[pdu['uid'].split('.')[0]]['mapping'].append((node['uid'], pdu['port']))
                         else:
-                            equips[pdu['uid'].split('.')[0]]['mapping'].append((node['uid'], 0))
+                            if pdu['uid'] is None:
+                                print power
+                            else:
+                                equips[pdu['uid'].split('.')[0]]['mapping'].append((node['uid'], 0))
                 else:
                     pdu = power['via']['pdu']
                     if 'port' in pdu:
                         logger.warning('node ' + node['uid'] + ' has str instead of list for power[\'via\']')     
                         equips[pdu['uid'].split('.')[0]]['mapping'].append((node['uid'], pdu['port']))
+                    else:
+                        equips[pdu['uid'].split('.')[0]]['mapping'].append((node['uid'], 0))
             if 'www' in power['via']:
                 if not 'per_outlets' in power or power['per_outlets']:  
-                    equips[pdu['uid']]['probes'].append(node['uid'])                   
+                    equips[pdu['uid']]['probes'].append(node['uid'])
+
+
 # pprint(equips)    
 
 logger.info('Generating probe list for Snmp drivers') 
@@ -80,13 +86,12 @@ for equip in equips.itervalues():
             equip['probes'] = [None] * equip['mapping'][-1][1]        
             for probe, outlet in equip['mapping']:
                 equip['probes'][outlet-1] = probe
-            
         else:
             cluster = equip['mapping'][0][0].split('-')[0]
             radicals = map(lambda x: int(x[0].split('-')[1]), equip['mapping'])
             equip['probes'].append(cluster + '-' + '-'.join(map(str, sorted(radicals))))
             
-pprint(equips)    
+# pprint(equips)    
 
 logger.info('Writing new configuration file')
 f = open('/tmp/kwapi-drivers-list.conf', 'w')
