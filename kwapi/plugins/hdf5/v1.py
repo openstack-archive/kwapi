@@ -49,12 +49,12 @@ def welcome():
               "rel": "self",
               "type": "application/vnd.fr.grid5000.api.Metric+json;level=1",
               "href": _get_api_path(headers) + "/sites/" + site
-              + "/energy/power"
+              + "/power"
            },
            {
               "title": "timeseries",
               "href": _get_api_path(headers) + "/sites/" + site
-              + "/energy/power/timeseries",
+              + "/power/timeseries",
               "type": "application/vnd.fr.grid5000.api.Collection+json;level=1",
               "rel": "collection"
            },
@@ -119,12 +119,12 @@ def retrieve_measurements():
         message = {'total': len(probes), 'offset': 0, 'links': [
               {
                  "rel": "self",
-                 "href": _get_api_path(headers) + site + "/metrics/energy/power",
+                 "href": _get_api_path(headers) + site + "/metrics/power",
                  "type": "application/vnd.fr.grid5000.api.Collection+json;level=1"
               },
               {
                  "rel": "parent",
-                 "href": _get_api_path(headers) + "/sites/" + site + "/metrics/energy/power",
+                 "href": _get_api_path(headers) + "/sites/" + site + "/metrics/power",
                  "type": "application/vnd.fr.grid5000.api.Metric+json;level=1"
               }
            ],
@@ -146,13 +146,13 @@ def retrieve_measurements():
                     {
                        "rel": "self",
                        "href": _get_api_path(headers) +
-                        "/sites/" + site + "/metrics/energy/power/timeseries/" +probe.split('.')[1],
+                        "/sites/" + site + "/metrics/power/timeseries/" +probe.split('.')[1],
                        "type": "application/vnd.fr.grid5000.api.Timeseries+json;level=1"
                     },
                     {
                        "rel": "parent",
                        "href": _get_api_path(headers) +
-                        "/sites/" + site + "/metrics/energy/power",
+                        "/sites/" + site + "/metrics/power",
                        "type": "application/vnd.fr.grid5000.api.Metric+json;level=1"
                     }
                  ]})
