@@ -45,7 +45,7 @@ def make_app():
     """Instantiates Flask app, attaches collector database."""
     LOG.info('Starting API')
     app = flask.Flask(__name__)
-    app.register_blueprint(v1.blueprint, url_prefix='/v1')
+    app.register_blueprint(v1.blueprint, url_prefix='')
 
     collector = Collector()
     collector.clean()

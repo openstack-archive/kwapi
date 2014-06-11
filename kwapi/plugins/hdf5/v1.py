@@ -80,7 +80,7 @@ def welcome():
 def _get_api_path(headers):
     """Create the path to be included for the rest syntax"""
     return "/" + headers.get('HTTP_X_API_VERSION', 'sid') + \
-        headers.get('HTTP_X_API_PREFIX', '')
+        headers.get('HTTP_X_API_PREFIX', '') + '/'
 
 
 # @blueprint.route('/probe-ids/')
@@ -92,7 +92,7 @@ def _get_api_path(headers):
 #     return response
 
 
-@blueprint.route('/metrics/')
+@blueprint.route('/timeseries/')
 def retrieve_measurements():
     """Returns measurements."""
     headers = flask.request.headers
