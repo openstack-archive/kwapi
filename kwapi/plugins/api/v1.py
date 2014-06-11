@@ -17,7 +17,7 @@
 """This blueprint defines all URLs and answers."""
 
 import flask
-
+import socket
 blueprint = flask.Blueprint('v1', __name__)
 
 
@@ -31,7 +31,8 @@ def welcome():
 def list_probes_ids():
     """Returns all known probes IDs."""
     message = {}
-    message['probe_ids'] = flask.request.collector.database.keys()
+    message['probe_ids'] = map(lambda x: x.split('.')[1], 
+                               flask.request.collector.database.keys())
     response = flask.jsonify(message)
     response.headers.add('Access-Control-Allow-Origin', '*')
     return response
@@ -51,6 +52,9 @@ def list_probes():
 def probe_info(probe):
     """Returns all information about this probe (id, timestamp, kWh, W)."""
     message = {}
+    hostname = socket.getfqdn().split('.')
+    site = hostname[1] if len(hostname) >= 2 else hostname[0]
+    probe = site + '.' + probe
     try:
         message[probe] = flask.request.collector.database[probe]
     except KeyError:
