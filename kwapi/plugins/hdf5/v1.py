@@ -142,6 +142,7 @@ def retrieve_measurements():
                             "metric_uid": "power",
                             "type": "timeseries",
                             "values": [],
+                            "timestamps": [],
                             "links": [
                     {
                        "rel": "self",
@@ -164,6 +165,7 @@ def retrieve_measurements():
                                'index<=' + str(end_time)])
                     for ts, mes in df.iterrows():
                         message['items'][-1]['values'].append(mes[0])
+                        message['items'][-1]['timestamps'].append(ts)
                 except:
                     message['items'][-1]['values'] = ['Unknown probe']
     response = flask.jsonify(message)
