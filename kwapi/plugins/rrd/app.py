@@ -90,8 +90,7 @@ def make_app():
     """Instantiates Flask app, attaches collector database. """
     LOG.info('Starting RRD')
     app = flask.Flask(__name__)
-    app.config['APPLICATION_ROOT'] = '/supervision/reims/energy'
-#     app.wsgi_app = ReverseProxied(app.wsgi_app)
+    app.wsgi_app = ReverseProxied(app.wsgi_app)
     app.register_blueprint(v1.blueprint)
 
     thread.start_new_thread(listen, (rrd.update_rrd,))

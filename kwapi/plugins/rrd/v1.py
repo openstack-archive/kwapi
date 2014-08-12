@@ -48,7 +48,7 @@ blueprint = flask.Blueprint('v1', __name__, static_folder='static')
 @blueprint.route('/')
 def welcome():
     """Shows specified page."""
-    return flask.redirect('/last/minute/')
+    return flask.redirect(flask.url_for('v1.welcome_scale', scale='minute'))
 
 
 @blueprint.route('/last/<scale>/')
