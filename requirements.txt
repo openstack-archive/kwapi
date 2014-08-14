@@ -13,3 +13,6 @@ pyzmq
 python-rrdtool
 webob
 execo>=2.3
+cython>=0.13
+numexpr>=2.0.0
+httplib2
