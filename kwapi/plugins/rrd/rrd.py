@@ -35,9 +35,6 @@ rrd_opts = [
     cfg.BoolOpt('signature_checking',
                 required=True,
                 ),
-    cfg.FloatOpt('kwh_price',
-                 required=True,
-                 ),
     cfg.IntOpt('hue',
                required=True,
                ),
@@ -50,9 +47,6 @@ rrd_opts = [
     cfg.MultiStrOpt('watch_probe',
                     required=False,
                     ),
-    cfg.StrOpt('currency',
-               required=True,
-               ),
     cfg.StrOpt('driver_metering_secret',
                required=True,
                ),
@@ -149,7 +143,7 @@ def create_rrd_file(filename):
                 '--start', '0',
                 '--step', '1',
                 # Heartbeat = 600 seconds, Min = 0, Max = Unlimited
-                'DS:w:GAUGE:600:0:U',
+                'DS:w:COUNTER:600:0:4294967295',
                 ]
         for scale in scales.keys():
             args.append('RRA:AVERAGE:0.5:%s:%s'
@@ -173,7 +167,7 @@ def update_rrd(probe, watts):
     if not os.path.isfile(filename):
         create_rrd_file(filename)
     try:
-        rrdtool.update(filename, 'N:%s' % watts)
+        rrdtool.update(filename, 'N:%d' % (watts*8))
     except rrdtool.error as e:
         LOG.error('Error updating RRD: %s' % e)
 
@@ -229,7 +223,7 @@ def build_graph(start, end, probes, summary=True):
                 '--title', probes[0] + scale_label,
                 '--width', '497',
                 '--height', '187',
-                '--upper-limit', str(cfg.CONF.max_watts),
+                #'--upper-limit', str(cfg.CONF.max_watts),
                 ]
     # Common arguments
     args += ['--start', str(start),
@@ -237,7 +231,7 @@ def build_graph(start, end, probes, summary=True):
              '--full-size-mode',
              '--imgformat', 'PNG',
              '--alt-y-grid',
-             '--vertical-label', 'Watts',
+             '--vertical-label', 'Octets/s',
              '--lower-limit', '0',
              '--rigid',
              ]
@@ -287,21 +281,12 @@ def build_graph(start, end, probes, summary=True):
     args.append('VDEF:wattavg_with_unknown=watt_with_unknown,AVERAGE')
     # Real average (to compute kWh)
     args.append('VDEF:wattavg=watt,AVERAGE')
-    # Compute kWh for the probe
-    # RPN expressions must contain DEF or CDEF variables, so we pop a
-    # CDEF value
-    args.append('CDEF:kwh=watt,POP,wattavg,1000.0,/,%s,3600.0,/,*'
-                % str(end - start))
-    # Compute cost
-    args.append('CDEF:cost=watt,POP,kwh,%f,*' % cfg.CONF.kwh_price)
     # Legend
-    args.append('GPRINT:wattavg_with_unknown:Avg\: %3.1lf W')
-    args.append('GPRINT:wattmin:Min\: %3.1lf W')
-    args.append('GPRINT:wattmax:Max\: %3.1lf W')
-    args.append('GPRINT:watt_with_unknown:LAST:Last\: %3.1lf W\j')
+    args.append('GPRINT:wattavg_with_unknown:Avg\: %3.1lf%so/s')
+    args.append('GPRINT:wattmin:Min\: %3.1lf%so/s')
+    args.append('GPRINT:wattmax:Max\: %3.1lf%so/s')
+    args.append('GPRINT:watt_with_unknown:LAST:Last\: %3.1lf%so/s\j')
     args.append('TEXTALIGN:center')
-    args.append('GPRINT:kwh:LAST:Total\: %lf kWh')
-    args.append('GPRINT:cost:LAST:Cost\: %lf ' + cfg.CONF.currency)
     LOG.info('Build PNG graph')
     rrdtool.graph(args)
     return png_file
