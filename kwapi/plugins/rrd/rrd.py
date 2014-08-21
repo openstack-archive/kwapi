@@ -123,7 +123,7 @@ def create_rrd_file(filename):
                 '--start', '0',
                 '--step', '1',
                 # Heartbeat = 600 seconds, Min = 0, Max = Unlimited
-                'DS:w:COUNTER:600:0:4294967295',
+                'DS:w:DERIVE:600:0:U',
                 ]
         for scale in scales.keys():
             args.append('RRA:AVERAGE:0.5:%s:%s'
