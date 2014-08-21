@@ -106,14 +106,16 @@ def create_dirs():
 
 def get_png_filename(scale, probe):
     """Returns the png filename."""
+    probe_name = "-".join(probe.split("-")[:-1])
     return cfg.CONF.png_dir + '/' + scale + '/' + \
-        str(uuid.uuid5(uuid.NAMESPACE_DNS, str(probe))) + '.png'
+        str(uuid.uuid5(uuid.NAMESPACE_DNS, str(probe_name))) + '.png'
 
 
 def get_rrd_filename(probe):
     """Returns the rrd filename."""
+    probe_name = "-".join(probe.split("-")[:-1])
     return cfg.CONF.rrd_dir + '/' + str(uuid.uuid5(uuid.NAMESPACE_DNS,
-                                        str(probe))) + '.rrd'
+                                        str(probe_name))) + '.rrd'
 
 
 def create_rrd_file(filename):
@@ -143,8 +145,9 @@ def update_rrd(probe, metrics):
         for probe in sorted(probes_set, reverse=True):
             probe_colors[probe] = color_seq.next()
         lock.release()
+    probe_name = "-".join(probe.split("-")[:-1])
     filename = cfg.CONF.rrd_dir + '/' + \
-        str(uuid.uuid5(uuid.NAMESPACE_DNS, str(probe))) + '.rrd'
+        str(uuid.uuid5(uuid.NAMESPACE_DNS, str(probe_name))) + '.rrd'
     probe_type = probe.split("-")[-1]
     if not os.path.isfile(filename):
         create_rrd_file(filename)
@@ -229,7 +232,8 @@ def build_graph(start, end, probes, summary=True):
     probe_list = sorted(probes, reverse=True)
     for probe in probe_list:
         probe_type = probe.split("-")[-1]
-        probe_uuid = uuid.uuid5(uuid.NAMESPACE_DNS, probe)
+        probe_name = "-".join(probe.split("-")[:-1])
+        probe_uuid = uuid.uuid5(uuid.NAMESPACE_DNS, probe_name)
         rrd_file = get_rrd_filename(probe)
         # Data source
         args.append('DEF:metric_with_unknown_%s=%s:%s:AVERAGE'
@@ -246,12 +250,12 @@ def build_graph(start, end, probes, summary=True):
         args.append('AREA:metric_with_unknown_%s%s::STACK'
                     % (probe_uuid, color + 'AA'))
         if not stack:
-            graph_lines.append('LINE:metric_with_unknown_%s%s::'
-                               % (probe_uuid, color))
+            graph_lines.append('LINE:%smetric_with_unknown_%s%s::'
+                               % (probe_type, probe_uuid, color))
             stack = True
         else:
-            graph_lines.append('LINE:metric_with_unknown_%s%s::STACK'
-                               % (probe_uuid, color))
+            graph_lines.append('LINE:%smetric_with_unknown_%s%s::STACK'
+                               % (probe_type, probe_uuid, color))
     if len(probe_list) >= 2:
         # Prepare CDEF expression by adding the required number of '+'
         cdef_metric += '+,' * int(len(probe_list)-2) + '+'
