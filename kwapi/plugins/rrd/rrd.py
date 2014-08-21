@@ -123,7 +123,8 @@ def create_rrd_file(filename):
                 '--start', '0',
                 '--step', '1',
                 # Heartbeat = 600 seconds, Min = 0, Max = Unlimited
-                'DS:w:DERIVE:600:0:U',
+                'DS:IN:DERIVE:600:0:U',
+                'DS:OUT:DERIVE:600:0:U'
                 ]
         for scale in scales.keys():
             args.append('RRA:AVERAGE:0.5:%s:%s'
@@ -144,10 +145,14 @@ def update_rrd(probe, metrics):
         lock.release()
     filename = cfg.CONF.rrd_dir + '/' + \
         str(uuid.uuid5(uuid.NAMESPACE_DNS, str(probe))) + '.rrd'
+    probe_type = probe.split("-")[-1]
     if not os.path.isfile(filename):
         create_rrd_file(filename)
     try:
-        rrdtool.update(filename, 'N:%d' % (metrics*8))
+	if probe_type == "IN":
+            rrdtool.update(filename, 'N:%d:U' % (metrics*8))
+        else:
+            rrdtool.update(filename, 'N:U:%d' % (metrics*8))
     except rrdtool.error as e:
         LOG.error('Error updating RRD: %s' % e)
 
@@ -223,11 +228,12 @@ def build_graph(start, end, probes, summary=True):
     stack = False
     probe_list = sorted(probes, reverse=True)
     for probe in probe_list:
+        probe_type = probe.split("-")[-1]
         probe_uuid = uuid.uuid5(uuid.NAMESPACE_DNS, probe)
         rrd_file = get_rrd_filename(probe)
         # Data source
-        args.append('DEF:metric_with_unknown_%s=%s:w:AVERAGE'
-                    % (probe_uuid, rrd_file))
+        args.append('DEF:metric_with_unknown_%s=%s:%s:AVERAGE'
+                    % (probe_uuid, rrd_file, probe_type))
         # Data source without unknown values
         args.append('CDEF:metric_%s=metric_with_unknown_%s,UN,0,metric_with_'
                     'unknown_%s,IF'

@@ -32,7 +32,7 @@ class Snmp(Driver):
 
         Keyword arguments:
         probe_ids -- list containing the probes IDs
-                     (a wattmeter monitor sometimes several probes)
+                     (a metricmeter monitor sometimes several probes)
         kwargs -- keyword (protocol, user or community, ip, oid) defining the
                   SNMP parameters
                   Eaton OID is 1.3.6.1.4.1.534.6.6.7.6.5.1.3
@@ -46,32 +46,33 @@ class Snmp(Driver):
         """Starts the driver thread."""
 
         while not self.stop_request_pending():
-            watts_list = self.get_watts()
+            metrics_list = self.get_metrics()
             agg_values = {}
 
-            if watts_list is not None:
+            if metrics_list is not None:
                 i = 0
-                for watts in watts_list:
+                for metrics in metrics_list:
                     if self.probe_ids[i]:
+                        probe_type = self.probe_ids[i].split("-")[-1]
                         send = True
                         measurements = {}
                         if self.probe_ids.count(self.probe_ids[i]) == 1:
-                            measurements['w'] = watts
+                            measurements[probe_type] = metrics
                         else:
                             if self.probe_ids[i:].count(self.probe_ids[i]) == 1:
-                                measurements['w'] = watts + agg_values[self.probe_ids[i]]
+                                measurements[probe_type] = metrics + agg_values[self.probe_ids[i]]
                                 agg_values[self.probe_ids[i]] = 0
                             else:
                                 if not self.probe_ids[i] in agg_values:
                                     agg_values[self.probe_ids[i]] = 0
-                                agg_values[self.probe_ids[i]] += watts
+                                agg_values[self.probe_ids[i]] += metrics
                                 send = False
                         if send:
                             self.send_measurements(self.probe_ids[i], measurements)
                     i += 1
             time.sleep(1)
 
-    def get_watts(self):
+    def get_metrics(self):
         """Returns the power consumption."""
         protocol = self.kwargs.get('protocol')
         if protocol is '1':

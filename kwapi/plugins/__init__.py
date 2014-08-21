@@ -53,10 +53,11 @@ def listen(function):
         else:
             try:
                 probe = measurements['probe_id'].encode('utf-8')
-                function(probe, float(measurements['w']))
+                probe_type = probe.split("-")[-1]
+                function(probe, float(measurements[probe_type]))
             except (TypeError, ValueError):
                 raise
                 LOG.error('Malformed power consumption data: %s'
-                          % measurements['w'])
+                          % measurements[probe_type])
             except KeyError:
                 LOG.error('Malformed message (missing required key)')
