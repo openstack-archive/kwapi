@@ -236,10 +236,15 @@ def build_graph(start, end, probes, summary=True):
         probe_uuid = uuid.uuid5(uuid.NAMESPACE_DNS, probe_name)
         rrd_file = get_rrd_filename(probe)
         # Data source
-        args.append('DEF:metric_with_unknown_%s=%s:%s:AVERAGE'
+        args.append('DEF:INmetric_with_unknown_%s=%s:%s:AVERAGE'
+                    % (probe_uuid, rrd_file, probe_type))
+        args.append('DEF:OUTmetric_with_unknown_%s=%s:%s:AVERAGE'
                     % (probe_uuid, rrd_file, probe_type))
         # Data source without unknown values
-        args.append('CDEF:metric_%s=metric_with_unknown_%s,UN,0,metric_with_'
+        args.append('CDEF:INmetric_%s=metric_with_unknown_%s,UN,0,metric_with_'
+                    'unknown_%s,IF'
+                    % (probe_uuid, probe_uuid, probe_uuid))
+        args.append('CDEF:OUTmetric_%s=metric_with_unknown_%s,UN,0,metric_with_'
                     'unknown_%s,IF'
                     % (probe_uuid, probe_uuid, probe_uuid))
         # Prepare CDEF expression of total metric consumption
