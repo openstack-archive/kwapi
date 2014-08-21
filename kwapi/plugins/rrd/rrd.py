@@ -38,7 +38,7 @@ rrd_opts = [
     cfg.IntOpt('hue',
                required=True,
                ),
-    cfg.IntOpt('max_watts',
+    cfg.IntOpt('max_metrics',
                required=True,
                ),
     cfg.MultiStrOpt('probes_endpoint',
@@ -78,31 +78,11 @@ probes_set = set()
 probe_colors = {}
 lock = Lock()
 
-
 def color_generator(nb_colors):
-    """Generates colors."""
-    min_brightness = 50-nb_colors*15/2.0
-    if min_brightness < 5:
-        min_brightness = 5
-    max_brightness = 50+nb_colors*15/2.0
-    if max_brightness > 95:
-        max_brightness = 95
-    if nb_colors <= 1:
-        min_brightness = 50
-        step = 0
-    else:
-        step = (max_brightness-min_brightness) / (nb_colors-1.0)
-    i = min_brightness
-    while int(i) <= max_brightness:
-        rgb = colorsys.hsv_to_rgb(cfg.CONF.hue/360.0,
-                                  1,
-                                  i/100.0)
-        rgb = tuple([int(x*255) for x in rgb])
-        yield '#' + struct.pack('BBB', *rgb).encode('hex')
-        i += step
-        if step == 0:
-            break
-
+    HSV_tuples = [ (1.0, 0.5, 0.5) if (x%2==1) else (0.5, 0.5, 1.0) for x in range(nb_colors)]
+    for rgb in HSV_tuples:
+        rgb = map(lambda x: int(x*255),colorsys.hsv_to_rgb(*rgb))
+        yield '#' + "".join(map(lambda x: chr(x).encode('hex'),rgb))
 
 def create_dirs():
     """Creates all required directories."""
@@ -153,7 +133,7 @@ def create_rrd_file(filename):
         rrdtool.create(args)
 
 
-def update_rrd(probe, watts):
+def update_rrd(probe, metrics):
     """Updates RRD file associated with this probe."""
     if not probe in probes_set:
         color_seq = color_generator(len(probes_set)+1)
@@ -167,7 +147,7 @@ def update_rrd(probe, watts):
     if not os.path.isfile(filename):
         create_rrd_file(filename)
     try:
-        rrdtool.update(filename, 'N:%d' % (watts*8))
+        rrdtool.update(filename, 'N:%d' % (metrics*8))
     except rrdtool.error as e:
         LOG.error('Error updating RRD: %s' % e)
 
@@ -223,7 +203,7 @@ def build_graph(start, end, probes, summary=True):
                 '--title', probes[0] + scale_label,
                 '--width', '497',
                 '--height', '187',
-                #'--upper-limit', str(cfg.CONF.max_watts),
+                #'--upper-limit', str(cfg.CONF.max_metrics),
                 ]
     # Common arguments
     args += ['--start', str(start),
@@ -231,14 +211,14 @@ def build_graph(start, end, probes, summary=True):
              '--full-size-mode',
              '--imgformat', 'PNG',
              '--alt-y-grid',
-             '--vertical-label', 'Octets/s',
+             '--vertical-label', 'bits/s',
              '--lower-limit', '0',
              '--rigid',
              ]
     if end - start <= 300:
         args += ['--x-grid', 'SECOND:30:MINUTE:1:MINUTE:1:0:%H:%M']
-    cdef_watt = 'CDEF:watt='
-    cdef_watt_with_unknown = 'CDEF:watt_with_unknown='
+    cdef_metric = 'CDEF:metric='
+    cdef_metric_with_unknown = 'CDEF:metric_with_unknown='
     graph_lines = []
     stack = False
     probe_list = sorted(probes, reverse=True)
@@ -246,46 +226,46 @@ def build_graph(start, end, probes, summary=True):
         probe_uuid = uuid.uuid5(uuid.NAMESPACE_DNS, probe)
         rrd_file = get_rrd_filename(probe)
         # Data source
-        args.append('DEF:watt_with_unknown_%s=%s:w:AVERAGE'
+        args.append('DEF:metric_with_unknown_%s=%s:w:AVERAGE'
                     % (probe_uuid, rrd_file))
         # Data source without unknown values
-        args.append('CDEF:watt_%s=watt_with_unknown_%s,UN,0,watt_with_'
+        args.append('CDEF:metric_%s=metric_with_unknown_%s,UN,0,metric_with_'
                     'unknown_%s,IF'
                     % (probe_uuid, probe_uuid, probe_uuid))
-        # Prepare CDEF expression of total watt consumption
-        cdef_watt += 'watt_%s,' % probe_uuid
-        cdef_watt_with_unknown += 'watt_with_unknown_%s,' % probe_uuid
+        # Prepare CDEF expression of total metric consumption
+        cdef_metric += 'metric_%s,' % probe_uuid
+        cdef_metric_with_unknown += 'metric_with_unknown_%s,' % probe_uuid
         # Draw the area for the probe
         color = probe_colors[probe]
-        args.append('AREA:watt_with_unknown_%s%s::STACK'
+        args.append('AREA:metric_with_unknown_%s%s::STACK'
                     % (probe_uuid, color + 'AA'))
         if not stack:
-            graph_lines.append('LINE:watt_with_unknown_%s%s::'
+            graph_lines.append('LINE:metric_with_unknown_%s%s::'
                                % (probe_uuid, color))
             stack = True
         else:
-            graph_lines.append('LINE:watt_with_unknown_%s%s::STACK'
+            graph_lines.append('LINE:metric_with_unknown_%s%s::STACK'
                                % (probe_uuid, color))
     if len(probe_list) >= 2:
         # Prepare CDEF expression by adding the required number of '+'
-        cdef_watt += '+,' * int(len(probe_list)-2) + '+'
-        cdef_watt_with_unknown += '+,' * int(len(probe_list)-2) + '+'
+        cdef_metric += '+,' * int(len(probe_list)-2) + '+'
+        cdef_metric_with_unknown += '+,' * int(len(probe_list)-2) + '+'
     args += graph_lines
-    args.append(cdef_watt)
-    args.append(cdef_watt_with_unknown)
-    # Min watt
-    args.append('VDEF:wattmin=watt_with_unknown,MINIMUM')
-    # Max watt
-    args.append('VDEF:wattmax=watt_with_unknown,MAXIMUM')
+    args.append(cdef_metric)
+    args.append(cdef_metric_with_unknown)
+    # Min metric
+    args.append('VDEF:metricmin=metric_with_unknown,MINIMUM')
+    # Max metric
+    args.append('VDEF:metricmax=metric_with_unknown,MAXIMUM')
     # Partial average that will be displayed (ignoring unknown values)
-    args.append('VDEF:wattavg_with_unknown=watt_with_unknown,AVERAGE')
+    args.append('VDEF:metricavg_with_unknown=metric_with_unknown,AVERAGE')
     # Real average (to compute kWh)
-    args.append('VDEF:wattavg=watt,AVERAGE')
+    args.append('VDEF:metricavg=metric,AVERAGE')
     # Legend
-    args.append('GPRINT:wattavg_with_unknown:Avg\: %3.1lf%so/s')
-    args.append('GPRINT:wattmin:Min\: %3.1lf%so/s')
-    args.append('GPRINT:wattmax:Max\: %3.1lf%so/s')
-    args.append('GPRINT:watt_with_unknown:LAST:Last\: %3.1lf%so/s\j')
+    args.append('GPRINT:metricavg_with_unknown:Avg\: %3.1lf%sb/s')
+    args.append('GPRINT:metricmin:Min\: %3.1lf%sb/s')
+    args.append('GPRINT:metricmax:Max\: %3.1lf%sb/s')
+    args.append('GPRINT:metric_with_unknown:LAST:Last\: %3.1lf%sb/s\j')
     args.append('TEXTALIGN:center')
     LOG.info('Build PNG graph')
     rrdtool.graph(args)
