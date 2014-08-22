@@ -78,12 +78,6 @@ probes_set = set()
 probe_colors = {}
 lock = Lock()
 
-def color_generator(nb_colors):
-    HSV_tuples = [ (1.0, 0.5, 0.5) if (x%2==1) else (0.5, 0.5, 1.0) for x in range(nb_colors)]
-    for rgb in HSV_tuples:
-        rgb = map(lambda x: int(x*255),colorsys.hsv_to_rgb(*rgb))
-        yield '#' + "".join(map(lambda x: chr(x).encode('hex'),rgb))
-
 def create_dirs():
     """Creates all required directories."""
     directories = []
@@ -110,22 +104,29 @@ def get_png_filename(scale, probe):
         str(uuid.uuid5(uuid.NAMESPACE_DNS, str(probe))) + '.png'
 
 
-def get_rrd_filename(probe):
+def get_rrd_filename(probe, type):
     """Returns the rrd filename."""
     return cfg.CONF.rrd_dir + '/' + str(uuid.uuid5(uuid.NAMESPACE_DNS,
-                                        str(probe))) + '.rrd'
+                                        str(probe + type))) + '.rrd'
 
 
-def create_rrd_file(filename):
+def create_rrd_file(filename, type):
     """Creates a RRD file."""
     if not os.path.exists(filename):
-        args = [filename,
-                '--start', '0',
-                '--step', '1',
-                # Heartbeat = 600 seconds, Min = 0, Max = Unlimited
-                'DS:in:DERIVE:600:0:U',
-                'DS:out:DERIVE:600:0:U',
-                ]
+        if type == "in":
+            args = [filename,
+                    '--start', '0',
+                    '--step', '1',
+                    # Heartbeat = 600 seconds, Min = 0, Max = Unlimited
+                    'DS:in:DERIVE:600:0:U',
+                   ]
+        else:
+            args = [filename,
+                    '--start', '0',
+                    '--step', '1',
+                    # Heartbeat = 600 seconds, Min = 0, Max = Unlimited
+                    'DS:out:DERIVE:600:0:U',
+                   ]
         for scale in scales.keys():
             args.append('RRA:AVERAGE:0.5:%s:%s'
                         % (scales[scale][0]['resolution'],
@@ -137,21 +138,15 @@ def create_rrd_file(filename):
 def update_rrd(probe, type, metrics):
     """Updates RRD file associated with this probe."""
     if not probe in probes_set:
-        color_seq = color_generator(len(probes_set)+1)
-        lock.acquire()
-        probes_set.add(probe)
-        for probe in sorted(probes_set, reverse=True):
-            probe_colors[probe] = color_seq.next()
-        lock.release()
+         lock.acquire()
+         probes_set.add(probe)
+         lock.release()
     filename = cfg.CONF.rrd_dir + '/' + \
-        str(uuid.uuid5(uuid.NAMESPACE_DNS, str(probe))) + '.rrd'
+        str(uuid.uuid5(uuid.NAMESPACE_DNS, str(probe + type))) + '.rrd'
     if not os.path.isfile(filename):
-        create_rrd_file(filename)
+        create_rrd_file(filename, type)
     try:
-        if type == "in":
-            rrdtool.update(filename, 'N:%d:U' % (metrics*8))
-        else:
-            rrdtool.update(filename, 'N:U:%d' % (metrics*8))
+        rrdtool.update(filename, 'N:%d' % (metrics*8))
     except rrdtool.error as e:
         LOG.error('Error updating RRD: %s' % e)
 
@@ -230,60 +225,62 @@ def build_graph(start, end, probes, summary=True):
     stack_in = False
     stack_out = False
     probe_list = sorted(probes, reverse=True)
+    #IN
     for probe in probe_list:
         probe_uuid = uuid.uuid5(uuid.NAMESPACE_DNS, probe)
-        rrd_file = get_rrd_filename(probe)
+        rrd_file_in = get_rrd_filename(probe, "in")
+        # Data source
+        args.append('DEF:metric_with_unknown_%s_in=%s:in:AVERAGE'
+                    % (probe_uuid, rrd_file_in))
+        # Data source without unknown values
+        args.append('CDEF:metric_%s_in=metric_with_unknown_%s_in,UN,0,metric_with_'
+                    'unknown_%s_in,IF'
+                    % (probe_uuid, probe_uuid, probe_uuid))
+        # Prepare CDEF expression of total metric in
+        cdef_metric_in += 'metric_%s_in,' % probe_uuid
+        cdef_metric_with_unknown_in += 'metric_with_unknown_%s_in,' % probe_uuid
+        # Draw the area for the probe in
+        color = '#336600'
+        if not stack_in:
+            args.append('AREA:metric_with_unknown_%s_in%s::'
+                    % (probe_uuid, color))
+            stack_in = True
+        else:
+            graph_lines_in.append('STACK:metric_with_unknown_%s_in%s::'
+                               % (probe_uuid, color))
+    args += graph_lines_in
+    #OUT
+    for probe in probe_list:
+        probe_uuid = uuid.uuid5(uuid.NAMESPACE_DNS, probe)
+        rrd_file_out = get_rrd_filename(probe, "out")
         # Data source
         args.append('DEF:metric_with_unknown_%s_out=%s:out:AVERAGE'
-                    % (probe_uuid, rrd_file))
-        args.append('DEF:metric_with_unknown_%s_in=%s:in:AVERAGE'
-                    % (probe_uuid, rrd_file))
+                    % (probe_uuid, rrd_file_out))
         args.append('CDEF:metric_with_unknown_%s_out_neg=metric_with_unknown_%s_out,-1,*'
                     % (probe_uuid,probe_uuid))
         # Data source without unknown values
         args.append('CDEF:metric_%s_out=metric_with_unknown_%s_out,UN,0,metric_with_'
                     'unknown_%s_out,IF'
                     % (probe_uuid, probe_uuid, probe_uuid))
-        args.append('CDEF:metric_%s_in=metric_with_unknown_%s_in,UN,0,metric_with_'
-                    'unknown_%s_in,IF'
-                    % (probe_uuid, probe_uuid, probe_uuid))
         # Prepare CDEF expression of total metric out
         cdef_metric_out += 'metric_%s_out,' % probe_uuid
         cdef_metric_with_unknown_out += 'metric_with_unknown_%s_out,' % probe_uuid
-        # Prepare CDEF expression of total metric in
-        cdef_metric_in += 'metric_%s_in,' % probe_uuid
-        cdef_metric_with_unknown_in += 'metric_with_unknown_%s_in,' % probe_uuid
-        # Draw the area for the probe in
-        color = '#336600'
-        args.append('AREA:metric_with_unknown_%s_in%s::STACK'
-                    % (probe_uuid, '#32CD32'))
-        if not stack_in:
-            graph_lines_in.append('LINE1:metric_with_unknown_%s_in%s::'
-                               % (probe_uuid, color))
-            stack_in = True
+        #Draw the probe out
+        color = '#0033CC'
+        if not stack_out:
+            args.append('AREA:metric_with_unknown_%s_out_neg%s::'
+                    % (probe_uuid, color))
+            stack_out = True
         else:
-            graph_lines_in.append('LINE1:metric_with_unknown_%s_in%s::STACK'
+            graph_lines_out.append('STACK:metric_with_unknown_%s_out_neg%s::'
                                % (probe_uuid, color))
+    args += graph_lines_out
     if len(probe_list) >= 2:
         # Prepare CDEF expression by adding the required number of '+'
         cdef_metric_in += '+,' * int(len(probe_list)-2) + '+'
         cdef_metric_with_unknown_in += '+,' * int(len(probe_list)-2) + '+'
         cdef_metric_out += '+,' * int(len(probe_list)-2) + '+'
         cdef_metric_with_unknown_out += '+,' * int(len(probe_list)-2) + '+'
-    args += graph_lines_in
-    for probe in probe_list:
-        # Draw the area for the probe out
-        color= '#0033CC'
-        args.append('AREA:metric_with_unknown_%s_out_neg%s::STACK'
-                    % (probe_uuid, '#4169E1'))
-        if not stack_out:
-            graph_lines_out.append('LINE1:metric_with_unknown_%s_out_neg%s::'
-                               % (probe_uuid, color))
-            stack_out = True
-        else:
-            graph_lines_out.append('LINE1:metric_with_unknown_%s_out_neg%s::STACK'
-                               % (probe_uuid, color))
-    args += graph_lines_out
     args.append('HRULE:0#000000')
     args.append(cdef_metric_in)
     args.append(cdef_metric_out)
