@@ -29,6 +29,7 @@ def listen(function):
     database. Messages are dictionaries dumped in JSON format.
 
     """
+    units = ["in", "out"]
     LOG.info('Listening to %s' % cfg.CONF.probes_endpoint)
 
     context = zmq.Context.instance()
@@ -53,11 +54,12 @@ def listen(function):
         else:
             try:
                 probe = measurements['probe_id'].encode('utf-8')
-                probe_type = probe.split("-")[-1]
-                function(probe, float(measurements[probe_type]))
+                for unit in units:
+                    if measurements.has_key(unit):
+                        function(probe, unit, float(measurements[unit]))
             except (TypeError, ValueError):
                 raise
-                LOG.error('Malformed power consumption data: %s'
-                          % measurements[probe_type])
+                LOG.error('Malformed data: %s'
+                          % measurements)
             except KeyError:
                 LOG.error('Malformed message (missing required key)')
