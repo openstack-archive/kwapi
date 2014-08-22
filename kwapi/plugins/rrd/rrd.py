@@ -217,7 +217,7 @@ def build_graph(start, end, probes, summary=True):
              '--alt-y-grid',
              '--vertical-label', 'bits/s',
              #'--lower-limit', '0',
-             '--rigid',
+             #'--rigid',
              ]
     if end - start <= 300:
         args += ['--x-grid', 'SECOND:30:MINUTE:1:MINUTE:1:0:%H:%M']
@@ -225,8 +225,10 @@ def build_graph(start, end, probes, summary=True):
     cdef_metric_with_unknown_in = 'CDEF:metric_with_unknown_in='
     cdef_metric_out = 'CDEF:metric_out='
     cdef_metric_with_unknown_out = 'CDEF:metric_with_unknown_out='
-    graph_lines = []
-    stack = False
+    graph_lines_in = []
+    graph_lines_out = []
+    stack_in = False
+    stack_out = False
     probe_list = sorted(probes, reverse=True)
     for probe in probe_list:
         probe_uuid = uuid.uuid5(uuid.NAMESPACE_DNS, probe)
@@ -254,33 +256,35 @@ def build_graph(start, end, probes, summary=True):
         # Draw the area for the probe in
         color = '#336600'
         args.append('AREA:metric_with_unknown_%s_in%s::STACK'
-                    % (probe_uuid, color + 'AA'))
-        if not stack:
-            graph_lines.append('LINE:metric_with_unknown_%s_in%s::'
+                    % (probe_uuid, '#32CD32'))
+        if not stack_in:
+            graph_lines_in.append('LINE1:metric_with_unknown_%s_in%s::'
                                % (probe_uuid, color))
-            stack = True
+            stack_in = True
         else:
-            graph_lines.append('LINE:metric_with_unknown_%s_in%s::STACK'
+            graph_lines_in.append('LINE1:metric_with_unknown_%s_in%s::STACK'
                                % (probe_uuid, color))
-        # Draw the area for the probe out
-        color= '#0033CC'
-        args.append('AREA:metric_with_unknown_%s_out_neg%s::STACK'
-                    % (probe_uuid, color + 'AA'))
-        if not stack:
-            graph_lines.append('LINE:metric_with_unknown_%s_out_neg%s::'
-                               % (probe_uuid, color))
-            stack = True
-        else:
-            graph_lines.append('LINE:metric_with_unknown_%s_out_neg%s::STACK'
-                               % (probe_uuid, color))
-        args.append('HRULE:0#000000')
     if len(probe_list) >= 2:
         # Prepare CDEF expression by adding the required number of '+'
         cdef_metric_in += '+,' * int(len(probe_list)-2) + '+'
         cdef_metric_with_unknown_in += '+,' * int(len(probe_list)-2) + '+'
         cdef_metric_out += '+,' * int(len(probe_list)-2) + '+'
         cdef_metric_with_unknown_out += '+,' * int(len(probe_list)-2) + '+'
-    args += graph_lines
+    args += graph_lines_in
+    for probe in probe_list:
+        # Draw the area for the probe out
+        color= '#0033CC'
+        args.append('AREA:metric_with_unknown_%s_out_neg%s::STACK'
+                    % (probe_uuid, '#4169E1'))
+        if not stack_out:
+            graph_lines_out.append('LINE1:metric_with_unknown_%s_out_neg%s::'
+                               % (probe_uuid, color))
+            stack_out = True
+        else:
+            graph_lines_out.append('LINE1:metric_with_unknown_%s_out_neg%s::STACK'
+                               % (probe_uuid, color))
+    args += graph_lines_out
+    args.append('HRULE:0#000000')
     args.append(cdef_metric_in)
     args.append(cdef_metric_out)
     args.append(cdef_metric_with_unknown_in)
