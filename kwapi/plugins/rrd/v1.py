@@ -57,7 +57,9 @@ def welcome_scale(scale):
     try:
         return flask.render_template('index.html',
                                      hostname=flask.request.hostname,
-                                     probes=sorted(flask.request.probes),
+                                     probes=sorted(flask.request.probes, 
+                                        key=lambda x: (x.split('.')[1].split('-')[0], 
+                                            int(x.split('.')[1].split('-')[1]))),
                                      refresh=cfg.CONF.refresh_interval,
                                      scales=flask.request.scales,
                                      scale=scale,
