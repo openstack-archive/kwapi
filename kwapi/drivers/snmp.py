@@ -20,14 +20,14 @@ from pysnmp.entity.rfc3413.oneliner import cmdgen
 
 from kwapi.utils import log
 from driver import Driver
+from kwapi.data_types import DATA_TYPES
 
 LOG = log.getLogger(__name__)
-
 
 class Snmp(Driver):
     """Driver for SNMP based PDUs."""
 
-    def __init__(self, probe_ids, **kwargs):
+    def __init__(self, probe_ids, probe_data_type, **kwargs):
         """Initializes the SNMP driver.
 
         Keyword arguments:
@@ -39,41 +39,49 @@ class Snmp(Driver):
                   Raritan OID is 1.3.6.1.4.1.13742.4.1.2.2.1.7
 
         """
-        Driver.__init__(self, probe_ids, kwargs)
+        Driver.__init__(self, probe_ids, probe_data_type, kwargs)
         self.cmd_gen = cmdgen.CommandGenerator()
 
     def run(self):
         """Starts the driver thread."""
-
+        if self.probe_data_type not in DATA_TYPES:
+	    LOG.error('Unknown data type %s for probe %s' % (
+	        self.probe_data_type,
+		self.probe_ids))
+	    return
         while not self.stop_request_pending():
+            measure_time = time.time()
             metrics_list = self.get_metrics()
+            #Sum duplicate probes metrics in a specific dictionnary
             agg_values = {}
 
             if metrics_list is not None:
                 i = 0
                 for metrics in metrics_list:
-                    if self.probe_ids[i]:
-                        probe_type = self.probe_ids[i].split("-")[-1]
-                        send = True
-                        measurements = {}
-                        if self.probe_ids.count(self.probe_ids[i]) == 1:
-                            measurements[probe_type] = metrics
-                        else:
-                            if self.probe_ids[i:].count(self.probe_ids[i]) == 1:
-                                measurements[probe_type] = metrics + agg_values[self.probe_ids[i]]
-                                agg_values[self.probe_ids[i]] = 0
-                            else:
-                                if not self.probe_ids[i] in agg_values:
-                                    agg_values[self.probe_ids[i]] = 0
-                                agg_values[self.probe_ids[i]] += metrics
-                                send = False
-                        if send:
-                            self.send_measurements(self.probe_ids[i], measurements)
-                    i += 1
+		    probe = self.probe_ids[i]
+		    i+=1
+                    if not probe:
+		        continue
+
+                    if DATA_TYPES[self.probe_data_type]['summable']:
+		        if not probe in agg_values:
+		            agg_values[probe] = 0
+		        agg_values[probe] += metrics
+		    else:
+		        measurements = self.create_measurements(probe,
+						                measure_time,
+						                metrics)
+                        self.send_measurements(probe, measurements)
+		#Send each sum of probe
+                for probe, agg_value in agg_values.items():
+                     measurements = self.create_measurements(probe,
+							     measure_time,
+							     agg_value)
+		     self.send_measurements(probe, measurements)
             time.sleep(1)
 
     def get_metrics(self):
-        """Returns the power consumption."""
+        """Returns the OID field."""
         protocol = self.kwargs.get('protocol')
         if protocol is '1':
             community_or_user = cmdgen.CommunityData(
@@ -110,3 +118,4 @@ class Snmp(Driver):
                     for name, value in varBindTableRow:
                         outlet_list.append(int(value))
                 return outlet_list
+

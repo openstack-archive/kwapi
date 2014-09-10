@@ -55,17 +55,21 @@ def load_all_drivers():
         if section != 'DEFAULT':
             class_name = entries['driver'][0]
             probe_ids = ast.literal_eval(entries['probes'][0])
+            probe_data_type = entries['data_type'][0]
             kwargs = {}
             if 'parameters' in entries.keys():
                 kwargs = ast.literal_eval(entries['parameters'][0])
             lock.acquire()
-            driver_thread = load_driver(class_name, probe_ids, kwargs)
+            driver_thread = load_driver(class_name, 
+					probe_ids,
+					probe_data_type,
+					kwargs)
             if driver_thread is not None:
                 threads.append(driver_thread)
             lock.release()
 
 
-def load_driver(class_name, probe_ids, kwargs):
+def load_driver(class_name, probe_ids, probe_data_type, kwargs):
     print "Load", class_name
     """Starts a probe thread."""
     try:
@@ -75,10 +79,10 @@ def load_driver(class_name, probe_ids, kwargs):
     except ImportError:
         raise NameError("%s doesn't exist." % class_name)
     try:
-        probe_object = probe_class(probe_ids, **kwargs)
+        probe_object = probe_class(probe_ids, probe_data_type, **kwargs)
     except Exception as exception:
         LOG.error('Exception occurred while initializing %s(%s, %s): %s'
-                  % (class_name, probe_ids, kwargs, exception))
+                  % (class_name, probe_ids, probe_data_type, kwargs, exception))
     else:
         probe_object.start()
         return probe_object
@@ -98,6 +102,7 @@ def check_drivers_alive():
                                driver_thread.probe_ids, driver_thread.kwargs))
                 new_thread = load_driver(driver_thread.__class__.__name__,
                                          driver_thread.probe_ids,
+                                         driver_thread.probe_data_type,
                                          driver_thread.kwargs
                                          )
                 if new_thread is not None:
@@ -171,3 +176,4 @@ def start():
         signal.pause()
     except KeyboardInterrupt:
         terminate()
+

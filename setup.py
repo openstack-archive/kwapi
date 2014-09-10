@@ -52,7 +52,8 @@ setuptools.setup(
                                 'etc/kwapi/rrd.conf',
                                 'etc/kwapi/forwarder.conf',
                                 'etc/kwapi/daemon.conf',
-                                'etc/kwapi/hdf5.conf']),
+                                'etc/kwapi/hdf5.conf',
+                                'etc/kwapi/data_types.conf']),
                 ('/etc/init.d', ['etc/init/kwapi'])],
 
     install_requires=['flask',
