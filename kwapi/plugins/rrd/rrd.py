@@ -28,7 +28,6 @@ import uuid
 import rrdtool
 
 from kwapi.utils import cfg, log
-from kwapi.data_types import DATA_TYPES
 
 LOG = log.getLogger(__name__)
 
@@ -60,6 +59,16 @@ rrd_opts = [
 ]
 
 cfg.CONF.register_opts(rrd_opts)
+"""Loads all drivers from config file."""
+parser = cfg.ConfigParser('/etc/kwapi/rrd.conf', {})
+parser.parse()
+
+DATAS = {}
+for section, entries in parser.sections.iteritems():
+    if section != 'DEFAULT':
+        DATAS[section] = {}
+        DATAS[section]['units'] = entries['units'][0]
+        DATAS[section]['rrd'] = entries['rrd'][0]
 
 scales = collections.OrderedDict()
 # Resolution = 1 second
@@ -110,9 +119,8 @@ def get_rrd_filename(probe, data_type, params):
     """Returns the rrd filename."""
     path = '%s/%s' % (probe, data_type)
     # Include params in the path
-    if len(params) > 0:
-        for k in sorted(params.keys()):
-            path += '/%s-%s' % (k, params[k])
+    path += '/%s-%s' % ('flow', params['flow'])
+    path += '/%s-%s' % ('dest', params['dest'])
     return cfg.CONF.rrd_dir + '/' + str(uuid.uuid5(uuid.NAMESPACE_DNS,
                                         str(path))) + '.rrd'
 
@@ -124,7 +132,7 @@ def create_rrd_file(filename, data_type, params):
                 '--start', '0',
                 '--step', '1',
                 # Heartbeat = 600 seconds, Min = 0, Max = Unlimited
-                DATA_TYPES[data_type]['rrd'],
+                DATAS[data_type]['rrd'],
                ]
         for scale in scales.keys():
             args.append('RRA:AVERAGE:0.5:%s:%s'
@@ -149,7 +157,7 @@ def update_rrd(probe, data_type, timestamp, metrics, params):
         create_rrd_file(filename, data_type, params)
     try:
         #print "update %s %d %d" % (filename, timestamp, metrics)
-        rrdtool.update(filename, 'N:%d' % metrics)
+        rrdtool.update(filename, '%d:%d' % (round(timestamp), metrics))
     except rrdtool.error as e:
         LOG.error('Error updating RRD: %s' % e)
 

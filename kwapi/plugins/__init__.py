@@ -20,7 +20,6 @@ import zmq
 
 from kwapi import security
 from kwapi.utils import cfg, log
-from kwapi.data_types import DATA_TYPES
 
 LOG = log.getLogger(__name__)
 
@@ -30,7 +29,6 @@ def listen(function):
     database. Messages are dictionaries dumped in JSON format.
 
     """
-    units = DATA_TYPES.keys()
     LOG.info('Listening to %s' % cfg.CONF.probes_endpoint)
 
     context = zmq.Context.instance()
@@ -55,20 +53,12 @@ def listen(function):
         else:
             try:
                 probe = measurements['probe_id'].encode('utf-8')
-                data_type = measurements['data_type'].encode('utf-8')
-                params = []
-                # Construct list of specific parameters present in the
-                # measurement fields
-                for param in DATA_TYPES[data_type]['parameters']:
-                    params.append(param)
-                params = dict((k,v) for (k,v) in measurements.items() \
-		                                                if k in params)
-                function(probe, data_type, measurements['timestamp'], 
-                         float(measurements['measure']), params)
+                data_type = measurements['data_type']
+                function(probe, data_type['name'], measurements['timestamp'], 
+                         float(measurements['measure']), data_type)
             except (TypeError, ValueError):
                 raise
-                LOG.error('Malformed data: %s'
-                          % measurements)
+                LOG.error('Malformed data: %s' % measurements)
             except KeyError:
                 LOG.error('Malformed message (missing required key)')
 

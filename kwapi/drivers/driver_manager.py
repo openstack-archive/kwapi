@@ -55,7 +55,7 @@ def load_all_drivers():
         if section != 'DEFAULT':
             class_name = entries['driver'][0]
             probe_ids = ast.literal_eval(entries['probes'][0])
-            probe_data_type = entries['data_type'][0]
+            probe_data_type = ast.literal_eval(entries['data_type'][0])
             kwargs = {}
             if 'parameters' in entries.keys():
                 kwargs = ast.literal_eval(entries['parameters'][0])

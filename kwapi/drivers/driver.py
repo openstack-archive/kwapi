@@ -22,7 +22,6 @@ import zmq
 
 from kwapi.utils import log
 from kwapi import security
-from kwapi.data_types import DATA_TYPES
 
 LOG = log.getLogger(__name__)
 
@@ -92,25 +91,6 @@ class Driver(Thread):
 	measurements['timestamp'] = time
         measurements['measure'] = metrics
         measurements['data_type'] = self.probe_data_type
-        #Add specific data fields
-	parameters = DATA_TYPES[self.probe_data_type]['parameters']
-	for p in parameters:
-	    if not self.kwargs.has_key(p):
-	        continue
-	    if isinstance(parameters[p], type):
-		#Check parameter type
-		if not isinstance(self.kwargs.get(p), parameters[p]):
-		    LOG.error("Wrong type for parameter %s: find %s instead of %s" %
-			(p, type(self.kwargs.get(p)), parameters[p]))
-		else:
-		    measurements[p] = self.kwargs.get(p)
-	    elif isinstance(parameters[p], list):
-		#Check if in the options
-		if not self.kwargs.get(p) in parameters[p]:
-		    LOG.error("Wrong type for parameter %s: find %s instead of %s" %
-			(p, type(self.kwargs.get(p)), parameters[p]))
-		else:
-		    measurements[p] = self.kwargs.get(p)
 	return measurements
 
     def subscribe(self, observer):

@@ -20,7 +20,6 @@ from pysnmp.entity.rfc3413.oneliner import cmdgen
 
 from kwapi.utils import log
 from driver import Driver
-from kwapi.data_types import DATA_TYPES
 
 LOG = log.getLogger(__name__)
 
@@ -44,11 +43,6 @@ class Snmp(Driver):
 
     def run(self):
         """Starts the driver thread."""
-        if self.probe_data_type not in DATA_TYPES:
-	    LOG.error('Unknown data type %s for probe %s' % (
-	        self.probe_data_type,
-		self.probe_ids))
-	    return
         while not self.stop_request_pending():
             measure_time = time.time()
             metrics_list = self.get_metrics()
@@ -63,7 +57,7 @@ class Snmp(Driver):
                     if not probe:
 		        continue
 
-                    if DATA_TYPES[self.probe_data_type]['summable']:
+                    if self.probe_data_type['summable']:
 		        if not probe in agg_values:
 		            agg_values[probe] = 0
 		        agg_values[probe] += metrics
