@@ -115,7 +115,7 @@ def parse_cluster(d, site)
               uid = port['uid']
               device_port = port['port'].nil? ? "" : "-#{port['port']}"
               begin
-                device = "#{uid.nil? ? "None" : "#{uid}#{device_port}->#{switch}"}"
+                device = "#{uid.nil? ? "None" : "#{site}.#{uid}#{device_port}"}"
                 switch_port = "#{snmp_pattern.sub("%LINECARD%", l.to_s).sub("%PORT%", p.to_s)}"
                 if !uid.nil?
                   $switchs.key?(switch) ? $switchs[switch][switch_port]=device : $switchs[switch]={switch_port=>device}
@@ -158,12 +158,14 @@ def write_probes(site,switch)
   end
   printf "[%s-IN]\n", switch
   printf "probes = [%s]\n", probesIN.join(",")
-  printf "driver = Snmpin\n"
-  printf "parameters = {'protocol': '1', 'community': 'public', 'ip': '%s.%s.grid5000.fr', 'oid': '1.3.6.1.2.1.2.2.1.16'}\n", switch, site
+  printf "driver = Snmp\n"
+  printf "data_type = ifOctets\n"
+  printf "parameters = {'protocol': '1', 'community': 'public', 'ip': '%s.%s.grid5000.fr', 'oid': '1.3.6.1.2.1.2.2.1.16', 'flow':'in', 'dest':'%s'}\n", switch, site, switch
   printf "[%s-OUT]\n", switch
   printf "probes = [%s]\n", probesOUT.join(",")
-  printf "driver = Snmpout\n"
-  printf "parameters = {'protocol': '1', 'community': 'public', 'ip': '%s.%s.grid5000.fr', 'oid': '1.3.6.1.2.1.2.2.1.10'}\n", switch, site
+  printf "driver = Snmp\n"
+  printf "data_type = ifOctets\n"
+  printf "parameters = {'protocol': '1', 'community': 'public', 'ip': '%s.%s.grid5000.fr', 'oid': '1.3.6.1.2.1.2.2.1.10', 'flow':'out', 'dest':'%s'}\n", switch, site, switch
 end
 
 #Iteration on each network_equipment of the site

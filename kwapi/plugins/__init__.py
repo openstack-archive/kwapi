@@ -63,8 +63,8 @@ def listen(function):
                     params.append(param)
                 params = dict((k,v) for (k,v) in measurements.items() \
 		                                                if k in params)
-                function(probe, data_type, float(measurements['measure']),
-			 measurements['timestamp'], params)
+                function(probe, data_type, measurements['timestamp'], 
+                         float(measurements['measure']), params)
             except (TypeError, ValueError):
                 raise
                 LOG.error('Malformed data: %s'

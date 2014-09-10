@@ -149,7 +149,7 @@ def update_rrd(probe, data_type, timestamp, metrics, params):
         create_rrd_file(filename, data_type, params)
     try:
         #print "update %s %d %d" % (filename, timestamp, metrics)
-        rrdtool.update(filename, 'N:%d' % (metrics*8))
+        rrdtool.update(filename, 'N:%d' % metrics)
     except rrdtool.error as e:
         LOG.error('Error updating RRD: %s' % e)
 
