@@ -53,9 +53,11 @@ def listen(function):
         else:
             try:
                 probe = measurements['probe_id'].encode('utf-8')
-                data_type = measurements['data_type']
-                function(probe, data_type['name'], measurements['timestamp'], 
-                         float(measurements['measure']), data_type)
+                params = measurements['data_type']
+                name = params['name']
+                timestamp = measurements['timestamp']
+                measure = measurements['measure']
+                function(probe, name, timestamp, measure, params)
             except (TypeError, ValueError):
                 raise
                 LOG.error('Malformed data: %s' % measurements)
