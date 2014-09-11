@@ -31,10 +31,15 @@ cfg.CONF.register_opts(hdf5_opts)
 
 measurements = {}
 
-def get_probe_path(probe, data_type, flow, dest):
+def get_probe_path(probe):
+    site = probe.split(".")[0]
+    node = probe.split(".")[1].replace("-","_")
+    return "/%s/%s" % (site, node)
+
+def get_probe_path_network(probe, data_type, flow, dest):
     site = probe.split(".")[0]
     node = probe.split(".")[1]
-    #cluster = get_host_cluster(host)
+    dest = dest.split(".")[1]
     if node:
         return "%s/%s/%s/%s/%s" \
                % (site, node.replace('-', '_'), data_type, flow, dest)
@@ -90,6 +95,6 @@ def update_hdf5(probe, data_type, timestamp, metrics, params):
 def write_hdf5_file(probe, data_type, flow, dest, timestamps, measurements):
     store = HDFStore(cfg.CONF.hdf5_dir + '/store.h5')
     df = DataFrame(measurements, index=timestamps)
-    path = get_probe_path(probe, data_type, flow, dest)
+    path = get_probe_path_network(probe, data_type, flow, dest)
     store.append(path, df)
     store.close()

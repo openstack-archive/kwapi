@@ -109,6 +109,9 @@ def retrieve_measurements():
         probes = [site + '.' + node.split('.')[0] for node in nodes]
     elif 'probes' in args:
         probes = [site + '.' + node for node in args['probes'].split(',')]
+        data_type = args['data_type'] if 'data_type' in args else 'ifOctets'
+        dest = args['dest'] if 'dest' in args else 'all'
+        flow = args['flow'] if 'flow' in args else 'in'
         start_time = args['start_time'] if 'start_time' in args else time.time() - 24 * 3600
         end_time = args['end_time'] if 'end_time' in args else time.time()
     else:
@@ -119,12 +122,12 @@ def retrieve_measurements():
         message = {'total': len(probes), 'offset': 0, 'links': [
               {
                  "rel": "self",
-                 "href": _get_api_path(headers) + site + "/metrics/power",
+                 "href": _get_api_path(headers) + site + "/metrics/" + data_type
                  "type": "application/vnd.fr.grid5000.api.Collection+json;level=1"
               },
               {
                  "rel": "parent",
-                 "href": _get_api_path(headers) + "/sites/" + site + "/metrics/power",
+                 "href": _get_api_path(headers) + "/sites/" + site + "/metrics/" + data_type,
                  "type": "application/vnd.fr.grid5000.api.Metric+json;level=1"
               }
            ],
@@ -134,36 +137,48 @@ def retrieve_measurements():
         LOG.info(','.join(probes))
         for probe in probes:
             path = get_probe_path(probe)
+            print path
             if path:
                 message['items'].append({"uid": probe.split('.')[1],
                             "to": int(end_time),
                             "from": int(start_time),
                             "resolution": 1,
-                            "metric_uid": "power",
+                            "metric_uid": data_type,
+                            "dest": dest,
+                            "flow": flow,
                             "type": "timeseries",
                             "values": [],
                             "links": [
                     {
-                       "rel": "self",
-                       "href": _get_api_path(headers) +
-                        "/sites/" + site + "/metrics/power/timeseries/" +probe.split('.')[1],
-                       "type": "application/vnd.fr.grid5000.api.Timeseries+json;level=1"
+                        "rel": "self",
+                        "href": _get_api_path(headers) +
+                        "/sites/" + site + "/metrics/" + data_type + "/timeseries/" +probe.split('.')[1],
+                        "type": "application/vnd.fr.grid5000.api.Timeseries+json;level=1"
                     },
                     {
-                       "rel": "parent",
-                       "href": _get_api_path(headers) +
-                        "/sites/" + site + "/metrics/power",
-                       "type": "application/vnd.fr.grid5000.api.Metric+json;level=1"
+                        "rel": "parent",
+                        "href": _get_api_path(headers) +
+                        "/sites/" + site + "/metrics/" + data_type,
+                        "type": "application/vnd.fr.grid5000.api.Metric+json;level=1"
                     }
-                 ]})
+                ]})
                 try:
-
-                    df = read_hdf(cfg.CONF.hdf5_dir + '/store.h5',
-                        get_probe_path(probe),
-                        where=['index>=' + str(start_time),
-                               'index<=' + str(end_time)])
-                    for ts, mes in df.iterrows():
-                        message['items'][-1]['values'].append(mes[0])
+                    #Network suffix
+                    if data_type == "ifOctets":
+                        print path +"/"+data_type+"/"+flow+"/"+dest
+                        df = read_hdf(cfg.CONF.hdf5_dir + '/store.h5',
+                            path+"/"+data_type+"/"+flow+"/"+dest,
+                            where=['index>=' + str(start_time),
+                                   'index<=' + str(end_time)])
+                        for ts, mes in df.iterrows():
+                            message['items'][-1]['values'].append(mes[0])
+                    else:
+                        df = read_hdf(cfg.CONF.hdf5_dir + '/store.h5',
+                            path,
+                            where=['index>=' + str(start_time),
+                                   'index<=' + str(end_time)])
+                        for ts, mes in df.iterrows():
+                            message['items'][-1]['values'].append(mes[0])
                 except:
                     message['items'][-1]['values'] = ['Unknown probe']
     response = flask.jsonify(message)
