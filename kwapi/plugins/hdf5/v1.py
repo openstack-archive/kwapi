@@ -122,7 +122,7 @@ def retrieve_measurements():
         message = {'total': len(probes), 'offset': 0, 'links': [
               {
                  "rel": "self",
-                 "href": _get_api_path(headers) + site + "/metrics/" + data_type
+                 "href": _get_api_path(headers) + site + "/metrics/" + data_type,
                  "type": "application/vnd.fr.grid5000.api.Collection+json;level=1"
               },
               {
