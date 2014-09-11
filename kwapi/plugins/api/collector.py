@@ -48,20 +48,44 @@ class Record(dict):
 
     """
 
-    def __init__(self, timestamp, kwh, watts):
+    def __init__(self, timestamp, measure, data_type, params, avg):
         """Initializes fields with the given arguments."""
         dict.__init__(self)
         self._dict = {}
         self['timestamp'] = timestamp
-        self['kwh'] = kwh
-        self['w'] = watts
+        self['data_type'] = data_type
+        if data_type == "ifOctets":
+            self['measure'] = {}
+            if not params['flow'] in self['measure']:
+                self['measure'][params['flow']] = {}
+            if not params['dest'] in self['measure'][params['flow']]:
+                self['measure'][params['flow']][params['dest']] = {}
+            self['measure'][params['flow']][params['dest']]['value'] = measure
+            #self['measure'][params['flow']][params['dest']]['avg'] = avg
+        else:
+            self['avg'] = avg
+            self['measure'] = measure
+        
 
-    def add(self, watts):
+    def add(self, timestamp, measure, params):
         """Updates fields with consumption data."""
-        currentTime = time.time()
-        self['kwh'] += (currentTime - self['timestamp']) / 3600.0 * \
-                       (watts / 1000.0)
-        self['w'] = watts
+        currentTime = timestamp 
+        if self['data_type'] == "ifOctets":
+            if not params['flow'] in self['measure']:
+                self['measure'][params['flow']] = {}
+            if not params['dest'] in self['measure'][params['flow']]:
+                self['measure'][params['flow']][params['dest']] = {}
+            if not 'value' in self['measure'][params['flow']][params['dest']]:
+                self['measure'][params['flow']][params['dest']]['value'] = 0
+            #if not 'avg' in self['measure'][params['flow']][params['dest']]:
+            #    self['measure'][params['flow']][params['dest']]['avg'] = 0.0
+            #delta = measure - self['measure'][params['flow']][params['dest']]['value']
+            self['measure'][params['flow']][params['dest']]['value'] = measure
+            #self['measure'][params['flow']][params['dest']]['avg'] += (currentTime - self['timestamp']) / 3600.0 * (delta)
+        else:
+            self['avg'] += (currentTime - self['timestamp']) / 3600.0 * \
+                           (measure / 1000.0)
+            self['measure'] = measure
         self['timestamp'] = currentTime
 
 
@@ -77,13 +101,14 @@ class Collector:
         self.database = {}
         self.lock = threading.Lock()
 
-    def add(self, probe, watts):
+    def add(self, probe, name, timestamp, measure, params):
         """Creates (or updates) consumption data for this probe."""
         self.lock.acquire()
         if probe in self.database.keys():
-            self.database[probe].add(watts)
+            self.database[probe].add(timestamp, measure, params)
         else:
-            record = Record(timestamp=time.time(), kwh=0.0, watts=watts)
+            record = Record(timestamp=timestamp, measure=measure, data_type=name, \
+                            params=params, avg=0.0)
             self.database[probe] = record
         self.lock.release()
 
