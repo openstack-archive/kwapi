@@ -159,12 +159,12 @@ def write_probes(site,switch)
   printf "[%s-IN]\n", switch
   printf "probes = [%s]\n", probesIN.join(",")
   printf "driver = Snmp\n"
-  printf "data_type = ifOctets\n"
-  printf "parameters = {'protocol': '1', 'community': 'public', 'ip': '%s.%s.grid5000.fr', 'oid': '1.3.6.1.2.1.2.2.1.16', 'flow':'in', 'dest':'%s'}\n", switch, site, switch
+  printf "data_type = {'name':'ifOctets', 'flow':'in', 'dest':'%s.%s', 'summable':False}\n", site, switch
+  printf "parameters = {'protocol': '1', 'community': 'public', 'ip': '%s.%s.grid5000.fr', 'oid': '1.3.6.1.2.1.2.2.1.16'}\n", switch, site
   printf "[%s-OUT]\n", switch
   printf "probes = [%s]\n", probesOUT.join(",")
   printf "driver = Snmp\n"
-  printf "data_type = ifOctets\n"
+  printf "data_type = {'name':'ifOctets', 'flow':'out', 'dest':'%s.%s', 'summable':False}\n", site, switch
   printf "parameters = {'protocol': '1', 'community': 'public', 'ip': '%s.%s.grid5000.fr', 'oid': '1.3.6.1.2.1.2.2.1.10', 'flow':'out', 'dest':'%s'}\n", switch, site, switch
 end
 
