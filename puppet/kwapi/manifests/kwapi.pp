@@ -35,7 +35,7 @@ class kwapi {
     "setup":
       cwd => '/tmp/kwapi-g5k',
       path => "/usr/bin:/usr/sbin:/bin",
-      command => "./setup.py install",
+      command => "python setup.py install",
       user => root;
   }
   file {

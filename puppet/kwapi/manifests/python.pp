@@ -10,6 +10,7 @@ class python {
       cwd => $path,
       path => "/usr/bin:/usr/sbin:/bin",
       user => $user,
+      tries => 3,
       require => Package['python-pip'];
     }
 
