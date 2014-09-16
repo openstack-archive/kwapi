@@ -107,6 +107,7 @@ for equip, data in equips.iteritems():
             sec += ", "
         sec += "]\n"
         sec += "driver = "+data['driver']+"\n"
+        sec += "data_type = {'name':'power', 'type':'Gauge', 'unit':'W'}\n"
         sec += "parameters = "+str(data['parameters']) + "\n"
         f.write(sec)
 

@@ -115,7 +115,8 @@ def parse_cluster(d, site)
               uid = port['uid']
               device_port = port['port'].nil? ? "" : "-#{port['port']}"
               begin
-                device = "#{uid.nil? ? "None" : "#{site}.#{uid}#{device_port}"}"
+                #device = "#{uid.nil? ? "None" : "#{site}.#{uid}#{device_port}"}"
+                device = "#{uid.nil? ? "None" : "#{uid}#{device_port}"}"
                 switch_port = "#{snmp_pattern.sub("%LINECARD%", l.to_s).sub("%PORT%", p.to_s)}"
                 if !uid.nil?
                   $switchs.key?(switch) ? $switchs[switch][switch_port]=device : $switchs[switch]={switch_port=>device}
@@ -144,7 +145,7 @@ def write_probes(site,switch)
       manager.walk(["ifDescr"]) do |(ifDescr)|
         node = $switchs[switch][ifDescr.value]
         probesIN  << "#{node.nil? ? "None" : "'#{site}.#{switch}_#{node}'"}"
-        probesOUT << "#{node.nil? ? "None" : "'#{node}_#{site}.#{switch}'"}"
+        probesOUT << "#{node.nil? ? "None" : "'#{site}.#{node}_#{switch}'"}"
       end
     end
   rescue
