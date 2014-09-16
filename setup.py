@@ -43,7 +43,8 @@ setuptools.setup(
     ],
 
     packages=setuptools.find_packages(),
-    package_data={'kwapi.plugins.rrd': ['templates/*', 'static/*.css', 'static/*.png', 'static/*.jpg', 'static/*.js', 'static/select2/*']},
+    package_data={'kwapi.plugins.rrd': ['templates/*', 'static/*.css', 'static/*.png', 'static/*.jpg', 'static/*.js', 'static/select2/*'],
+                  'kwapi.plugins.live': ['templates/*', 'static/*.css', 'static/*.png', 'static/*.jpg', 'static/*.js', 'static/select2/*']},
 
     scripts=['bin/kwapi-g5k-conf'],
 
@@ -52,7 +53,8 @@ setuptools.setup(
                                 'etc/kwapi/rrd.conf',
                                 'etc/kwapi/forwarder.conf',
                                 'etc/kwapi/daemon.conf',
-                                'etc/kwapi/hdf5.conf']),
+                                'etc/kwapi/hdf5.conf',
+                                'etc/kwapi/live.conf']),
                 ('/etc/init.d', ['etc/init/kwapi'])],
 
     install_requires=['flask',
@@ -70,7 +72,8 @@ setuptools.setup(
             'kwapi-drivers = kwapi.drivers.driver_manager:start',
             'kwapi-forwarder = kwapi.forwarder:start',
             'kwapi-rrd = kwapi.plugins.rrd.app:start',
-            'kwapi-hdf5 = kwapi.plugins.hdf5.app:start',]
+            'kwapi-hdf5 = kwapi.plugins.hdf5.app:start',
+            'kwapi-live = kwapi.plugins.live.app:start']
     }
     
 )
