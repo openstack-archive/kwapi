@@ -53,6 +53,9 @@ def listen(function):
         else:
             try:
                 probe = measurements['probe_id'].encode('utf-8')
+                # params = {'name':'switch.port.receive.bytes',
+                #           'type':'Cummulative',
+                #           'unit':'B'}
                 params = measurements['data_type']
                 name = params['name']
                 timestamp = measurements['timestamp']
