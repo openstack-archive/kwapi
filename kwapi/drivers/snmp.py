@@ -56,8 +56,10 @@ class Snmp(Driver):
 		    i+=1
                     if not probe:
 		        continue
-
-                    if self.probe_data_type['summable']:
+                    # probe_data_type =  {'name':'switch.port.receive.bytes',
+                    #                     'type':'Cummulative',
+                    #                     'unit':'B'}
+                    if self.probe_data_type['type'] == 'Gauge':
 		        if not probe in agg_values:
 		            agg_values[probe] = 0
 		        agg_values[probe] += metrics

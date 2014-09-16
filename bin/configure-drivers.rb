@@ -1,12 +1,12 @@
 #!/usr/bin/env ruby
 # == Synopsis
 #
-# Retrieve cluster of a site and their nodes with the API. 
+# Retrieve cluster of a site and their nodes with the API.
 # Request each node to retrieve switch address and OIDs.
 #
 # == Usage
 #
-# ruby configure-driver.rb 
+# ruby configure-driver.rb
 #
 # == Author
 # Clement Parisot, Loria - Algorille, Nancy
@@ -109,7 +109,7 @@ def parse_cluster(d, site)
         else
           p = -1
           ports = linecard['ports']
-          if !ports.nil? 
+          if !ports.nil?
             ports.each do |port|
               p+=1
               uid = port['uid']
@@ -121,7 +121,7 @@ def parse_cluster(d, site)
                   $switchs.key?(switch) ? $switchs[switch][switch_port]=device : $switchs[switch]={switch_port=>device}
                 end
               rescue
-                $stderr.puts "Can't write #{switch}:#{snmp_pattern}:#{l}:#{p}:#{uid} : #{$!}" 
+                $stderr.puts "Can't write #{switch}:#{snmp_pattern}:#{l}:#{p}:#{uid} : #{$!}"
               end
             end
           end
@@ -143,8 +143,8 @@ def write_probes(site,switch)
     SNMP::Manager.open(:host => switch_addr) do |manager|
       manager.walk(["ifDescr"]) do |(ifDescr)|
         node = $switchs[switch][ifDescr.value]
-        probesIN << "#{node.nil? ? "None" : "'" + node + "'"}"
-        probesOUT << "#{node.nil? ? "None" : "'" + node + "'"}"
+        probesIN  << "#{node.nil? ? "None" : "'#{site}.#{switch}_#{node}'"}"
+        probesOUT << "#{node.nil? ? "None" : "'#{node}_#{site}.#{switch}'"}"
       end
     end
   rescue
@@ -159,12 +159,12 @@ def write_probes(site,switch)
   printf "[%s-IN]\n", switch
   printf "probes = [%s]\n", probesIN.join(",")
   printf "driver = Snmp\n"
-  printf "data_type = {'name':'ifOctets', 'flow':'in', 'dest':'%s.%s', 'summable':False}\n", site, switch
+  printf "data_type = {'name':'switch.port.receive.bytes', 'type':'Cumulative', 'unit':'B'}\n", site, switch
   printf "parameters = {'protocol': '1', 'community': 'public', 'ip': '%s.%s.grid5000.fr', 'oid': '1.3.6.1.2.1.2.2.1.16'}\n", switch, site
   printf "[%s-OUT]\n", switch
   printf "probes = [%s]\n", probesOUT.join(",")
   printf "driver = Snmp\n"
-  printf "data_type = {'name':'ifOctets', 'flow':'out', 'dest':'%s.%s', 'summable':False}\n", site, switch
+  printf "data_type = {'name':'switch.port.transmit.bytes', 'type':'Cumulative', 'unit':'B'}\n", site, switch
   printf "parameters = {'protocol': '1', 'community': 'public', 'ip': '%s.%s.grid5000.fr', 'oid': '1.3.6.1.2.1.2.2.1.10', 'flow':'out', 'dest':'%s'}\n", switch, site, switch
 end
 
