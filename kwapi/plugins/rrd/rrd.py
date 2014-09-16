@@ -63,13 +63,6 @@ cfg.CONF.register_opts(rrd_opts)
 parser = cfg.ConfigParser('/etc/kwapi/rrd.conf', {})
 parser.parse()
 
-DATAS = {}
-for section, entries in parser.sections.iteritems():
-    if section != 'DEFAULT':
-        DATAS[section] = {}
-        DATAS[section]['units'] = entries['units'][0]
-        DATAS[section]['rrd'] = entries['rrd'][0]
-
 scales = collections.OrderedDict()
 # Resolution = 1 second
 scales['minute'] = {'interval': 300, 'resolution': 1, 'label': '5 minutes'},
@@ -115,25 +108,30 @@ def get_png_filename(scale, probe):
         str(uuid.uuid5(uuid.NAMESPACE_DNS, str(probe))) + '.png'
 
 
-def get_rrd_filename(probe, data_type, params):
+def get_rrd_filename(probe):
     """Returns the rrd filename."""
-    path = '%s/%s' % (probe, data_type)
     # Include params in the path
-    path += '/%s-%s' % ('flow', params['flow'])
-    path += '/%s-%s' % ('dest', params['dest'])
     return cfg.CONF.rrd_dir + '/' + str(uuid.uuid5(uuid.NAMESPACE_DNS,
-                                        str(path))) + '.rrd'
+                                        str(probe))) + '.rrd'
 
 
-def create_rrd_file(filename, data_type, params):
+def create_rrd_file(filename, params):
     """Creates a RRD file."""
     if not os.path.exists(filename):
-        args = [filename,
-                '--start', '0',
-                '--step', '1',
-                # Heartbeat = 600 seconds, Min = 0, Max = Unlimited
-                DATAS[data_type]['rrd'],
-               ]
+        if params['type'] != 'Gauge':
+            args = [filename,
+                    '--start', '0',
+                    '--step', '1',
+                    # Heartbeat = 600 seconds, Min = 0, Max = Unlimited
+                    'DS:v:COUNTER:600:0:4294967295',
+            ]
+        else:
+            args = [filename,
+                    '--start', '0',
+                    '--step', '1',
+                    # Heartbeat = 600 seconds, Min = 0, Max = Unlimited
+                    'DS:v:GAUGE:600:0:U',
+            ]
         for scale in scales.keys():
             args.append('RRA:AVERAGE:0.5:%s:%s'
                         % (scales[scale][0]['resolution'],
@@ -147,14 +145,11 @@ def update_rrd(probe, data_type, timestamp, metrics, params):
     if not probe in probes_set:
          lock.acquire()
          probes_set.add(probe)
-         if not dest.has_key(probe):
-	     dest[probe] = []
-	 dest[probe].append(params['dest'])
          lock.release()
     # Depends on data_type
-    filename = get_rrd_filename(probe, data_type, params)
+    filename = get_rrd_filename(probe)
     if not os.path.isfile(filename):
-        create_rrd_file(filename, data_type, params)
+        create_rrd_file(filename, params)
     try:
         #print "update %s %d %d" % (filename, timestamp, metrics)
         rrdtool.update(filename, '%d:%d' % (round(timestamp), metrics))
@@ -229,80 +224,41 @@ def build_graph(start, end, probes, summary=True):
         args += ['--x-grid', 'SECOND:30:MINUTE:1:MINUTE:1:0:%H:%M']
     cdef_metric_in = 'CDEF:metric_in='
     cdef_metric_with_unknown_in = 'CDEF:metric_with_unknown_in='
-    cdef_metric_out = 'CDEF:metric_out='
-    cdef_metric_with_unknown_out = 'CDEF:metric_with_unknown_out='
     graph_lines_in = []
-    graph_lines_out = []
     stack_in = False
-    stack_out = False
     probe_list = sorted(probes, reverse=True)
     #IN
     for probe in probe_list:
-        for d in dest[probe]:
-	    probe_uuid = uuid.uuid5(uuid.NAMESPACE_DNS, probe)
-	    params = {'flow':'in', 'dest':d}
-	    rrd_file_in = get_rrd_filename(probe, "ifOctets", params)
-	    # Data source
-	    args.append('DEF:metric_with_unknown_%s_in=%s:o:AVERAGE'
-			% (probe_uuid, rrd_file_in))
-	    # Data source without unknown values
-	    args.append('CDEF:metric_%s_in=metric_with_unknown_%s_in,UN,0,'
-	                'metric_with_unknown_%s_in,IF'
-			% (probe_uuid, probe_uuid, probe_uuid))
-	    # Prepare CDEF expression of total metric in
-	    cdef_metric_in += 'metric_%s_in,' % probe_uuid
-	    cdef_metric_with_unknown_in += 'metric_with_unknown_%s_in,' \
+        probe_uuid = uuid.uuid5(uuid.NAMESPACE_DNS, probe)
+        rrd_file_in = get_rrd_filename(probe)
+        # Data source
+        args.append('DEF:metric_with_unknown_%s_in=%s:v:AVERAGE'
+                    % (probe_uuid, rrd_file_in))
+	# Data source without unknown values
+	args.append('CDEF:metric_%s_in=metric_with_unknown_%s_in,UN,0,'
+	            'metric_with_unknown_%s_in,IF'
+                    % (probe_uuid, probe_uuid, probe_uuid))
+	# Prepare CDEF expression of total metric in
+	cdef_metric_in += 'metric_%s_in,' % probe_uuid
+	cdef_metric_with_unknown_in += 'metric_with_unknown_%s_in,' \
 	                                   % probe_uuid
-	    # Draw the area for the probe in
-	    color = '#336600'
-	    if not stack_in:
-		args.append('AREA:metric_with_unknown_%s_in%s::'
+	# Draw the area for the probe in
+	color = '#336600'
+	if not stack_in:
+	    args.append('AREA:metric_with_unknown_%s_in%s::'
 			% (probe_uuid, color))
-		stack_in = True
-	    else:
-		graph_lines_in.append('STACK:metric_with_unknown_%s_in%s::'
+	    stack_in = True
+	else:
+	    graph_lines_in.append('STACK:metric_with_unknown_%s_in%s::'
 				  % (probe_uuid, color))
     args += graph_lines_in
-    #OUT
-    for probe in probe_list:
-        for d in dest[probe]:
-	    probe_uuid = uuid.uuid5(uuid.NAMESPACE_DNS, probe)
-	    params = {'flow':'out', 'dest': d}
-	    rrd_file_out = get_rrd_filename(probe, "ifOctets", params)
-	    # Data source
-	    args.append('DEF:metric_with_unknown_%s_out=%s:o:AVERAGE'
-			% (probe_uuid, rrd_file_out))
-	    args.append('CDEF:metric_with_unknown_%s_out_neg=metric_with_'
-	                'unknown_%s_out,-1,*' % (probe_uuid,probe_uuid))
-	    # Data source without unknown values
-	    args.append('CDEF:metric_%s_out=metric_with_unknown_%s_out,UN,0,'
-	                'metric_with_unknown_%s_out,IF'
-			% (probe_uuid, probe_uuid, probe_uuid))
-	    # Prepare CDEF expression of total metric out
-	    cdef_metric_out += 'metric_%s_out,' % probe_uuid
-	    cdef_metric_with_unknown_out += 'metric_with_unknown_%s_out,' \
-	                                    % probe_uuid
-	    #Draw the probe out
-	    color = '#0033CC'
-	    if not stack_out:
-		args.append('AREA:metric_with_unknown_%s_out_neg%s::'
-			% (probe_uuid, color))
-		stack_out = True
-	    else:
-		graph_lines_out.append('STACK:metric_with_unknown_%s_out_neg%s::'
-				  % (probe_uuid, color))
-    args += graph_lines_out
     if len(probe_list) >= 2:
         # Prepare CDEF expression by adding the required number of '+'
         cdef_metric_in += '+,' * int(len(probe_list)-2) + '+'
         cdef_metric_with_unknown_in += '+,' * int(len(probe_list)-2) + '+'
-        cdef_metric_out += '+,' * int(len(probe_list)-2) + '+'
-        cdef_metric_with_unknown_out += '+,' * int(len(probe_list)-2) + '+'
     args.append('HRULE:0#000000')
     args.append(cdef_metric_in)
-    args.append(cdef_metric_out)
     args.append(cdef_metric_with_unknown_in)
-    args.append(cdef_metric_with_unknown_out)
     # IN
     # Min metric
     args.append('VDEF:metricmin_in=metric_with_unknown_in,MINIMUM')
@@ -312,24 +268,11 @@ def build_graph(start, end, probes, summary=True):
     args.append('VDEF:metricavg_with_unknown_in=metric_with_unknown_in,AVERAGE')
     # Real average
     args.append('VDEF:metricavg_in=metric_in,AVERAGE')
-    # OUT
-    # Min metric
-    args.append('VDEF:metricmin_out=metric_with_unknown_out,MINIMUM')
-    # Max metric
-    args.append('VDEF:metricmax_out=metric_with_unknown_out,MAXIMUM')
-    # Partial average that will be displayed (ignoring unknown values)
-    args.append('VDEF:metricavg_with_unknown_out=metric_with_unknown_out,AVERAGE')
-    # Real average
-    args.append('VDEF:metricavg_out=metric_out,AVERAGE')
     # Legend
     args.append('GPRINT:metricavg_with_unknown_in:AvgIN\: %3.1lf%sb/s')
     args.append('GPRINT:metricmin_in:MinIN\: %3.1lf%sb/s')
     args.append('GPRINT:metricmax_in:MaxIN\: %3.1lf%sb/s')
     args.append('GPRINT:metric_with_unknown_in:LAST:LastIN\: %3.1lf%sb/s\j')
-    args.append('GPRINT:metricavg_with_unknown_out:AvgOUT\: %3.1lf%sb/s')
-    args.append('GPRINT:metricmin_out:MinOUT\: %3.1lf%sb/s')
-    args.append('GPRINT:metricmax_out:MaxOUT\: %3.1lf%sb/s')
-    args.append('GPRINT:metric_with_unknown_out:LAST:LastOUT\: %3.1lf%sb/s\j')
     args.append('TEXTALIGN:center')
     LOG.info('Build PNG graph')
     rrdtool.graph(args)
