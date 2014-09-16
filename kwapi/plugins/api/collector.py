@@ -43,7 +43,7 @@ cfg.CONF.register_opts(collector_opts)
 
 
 class Record(dict):
-    """Contains fields (timestamp, kwh, w) and a method to update
+    """Contains fields (timestamp, value, unit) and a method to update
     consumption.
 
     """
@@ -57,23 +57,23 @@ class Record(dict):
         self['unit'] = params['unit']
         if self['type'] != 'Gauge':
             # No integrated value
-            self['measure'] = measure
-            self['integrated'] = None
+            self['value'] = measure
+            #self['integrated'] = None
         else:
-            self['integrate'] = integrated
-            self['measure'] = measure
+            self['integrated'] = integrated
+            self['value'] = measure
         
 
     def add(self, timestamp, measure, params):
         """Updates fields with consumption data."""
         currentTime = timestamp 
         if self['type'] != 'Gauge':
-            self['integrated'] = None
-            self['measure'] = measure
+            # self['integrated'] = None
+            self['value'] = measure
         else:
             self['integrated'] += (currentTime - self['timestamp']) / 3600.0 * \
                            (measure / 1000.0)
-            self['measure'] = measure
+            self['value'] = measure
         self['timestamp'] = currentTime
 
 

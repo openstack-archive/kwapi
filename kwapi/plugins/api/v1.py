@@ -50,7 +50,7 @@ def list_probes():
 
 @blueprint.route('/probes/<probe>/')
 def probe_info(probe):
-    """Returns all information about this probe (id, timestamp, kWh, W)."""
+    """Returns all information about this probe (id, timestamp, value, unit)."""
     message = {}
     hostname = socket.getfqdn().split('.')
     site = hostname[1] if len(hostname) >= 2 else hostname[0]
