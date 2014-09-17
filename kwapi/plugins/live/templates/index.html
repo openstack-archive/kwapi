@@ -273,10 +273,12 @@
         </script>
     </head>
     <body>
-        <div id="header"><h1>{{ hostname.capitalize() }} energy monitoring</h1></div>
+        <div id="header"><h1>{{ hostname.capitalize() }} monitoring</h1></div>
         <!-- Horizontal menu bar -->
         <div class="menu">
             <ul>
+                <li><a class="inactive activable" href="#">Energy</a></li>
+                <li><a class="active activable" href="#">Network</a></li>
                 {% for label in scales %}
                     {% if label == scale %}
                         <li><a class="active activable" href="{{ url_for('v1.welcome_scale', scale=label) }}">{{ label }}</a></li>
