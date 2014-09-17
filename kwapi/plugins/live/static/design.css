@@ -23,60 +23,140 @@ body {
     padding:20px;
 }
 
-.menu {
-    background:#505050;
-    background:-webkit-linear-gradient(#505050, #222222); /* Safari 5.1+, Chrome 10+ */
-    background:linear-gradient(#505050, #222222);
-    overflow:hidden;
-    position:relative;
-    width:100%;
+@charset "UTF-8";
+/* Base Styles */
+#cssmenu > ul,
+#cssmenu > ul li,
+#cssmenu > ul ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
-
-.menu ul {
-    clear:left;
-    float:left;
-    left:50%;
-    list-style:none;
-    margin:0;
-    padding:0;
-    position:relative;
-    text-align:center;
+#cssmenu > ul {
+  position: relative;
+  z-index: 597;
 }
- 
-.menu ul li {
-    display:block;
-    float:left;
-    list-style:none;
-    margin:0px 8px 0px 0px;
-    padding:0;
-    position:relative;
-    right:50%;
-    width:80px;
+#cssmenu > ul li {
+  float: left;
+  min-height: 1px;
+  line-height: 1.3em;
+  vertical-align: middle;
 }
- 
-.menu ul li a {
-    border-radius: 8px 8px 0px 0px;
-    color:#E2E2E2;
-    display:block;
-    font-family:Arial;
-    font-size:8pt;
-    font-weight:bold;
-    letter-spacing:.08em;
-    padding:10.5px 11px;
-    text-decoration:none;
-    text-transform:uppercase;
+#cssmenu > ul li.hover,
+#cssmenu > ul li:hover {
+  position: relative;
+  z-index: 599;
+  cursor: default;
 }
- 
-.menu ul li a:hover:not(.active) {
-    background:#D0D0D0;
-    background:-webkit-linear-gradient(#D0D0D0, white); /* Safari 5.1+, Chrome 10+ */
-    background:linear-gradient(#D0D0D0, white);
-    color:#222222;
+#cssmenu > ul ul {
+  visibility: hidden;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 598;
+  width: 100%;
 }
-
-.menu ul li a.active {
-    background-color:white;
-    color:#222222;
+#cssmenu > ul ul li {
+  float: none;
+}
+#cssmenu > ul ul ul {
+  top: 1px;
+  left: 99%;
+}
+#cssmenu > ul li:hover > ul {
+  visibility: visible;
+}
+/* Align last drop down RTL */
+#cssmenu > ul > li.last ul ul {
+  left: auto !important;
+  right: 99%;
+}
+#cssmenu > ul > li.last ul {
+  left: auto;
+  right: 0;
+}
+#cssmenu > ul > li.last {
+  text-align: right;
+}
+/* Theme Styles */
+#cssmenu > ul {
+  border-top: 4px solid #3fa338;
+  font-family: Calibri, Tahoma, Arial, sans-serif;
+  font-size: 14px;
+  background: #1e1e1e;
+  background: -moz-linear-gradient(top, #1e1e1e 0%, #040404 100%);
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #1e1e1e), color-stop(100%, #040404));
+  background: -webkit-linear-gradient(top, #1e1e1e 0%, #040404 100%);
+  background: linear-gradient(top, #1e1e1e 0%, #040404 100%);
+  width: auto;
+  zoom: 1;
+}
+#cssmenu > ul:before {
+  content: '';
+  display: block;
+}
+#cssmenu > ul:after {
+  content: '';
+  display: table;
+  clear: both;
+}
+#cssmenu > ul li a {
+  display: inline-block;
+  padding: 10px 22px;
+}
+#cssmenu > ul > li.active,
+#cssmenu > ul > li.active:hover {
+  background-color: #3fa338;
+}
+#cssmenu > ul > li > a:link,
+#cssmenu > ul > li > a:active,
+#cssmenu > ul > li > a:visited {
+  color: #ffffff;
+}
+#cssmenu > ul > li > a:hover {
+  color: #ffffff;
+}
+#cssmenu > ul ul ul {
+  top: 0;
+}
+#cssmenu > ul li li {
+  background-color: #ffffff;
+  border-bottom: 1px solid #ebebeb;
+  font-size: 12px;
+}
+#cssmenu > ul li.hover,
+#cssmenu > ul li:hover {
+  background-color: #F5F5F5;
+}
+#cssmenu > ul > li.hover,
+#cssmenu > ul > li:hover {
+  background-color: #3fa338;
+  -webkit-box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.15);
+  -moz-box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.15);
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.15);
+}
+#cssmenu > ul a:link,
+#cssmenu > ul a:visited {
+  color: #000000;
+  text-decoration: none;
+}
+#cssmenu > ul a:hover {
+  color: #9a9a9a;
+}
+#cssmenu > ul a:active {
+  color: #9a9a9a;
+}
+#cssmenu > ul ul {
+  border: 1px solid #CCC \9;
+  -webkit-box-shadow: 0 0px 2px 1px rgba(0, 0, 0, 0.15);
+  -moz-box-shadow: 0 0px 2px 1px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 0px 2px 1px rgba(0, 0, 0, 0.15);
+  width: 150px;
+}
+#cssmenu > ul li li.active,
+#cssmenu > ul li li.active:hover {
+  color: #ffffff;
+  background-color: #3fa338;
 }
 
 h2 {

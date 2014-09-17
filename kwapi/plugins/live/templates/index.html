@@ -275,20 +275,32 @@
     <body>
         <div id="header"><h1>{{ hostname.capitalize() }} monitoring</h1></div>
         <!-- Horizontal menu bar -->
-        <div class="menu">
+        <div id="cssmenu">
             <ul>
-                <li><a class="inactive activable" href="#">Energy</a></li>
-                <li><a class="active activable" href="#">Network</a></li>
+                <li class="inactive has-sub"><a class="activable" href="#"><span>Energy</span></a>
+                <ul>
                 {% for label in scales %}
                     {% if label == scale %}
-                        <li><a class="active activable" href="{{ url_for('v1.welcome_scale', scale=label) }}">{{ label }}</a></li>
+                        <li class="active"><a class="active activable" href="{{ url_for('v1.welcome_scale', scale=label) }}"><span>{{ label }}</span></a></li>
                     {% else %}
-                        <li><a href="{{ url_for('v1.welcome_scale', scale=label) }}">{{ label }}</a></li>
+                        <li><a href="{{ url_for('v1.welcome_scale', scale=label) }}"><span>{{ label }}</span></a></li>
                     {% endif %}
                 {% endfor %}
+                </ul>
+                </li>
+                <li class="active has-sub"><a class="active activable" href="#"><span>Network<span></a>
+                <ul>
+                {% for label in scales %}
+                    {% if label == scale %}
+                        <li class="active"><a class="active activable" href="{{ url_for('v1.welcome_scale', scale=label) }}"><span>{{ label }}</span></a></li>
+                    {% else %}
+                        <li><a href="{{ url_for('v1.welcome_scale', scale=label) }}"><span>{{ label }}</span></a></li>
+                    {% endif %}
+                {% endfor %}
+                </ul>
+                </li>
             </ul>
         </div>
-
         <div id="inner">
             <!-- Period view (all probes for one period) -->
             {% if view == 'scale' %}
