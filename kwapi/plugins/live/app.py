@@ -102,7 +102,8 @@ def make_app():
     @app.before_request
     def attach_config():
         flask.request.hostname = hostname
-        flask.request.probes = live.probes_set
+        #TODO: choose energy or network
+        flask.request.probes = live.probes_network_set
         flask.request.scales = live.scales
     return app
 

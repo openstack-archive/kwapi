@@ -74,7 +74,8 @@ scales['month'] = {'interval': 2678400, 'resolution': 21600, 'label': 'month'},
 # Resolution = 1 week
 scales['year'] = {'interval': 31622400, 'resolution': 604800, 'label': 'year'},
 
-probes_set = set()
+probes_energy_set = set()
+probes_network_set = set()
 probe_colors = {}
 lock = Lock()
 
@@ -110,10 +111,16 @@ def get_rrd_filename(probe):
                                         str(probe))) + '.rrd'
 
 def update_probe(probe, data_type, timestamp, metrics, params):
-    if not probe in probes_set:
-        lock.acquire()
-        probes_set.add(probe)
-        lock.release()
+    if data_type == 'power':
+        if not probe in probes_energy_set:
+            lock.acquire()
+            probes_energy_set.add(probe)
+            lock.release()
+    else:
+        if not probe in probes_network_set:
+            lock.acquire()
+            probes_network_set.add(probe)
+            lock.release()
 
 def build_graph(start, end, probes, summary=True):
     """Builds the graph for the probes, or a summary graph."""
@@ -131,16 +138,20 @@ def build_graph(start, end, probes, summary=True):
             cachable = True
     if not isinstance(probes, list):
         probes = [probes]
-    probes = [probe for probe in probes if probe in probes_set]
-    if len(probes_set) == 0:
+    #TODO: get energy or network draw ?
+    if True:
+        probes = [probe for probe in probes if probe in probes_network_set]
+    else:
+        probes = [probe for probe in probes if probe in probes_energy_set]
+    if len(probes_network_set) == 0:
         return
     # Only one probe
     if len(probes) == 1 and not summary and cachable:
         png_file = get_png_filename(scale, probes[0])
     # All probes
-    elif not probes or set(probes) == probes_set and cachable:
+    elif not probes or set(probes) == probes_network_set and cachable:
         png_file = cfg.CONF.png_dir + '/' + scale + '/summary.png'
-        probes = list(probes_set)
+        probes = list(probes_network_set)
     # Specific combinaison of probes
     else:
         png_file = '/tmp/' + str(uuid.uuid4()) + '.png'
