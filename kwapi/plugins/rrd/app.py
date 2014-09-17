@@ -16,6 +16,7 @@
 
 """Set up the RRD server application instance."""
 
+import signal
 import socket
 import sys
 import thread
@@ -30,6 +31,9 @@ import v1
 LOG = log.getLogger(__name__)
 
 app_opts = [
+    cfg.BoolOpt('visualization',
+                required=True,
+                ),
     cfg.MultiStrOpt('probes_endpoint',
                     required=True,
                     ),
@@ -113,5 +117,15 @@ def start():
              project='kwapi',
              default_config_files=['/etc/kwapi/rrd.conf'])
     log.setup(cfg.CONF.log_file)
-    root = make_app()
-    root.run(host='0.0.0.0', port=cfg.CONF.rrd_port)
+    if cfg.CONF.visualization:
+        root = make_app()
+        root.run(host='0.0.0.0', port=cfg.CONF.rrd_port)
+    else:
+        thread.start_new_thread(listen, (rrd.update_rrd,))
+        rrd.create_dirs()
+        signal.signal(signal.SIGINT, signal_handler)
+        signal.pause()
+
+
+def signal_handler(signal, frame):
+        sys.exit(0)
