@@ -44,20 +44,35 @@ cfg.CONF.register_opts(web_opts)
 
 blueprint = flask.Blueprint('v1', __name__, static_folder='static')
 
+def select_probes(metric):
+    probes=set()
+    # Select network or energy probes
+    if metric == 'energy':
+        probes=flask.request.probes_energy
+    elif metric == 'network':
+        probes=flask.request.probes_network
+    elif metric == 'all':
+        probes=flask.request.probes_energy.union(flask.request.probes_network)
+    else:
+        probes=set()
+    return probes
 
 @blueprint.route('/')
 def welcome():
     """Shows specified page."""
-    return flask.redirect(flask.url_for('v1.welcome_scale', scale='minute'))
+    return flask.redirect(flask.url_for('v1.welcome_scale',
+                                        metric='energy',
+                                        scale='minute'))
 
 
-@blueprint.route('/last/<scale>/')
-def welcome_scale(scale):
+@blueprint.route('/<metric>/last/<scale>/')
+def welcome_scale(metric, scale):
     """Shows a specific scale of a probe."""
     try:
         return flask.render_template('index.html',
                                      hostname=flask.request.hostname,
-                                     probes=sorted(flask.request.probes),
+                                     metric=metric,
+                                     probes=sorted(select_probes(metric)),
                                      refresh=cfg.CONF.refresh_interval,
                                      scales=flask.request.scales,
                                      scale=scale,
@@ -68,10 +83,10 @@ def welcome_scale(scale):
         flask.abort(404)
 
 
-@blueprint.route('/probe/<probe>/')
-def welcome_probe(probe):
+@blueprint.route('/<metric>/probe/<probe>/')
+def welcome_probe(metric, probe):
     """Shows all graphs of a probe."""
-    if probe not in flask.request.probes:
+    if probe not in select_probes(metric):
         flask.abort(404)
     try:
         scales = collections.OrderedDict()
@@ -98,6 +113,10 @@ def get_nodes(job):
     path = '/sites/' + site + '/jobs/' + job
     job_properties = get_resource_attributes(path)
     nodes = job_properties['assigned_nodes']
+    probes = select_probes('all')
+    select_nodes = set()
+    for node in nodes:
+        select_nodes.update([item for item in probes if node in item])
     try:
         started_at = job_properties['started_at']
     except KeyError:
@@ -109,7 +128,7 @@ def get_nodes(job):
     return flask.jsonify({'job': int(job),
                           'started_at': started_at,
                           'stopped_at': stopped_at,
-                          'nodes': nodes})
+                          'nodes': list(select_nodes)})
 
 
 @blueprint.route('/zip/')
@@ -119,52 +138,76 @@ def send_zip():
     if probes:
         probes = probes.split(',')
     else:
-        probes = flask.request.probes
+        probes = select_probes('all')
     tmp_file = tempfile.NamedTemporaryFile()
     zip_file = zipfile.ZipFile(tmp_file.name, 'w')
     probes = [probe.encode('utf-8') for probe in probes
-              if os.path.exists(live.get_live_filename(probe))]
+              if os.path.exists(live.get_rrd_filename(probe))]
+    probes_energy = select_probes('energy')
     if len(probes) == 1:
         probe = probes[0]
-        live_file = live.get_live_filename(probe)
-        zip_file.write(live_file, '/live/' + probe + '.live')
+        rrd_file = live.get_rrd_filename(probe)
+        zip_file.write(rrd_file, '/rrd/' + probe + '.rrd')
         for scale in ['minute', 'hour', 'day', 'week', 'month', 'year']:
-            png_file = live.build_graph(int(time.time()) - flask.request.scales[scale][0]['interval'], int(time.time()), probe, False)
+            metric = 'energy' if probe in probes_energy else 'network'
+            png_file = live.build_graph(metric,
+                                        int(time.time()) - flask.request.scales[scale][0]['interval'],
+                                        int(time.time()),
+                                        probe,
+                                        False)
             zip_file.write(png_file, '/png/' + probe + '-' + scale + '.png')
     elif len(probes) > 1:
         for probe in probes:
-            live_file = live.get_live_filename(probe)
-            zip_file.write(live_file, '/live/' + probe + '.live')
+            rrd_file = live.get_rrr_filename(probe)
+            zip_file.write(rrd_file, '/rrd/' + probe + '.rrd')
             for scale in ['minute', 'hour', 'day', 'week', 'month', 'year']:
-                png_file = live.build_graph(int(time.time()) - flask.request.scales[scale][0]['interval'], int(time.time()), probe, False)
+                metric = 'energy' if probe in probes_energy else 'network'
+                png_file = live.build_graph(metric,
+                                            int(time.time()) - flask.request.scales[scale][0]['interval'],
+                                            int(time.time()),
+                                            probe,
+                                            False)
                 zip_file.write(png_file, '/png/' + probe + '/' + scale + '.png')
+        # Separate energy and network
+        p_e = [probe for probe in probes if probe in probes_energy]
+        p_n = [probe for probe in probes if probe not in probes_energy]
         for scale in ['minute', 'hour', 'day', 'week', 'month', 'year']:
-            png_file = live.build_graph(int(time.time()) - flask.request.scales[scale][0]['interval'], int(time.time()), probes, True)
-            zip_file.write(png_file, '/png/summary-' + scale + '.png')
+            png_file_energy = live.build_graph('energy',
+                                               int(time.time()) - flask.request.scales[scale][0]['interval'],
+                                               int(time.time()),
+                                               p_e,
+                                               True)
+            zip_file.write(png_file_energy, '/png/summary-energy-' + scale + '.png')
+            png_file_network = live.build_graph('network',
+                                                int(time.time()) - flask.request.scales[scale][0]['interval'],
+                                                int(time.time()),
+                                                p_e,
+                                                True)
+            zip_file.write(png_file_network, '/png/summary-network-' + scale + '.png')
     else:
         flask.abort(404)
     return flask.send_file(tmp_file,
                            as_attachment=True,
-                           attachment_filename='live.zip',
+                           attachment_filename='rrd.zip',
                            cache_timeout=0,
                            conditional=True)
 
 
-@blueprint.route('/summary-graph/<start>/<end>/')
-def send_summary_graph(start, end):
+@blueprint.route('/<metric>/summary-graph/<start>/<end>/')
+def send_summary_graph(metric,start, end):
     """Sends summary graph."""
     probes = flask.request.args.get('probes')
     if probes:
         probes = probes.split(',')
         probes = [probe.encode('utf-8') for probe in probes]
         for probe in probes:
-            if probe not in flask.request.probes:
+            if probe not in select_probes(metric):
                 flask.abort(404)
     else:
-        probes = list(flask.request.probes)
+        probes = list(select_probes(metric))
     start = start.encode('utf-8')
     end = end.encode('utf-8')
-    png_file = live.build_graph(int(start), int(end), probes, True)
+    png_file = live.build_graph(metric, int(start), int(end), probes, True)
     tmp_file = tempfile.NamedTemporaryFile()
     shutil.copy2(png_file, tmp_file.name)
     if not png_file.endswith('summary.png'):
@@ -178,13 +221,13 @@ def send_summary_graph(start, end):
         flask.abort(404)
 
 
-@blueprint.route('/graph/<probe>/<start>/<end>/')
-def send_probe_graph(probe, start, end):
+@blueprint.route('/<metric>/graph/<probe>/<start>/<end>/')
+def send_probe_graph(metric, probe, start, end):
     """Sends graph."""
     probe = probe.encode('utf-8')
     start = start.encode('utf-8')
     end = end.encode('utf-8')
-    png_file = live.build_graph(int(start), int(end), probe, False)
+    png_file = live.build_graph(metric, int(start), int(end), probe, False)
     try:
         return flask.send_file(png_file, cache_timeout=0, conditional=True)
     except:

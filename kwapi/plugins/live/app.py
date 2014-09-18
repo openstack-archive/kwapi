@@ -45,9 +45,9 @@ cfg.CONF.register_opts(app_opts)
 
 
 class ReverseProxied(object):
-    '''Wrap the application in this middleware and configure the 
-    front-end server to add these headers, to let you quietly bind 
-    this to a URL other than / and to an HTTP scheme that is 
+    '''Wrap the application in this middleware and configure the
+    front-end server to add these headers, to let you quietly bind
+    this to a URL other than / and to an HTTP scheme that is
     different than what is used locally.
 
     In nginx:
@@ -103,7 +103,8 @@ def make_app():
     def attach_config():
         flask.request.hostname = hostname
         #TODO: choose energy or network
-        flask.request.probes = live.probes_network_set
+        flask.request.probes_network = live.probes_network_set
+        flask.request.probes_energy = live.probes_energy_set
         flask.request.scales = live.scales
     return app
 

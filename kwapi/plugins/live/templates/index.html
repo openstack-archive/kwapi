@@ -281,9 +281,10 @@
                 <ul>
                 {% for label in scales %}
                     {% if label == scale %}
-                        <li class="active"><a class="active activable" href="{{ url_for('v1.welcome_scale', scale=label) }}"><span>{{ label }}</span></a></li>
+                        <li class="active"><a class="active activable" href="{{ url_for('v1.welcome_scale', metric='energy', scale=label) }}"><span>{{ label }}</span></a></li>
+                        {% set metric = 'energy' %}
                     {% else %}
-                        <li><a href="{{ url_for('v1.welcome_scale', scale=label) }}"><span>{{ label }}</span></a></li>
+                        <li><a href="{{ url_for('v1.welcome_scale', metric='energy', scale=label) }}"><span>{{ label }}</span></a></li>
                     {% endif %}
                 {% endfor %}
                 </ul>
@@ -292,9 +293,10 @@
                 <ul>
                 {% for label in scales %}
                     {% if label == scale %}
-                        <li class="active"><a class="active activable" href="{{ url_for('v1.welcome_scale', scale=label) }}"><span>{{ label }}</span></a></li>
+                        <li class="active"><a class="active activable" href="{{ url_for('v1.welcome_scale', metric='network', scale=label) }}"><span>{{ label }}</span></a></li>
+                        {% set metric = 'network' %}
                     {% else %}
-                        <li><a href="{{ url_for('v1.welcome_scale', scale=label) }}"><span>{{ label }}</span></a></li>
+                        <li><a href="{{ url_for('v1.welcome_scale', metric='network', scale=label) }}"><span>{{ label }}</span></a></li>
                     {% endif %}
                 {% endfor %}
                 </ul>
@@ -307,7 +309,7 @@
                 {% if probes|count > 0 %}
                     <h2>Summary</h2>
                     <!-- Display summary graph -->
-                    <img class="graph" id="summary" src="{{ url_for('v1.send_summary_graph', start=start, end=end) }}" alt="Summary graph"/>
+                    <img class="graph" id="summary" src="{{ url_for('v1.send_summary_graph', metric=metric, start=start, end=end) }}" alt="Summary graph"/>
                     <h2>Details</h2>
                     <!-- Display all probe graphs -->
                     <select multiple>
@@ -331,7 +333,7 @@
             {% elif view == 'probe' %}
                 <h2>{{ probe }} <a style="float:right" href="{{ url_for('v1.send_zip') }}?probes={{ probe }}">Download RRD</a></h2>
                 {% for scale in scales %}
-                    <img class="graph" src="{{ url_for('v1.send_probe_graph', probe=probe, start=scales[scale]['start'], end=scales[scale]['end'])}}" alt="Graph {{ probe }}"/>
+                    <img class="graph" src="{{ url_for('v1.send_probe_graph', metric=metric, probe=probe, start=scales[scale]['start'], end=scales[scale]['end'])}}" alt="Graph {{ probe }}"/>
                 {% endfor %}
             {% endif %}
         </div>

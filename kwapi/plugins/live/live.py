@@ -122,7 +122,7 @@ def update_probe(probe, data_type, timestamp, metrics, params):
             probes_network_set.add(probe)
             lock.release()
 
-def build_graph(start, end, probes, summary=True):
+def build_graph(metric, start, end, probes, summary=True):
     """Builds the graph for the probes, or a summary graph."""
     cachable = False
     intervals = {}
@@ -139,10 +139,16 @@ def build_graph(start, end, probes, summary=True):
     if not isinstance(probes, list):
         probes = [probes]
     #TODO: get energy or network draw ?
-    if True:
+    color = '#000000'
+    unit = 'N/A'
+    if metric == 'network':
         probes = [probe for probe in probes if probe in probes_network_set]
+        color = '#00a7bd'
+        unit = 'bits'
     else:
         probes = [probe for probe in probes if probe in probes_energy_set]
+        color = '#336600'
+        unit = 'watts'
     if len(probes_network_set) == 0:
         return
     # Only one probe
@@ -212,7 +218,7 @@ def build_graph(start, end, probes, summary=True):
 	cdef_metric_with_unknown_in += 'metric_with_unknown_%s_in,' \
 	                                   % probe_uuid
 	# Draw the area for the probe in
-	color = '#336600'
+
 	if not stack_in:
 	    args.append('AREA:metric_with_unknown_%s_in%s::'
 			% (probe_uuid, color))
@@ -238,10 +244,10 @@ def build_graph(start, end, probes, summary=True):
     # Real average
     args.append('VDEF:metricavg_in=metric_in,AVERAGE')
     # Legend
-    args.append('GPRINT:metricavg_with_unknown_in:AvgIN\: %3.1lf%sb/s')
-    args.append('GPRINT:metricmin_in:MinIN\: %3.1lf%sb/s')
-    args.append('GPRINT:metricmax_in:MaxIN\: %3.1lf%sb/s')
-    args.append('GPRINT:metric_with_unknown_in:LAST:LastIN\: %3.1lf%sb/s\j')
+    args.append('GPRINT:metricavg_with_unknown_in:AvgIN\: %3.1lf%s%s/s' % unit)
+    args.append('GPRINT:metricmin_in:MinIN\: %3.1lf%s%s/s' % unit)
+    args.append('GPRINT:metricmax_in:MaxIN\: %3.1lf%s%s/s' % unit)
+    args.append('GPRINT:metric_with_unknown_in:LAST:LastIN\: %3.1lf%s%s/s\j' % unit)
     args.append('TEXTALIGN:center')
     LOG.info('Build PNG graph')
     rrdtool.graph(args)
