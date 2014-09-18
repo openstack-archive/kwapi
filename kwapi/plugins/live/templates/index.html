@@ -148,7 +148,7 @@
                     });
                 });
                 $('select').select2('val', selected);
-                $('#summary').attr('src', "{{ url_for('v1.send_summary_graph', start=start, end=end) }}");
+                $('#summary').attr('src', "{{ url_for('v1.send_summary_graph', start=start, end=end, metric=metric) }}");
                 reloadAllImages('last');
                 $('#zip').text('Download all probes RRD');
             }
@@ -167,7 +167,7 @@
                         val: $(e).attr('value')
                     });
                 });
-                $('#summary').attr('src', "{{ url_for('v1.send_summary_graph', start=start, end=end) }}");
+                $('#summary').attr('src', "{{ url_for('v1.send_summary_graph', start=start, end=end, metric=metric) }}");
                 reloadAllImages('last');
                 $('#probes-not-found').hide();
                 $('#not-found').empty();
@@ -219,13 +219,13 @@
                 // Event handler for adding a probe
                 $(document.body).on('select2-selecting', 'select', function(e) {
                     $('.activable').addClass('active');
-                    var probe = '<a href="{{ url_for("v1.welcome") }}probe/' + e.val + '/' + '"><img class="graph" id="' + e.val + '" src="{{ url_for("v1.welcome") }}graph/' + e.val + '/{{ start }}/{{ end }}/" alt="Graph ' + e.val + '"/></a>';
+                    var probe = '<a href="{{ url_for("v1.welcome") }}{{ metric }}/probe/' + e.val + '/' + '"><img class="graph" id="' + e.val + '" src="{{ url_for("v1.welcome") }}{{ metric }}/graph/' + e.val + '/{{ start }}/{{ end }}/" alt="Graph ' + e.val + '"/></a>';
                     $('#probes').append(probe);
                     var probes = $('select').select2('val');
                     if(jQuery.inArray(e.val, $('select').select2('val')) == -1) {
                         probes.push(e.val);
                     }
-                    $('#summary').attr('src', "{{ url_for('v1.send_summary_graph', start=start, end=end) }}?probes=" + probes);
+                    $('#summary').attr('src', "{{ url_for('v1.send_summary_graph', start=start, end=end, metric=metric) }}?probes=" + probes);
                     $('#zip').text('Download selected probes RRD');
                     reloadAllImages('last');
                 });
@@ -236,10 +236,10 @@
                     $('#' + e.val.replace(/\./g, '\\.')).parent().remove();
                     if($('select').select2('val') == '') {
                         $('#zip').text('Download all probes RRD');
-                        $('#summary').attr('src', "{{ url_for('v1.send_summary_graph', start=start, end=end) }}");
+                        $('#summary').attr('src', "{{ url_for('v1.send_summary_graph', start=start, end=end, metric=metric) }}");
                     } else {
                         $('#zip').text('Download selected probes RRD');
-                        $('#summary').attr('src', "{{ url_for('v1.send_summary_graph', start=start, end=end) }}?probes=" + $('select').select2('val'));
+                        $('#summary').attr('src', "{{ url_for('v1.send_summary_graph', start=start, end=end, metric=metric) }}?probes=" + $('select').select2('val'));
                     }
                     reloadAllImages('last');
                 });
@@ -277,10 +277,14 @@
         <!-- Horizontal menu bar -->
         <div id="cssmenu">
             <ul>
-                <li class="inactive has-sub"><a class="activable" href="#"><span>Energy</span></a>
+                {% if metric == 'energy' %}
+                <li class="active has-sub"><a class="activable" href="#"><span>Energy</span></a>
+                {% else %}
+                <li class="has-sub"><a class="activable" href="#"><span>Energy</span></a>
+                {% endif %}
                 <ul>
                 {% for label in scales %}
-                    {% if label == scale %}
+                    {% if metric == 'energy' and label == scale %}
                         <li class="active"><a class="active activable" href="{{ url_for('v1.welcome_scale', metric='energy', scale=label) }}"><span>{{ label }}</span></a></li>
                         {% set metric = 'energy' %}
                     {% else %}
@@ -289,10 +293,14 @@
                 {% endfor %}
                 </ul>
                 </li>
-                <li class="active has-sub"><a class="active activable" href="#"><span>Network<span></a>
+                {% if metric == 'network' %}
+                <li class="active has-sub"><a class="activable" href="#"><span>Network</span></a>
+                {% else %}
+                <li class="has-sub"><a class="activable" href="#"><span>Network</span></a>
+                {% endif %}
                 <ul>
                 {% for label in scales %}
-                    {% if label == scale %}
+                    {% if metric == 'network' and label == scale %}
                         <li class="active"><a class="active activable" href="{{ url_for('v1.welcome_scale', metric='network', scale=label) }}"><span>{{ label }}</span></a></li>
                         {% set metric = 'network' %}
                     {% else %}
