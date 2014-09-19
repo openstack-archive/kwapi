@@ -109,6 +109,18 @@
                                     val: probe
                                 });
                                 $('select').select2('val', selected);
+                                //if network probe add the reverse probe
+                                var switchProbeFields = probe.split('_');
+                                if(switchProbeFields.length > 1) {
+                                    var site = switchProbeFields[0].split('.')[0];
+                                    var sw = switchProbeFields[0].split('.')[1];
+                                    selected[selected.length] = site + '.' + switchProbeFields[1] + '_' + sw;
+                                    $('select').trigger({
+                                        type: 'select2-selecting',
+                                        val: probe
+                                    });
+                                    $('select').select2('val', selected);
+                                }
                             }
                             else {
                                 $('#not-found').append('<li>' + e + ' is not monitored</li>');
