@@ -155,7 +155,7 @@ def send_zip():
             zip_file.write(png_file, '/png/' + probe + '-' + scale + '.png')
     elif len(probes) > 1:
         for probe in probes:
-            rrd_file = live.get_rrr_filename(probe)
+            rrd_file = live.get_rrd_filename(probe)
             zip_file.write(rrd_file, '/rrd/' + probe + '.rrd')
             for scale in ['minute', 'hour', 'day', 'week', 'month', 'year']:
                 metric = 'energy' if probe in probes_energy else 'network'
