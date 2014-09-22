@@ -24,6 +24,7 @@ from threading import Lock
 import struct
 import time
 import uuid
+import ast
 
 import rrdtool
 
@@ -32,13 +33,19 @@ from kwapi.utils import cfg, log
 LOG = log.getLogger(__name__)
 
 live_opts = [
+    cfg.FloatOpt('kwh_price',
+                 required=True,
+                 ),
+    cfg.StrOpt('currency',
+               required=True,
+               ),
     cfg.BoolOpt('signature_checking',
                 required=True,
                 ),
     cfg.IntOpt('hue',
                required=True,
                ),
-    cfg.IntOpt('max_metrics',
+    cfg.IntOpt('max_watts',
                required=True,
                ),
     cfg.MultiStrOpt('probes_endpoint',
@@ -80,7 +87,7 @@ topo_g5k = {}
 parser = cfg.ConfigParser('/etc/kwapi/live.conf', {})
 parser.parse()
 for section, entries in parser.sections.iteritems():
-    if section != 'TOPO':
+    if section == 'TOPO':
         topo_g5k = ast.literal_eval(entries['topo'][0])
         reverse = {}
         for k in topo_g5k.keys():
@@ -142,6 +149,29 @@ def build_graph(metric, start, end, probes, summary=True):
     else:
         return build_graph_network(start, end, probes, summary)
 
+def color_generator(nb_colors):
+    """Generates colors."""
+    min_brightness = 50-nb_colors*15/2.0
+    if min_brightness < 5:
+        min_brightness = 5
+    max_brightness = 50+nb_colors*15/2.0
+    if max_brightness > 95:
+        max_brightness = 95
+    if nb_colors <= 1:
+        min_brightness = 50
+        step = 0
+    else:
+        step = (max_brightness-min_brightness) / (nb_colors-1.0)
+    i = min_brightness
+    while int(i) <= max_brightness:
+        rgb = colorsys.hsv_to_rgb(cfg.CONF.hue/360.0,
+                                  1,
+                                  i/100.0)
+        rgb = tuple([int(x*255) for x in rgb])
+        yield '#' + struct.pack('BBB', *rgb).encode('hex')
+        i += step
+        if step == 0:
+            break
 
 def build_graph_energy(start, end, probes, summary):
     """Builds the graph for the probes, or a summary graph."""
