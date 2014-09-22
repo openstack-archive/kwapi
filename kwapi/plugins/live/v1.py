@@ -114,10 +114,6 @@ def get_nodes(job):
     path = '/sites/' + site + '/jobs/' + job
     job_properties = get_resource_attributes(path)
     nodes = job_properties['assigned_nodes']
-    probes = select_probes('all')
-    select_nodes = set()
-    for node in nodes:
-        select_nodes.update([item for item in probes if node in item])
     try:
         started_at = job_properties['started_at']
     except KeyError:
@@ -129,7 +125,7 @@ def get_nodes(job):
     return flask.jsonify({'job': int(job),
                           'started_at': started_at,
                           'stopped_at': stopped_at,
-                          'nodes': list(select_nodes)})
+                          'nodes': nodes})
 
 
 @blueprint.route('/zip/')
@@ -159,7 +155,7 @@ def send_zip():
             zip_file.write(png_file, '/png/' + probe + '-' + scale + '.png')
     elif len(probes) > 1:
         for probe in probes:
-            rrd_file = live.get_rrr_filename(probe)
+            rrd_file = live.get_rrd_filename(probe)
             zip_file.write(rrd_file, '/rrd/' + probe + '.rrd')
             for scale in ['minute', 'hour', 'day', 'week', 'month', 'year']:
                 metric = 'energy' if probe in probes_energy else 'network'

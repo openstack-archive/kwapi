@@ -191,7 +191,7 @@ def build_graph(metric, start, end, probes, summary=True):
              '--full-size-mode',
              '--imgformat', 'PNG',
              '--alt-y-grid',
-             '--vertical-label', 'bits/s',
+             '--vertical-label', unit+'/s',
              #'--lower-limit', '0',
              #'--rigid',
              ]
@@ -244,10 +244,10 @@ def build_graph(metric, start, end, probes, summary=True):
     # Real average
     args.append('VDEF:metricavg_in=metric_in,AVERAGE')
     # Legend
-    args.append('GPRINT:metricavg_with_unknown_in:AvgIN\: %3.1lf%s%s/s' % unit)
-    args.append('GPRINT:metricmin_in:MinIN\: %3.1lf%s%s/s' % unit)
-    args.append('GPRINT:metricmax_in:MaxIN\: %3.1lf%s%s/s' % unit)
-    args.append('GPRINT:metric_with_unknown_in:LAST:LastIN\: %3.1lf%s%s/s\j' % unit)
+    args.append('GPRINT:metricavg_with_unknown_in:AvgIN\: %3.1lf%s{0}/s'.format(unit))
+    args.append('GPRINT:metricmin_in:MinIN\: %3.1lf%s{0}/s'.format(unit))
+    args.append('GPRINT:metricmax_in:MaxIN\: %3.1lf%s{0}/s'.format(unit))
+    args.append('GPRINT:metric_with_unknown_in:LAST:LastIN\: %3.1lf%s{0}/s\j'.format(unit))
     args.append('TEXTALIGN:center')
     LOG.info('Build PNG graph')
     rrdtool.graph(args)
