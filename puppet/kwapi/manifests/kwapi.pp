@@ -11,7 +11,6 @@ require 'other_packages'
 require 'python'
 
 class kwapi {
-
   exec { "apt-update":
     command => "/usr/bin/apt-get update"
   }->

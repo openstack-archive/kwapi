@@ -148,7 +148,7 @@
                     });
                 });
                 $('select').select2('val', selected);
-                $('#summary').attr('src', "{{ url_for('v1.send_summary_graph', start=start, end=end) }}");
+                $('#summary').attr('src', "{{ url_for('v1.send_summary_graph', start=start, end=end, metric=metric) }}");
                 reloadAllImages('last');
                 $('#zip').text('Download all probes RRD');
             }
@@ -167,7 +167,7 @@
                         val: $(e).attr('value')
                     });
                 });
-                $('#summary').attr('src', "{{ url_for('v1.send_summary_graph', start=start, end=end) }}");
+                $('#summary').attr('src', "{{ url_for('v1.send_summary_graph', start=start, end=end, metric=metric) }}");
                 reloadAllImages('last');
                 $('#probes-not-found').hide();
                 $('#not-found').empty();
@@ -225,7 +225,7 @@
                     if(jQuery.inArray(e.val, $('select').select2('val')) == -1) {
                         probes.push(e.val);
                     }
-                    $('#summary').attr('src', "{{ url_for('v1.send_summary_graph', start=start, end=end) }}?probes=" + probes);
+                    $('#summary').attr('src', "{{ url_for('v1.send_summary_graph', start=start, end=end, metric=metric) }}?probes=" + probes);
                     $('#zip').text('Download selected probes RRD');
                     reloadAllImages('last');
                 });
@@ -236,10 +236,10 @@
                     $('#' + e.val.replace(/\./g, '\\.')).parent().remove();
                     if($('select').select2('val') == '') {
                         $('#zip').text('Download all probes RRD');
-                        $('#summary').attr('src', "{{ url_for('v1.send_summary_graph', start=start, end=end) }}");
+                        $('#summary').attr('src', "{{ url_for('v1.send_summary_graph', start=start, end=end, metric=metric) }}");
                     } else {
                         $('#zip').text('Download selected probes RRD');
-                        $('#summary').attr('src', "{{ url_for('v1.send_summary_graph', start=start, end=end) }}?probes=" + $('select').select2('val'));
+                        $('#summary').attr('src', "{{ url_for('v1.send_summary_graph', start=start, end=end, metric=metric) }}?probes=" + $('select').select2('val'));
                     }
                     reloadAllImages('last');
                 });

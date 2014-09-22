@@ -97,6 +97,7 @@ def welcome_probe(metric, probe):
             }
         return flask.render_template('index.html',
                                      hostname=flask.request.hostname,
+                                     metric=metric,
                                      probe=probe,
                                      refresh=cfg.CONF.refresh_interval,
                                      scales=scales,
