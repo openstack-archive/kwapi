@@ -1,11 +1,11 @@
 function startRefreshing() {
     stopRefreshing();
-    timer = setInterval('reloadAllImages("last")', 5000);
+    timer = setInterval('reloadAllImages("last")', {{ refresh*1000 }});
 }
 
 function startRefreshingFixedStart() {
     stopRefreshing();
-    timer = setInterval('reloadAllImages("fixedStart")', 5000);
+    timer = setInterval('reloadAllImages("fixedStart")', {{ refresh*1000 }});
 }
 
 function stopRefreshing() {
@@ -65,12 +65,12 @@ function selectJobId() {
     }
     $('#loading-div-background').show();
     $.ajax({
-        url: '/nodes/' + job + '/',
+        url: '{{ url_for("v1.welcome") }}nodes/' + job + '/',
         dataType: 'json',
         success: function(data) {
             stopRefreshing();
             if(data.started_at == 'Undefined' ||
-            data.started_at >= Math.ceil(Date.now() / 1000)) {
+                data.started_at >= Math.ceil(Date.now() / 1000)) {
                 alert('Job has not started');
                 $('#loading-div-background').hide();
                 startRefreshing();
@@ -95,18 +95,6 @@ function selectJobId() {
                         val: probe
                     });
                     $('select').select2('val', selected);
-                    //if network probe add the reverse probe
-                    var switchProbeFields = probe.split('_');
-                    if(switchProbeFields.length > 1) {
-                        var site = switchProbeFields[0].split('.')[0];
-                        var sw = switchProbeFields[0].split('.')[1];
-                        selected[selected.length] = site + '.' + switchProbeFields[1] + '_' + sw;
-                        $('select').trigger({
-                            type: 'select2-selecting',
-                            val: probe
-                        });
-                        $('select').select2('val', selected);
-                    }
                 }
                 else {
                     $('#not-found').append('<li>' + e + ' is not monitored</li>');
@@ -146,7 +134,7 @@ function selectAll() {
         });
     });
     $('select').select2('val', selected);
-    $('#summary').attr('src', "/network/summary-graph/1411124629/1411124929/");
+    $('#summary').attr('src', "{{ url_for('v1.send_summary_graph', start=start, end=end, metric=metric) }}");
     reloadAllImages('last');
     $('#zip').text('Download all probes RRD');
 }
@@ -165,7 +153,7 @@ function deselectAll() {
             val: $(e).attr('value')
         });
     });
-    $('#summary').attr('src', "/network/summary-graph/1411124629/1411124929/");
+    $('#summary').attr('src', "{{ url_for('v1.send_summary_graph', start=start, end=end, metric=metric) }}");
     reloadAllImages('last');
     $('#probes-not-found').hide();
     $('#not-found').empty();
@@ -178,34 +166,20 @@ function probeInSelect(probe) {
     probeBase = probeSplit[0];
     probeNum = probeSplit[probeSplit.length-1];
     $('select option').each(function(i, e) {
-        //if network style (Switch_Probe)
-        if($(e).attr('value').split('_').length > 1){
-            //check the 2 parts
-            switchProbesSplit = $(e).attr('value').split('_');
-            for(var j=0; j < 2; j++) {
-                if(switchProbesSplit[j].indexOf(probe) > -1){
-                    found = $(e).attr('value');
-                    return found;
-                }
+        multiProbeSplit = $(e).attr('value').split('-');
+        multiProbeBase = multiProbeSplit[0];
+        while((elem=multiProbeSplit.pop()) != null) {
+            if(probeBase == multiProbeBase && probeNum == elem) {
+                found = $(e).attr('value');
             }
         }
-        else{
-            //Traditionnal style (Probe-Nb)
-            multiProbeSplit = $(e).attr('value').split('-');
-            multiProbeBase = multiProbeSplit[0];
-            while((elem=multiProbeSplit.pop()) != null) {
-                if(probeBase == multiProbeBase && probeNum == elem) {
-                    found = $(e).attr('value');
-                }
-            }
-    }
     });
     return found;
 }
 
 $(function() {
     $('#zip').click(function(){
-        $(this).attr('href', "/zip/?probes=" + $('select').select2('val'));
+        $(this).attr('href', "{{ url_for('v1.send_zip') }}?probes=" + $('select').select2('val'));
     });
 });
 
@@ -231,13 +205,13 @@ $(document).ready(function () {
     // Event handler for adding a probe
     $(document.body).on('select2-selecting', 'select', function(e) {
         $('.activable').addClass('active');
-        var probe = '<a href="/network/probe/' + e.val + '/' + '"><img class="graph" id="' + e.val + '" src="/network/graph/' + e.val + '/1411124629/1411124929/" alt="Graph ' + e.
+        var probe = '<a href="{{ url_for("v1.welcome") }}probe/' + e.val + '/' + '"><img class="graph" id="' + e.val + '" src="{{ url_for("v1.welcome") }}graph/' + e.val + '/{{ start }}/{{ end }}/" alt="Graph ' + e.val + '"/></a>';
         $('#probes').append(probe);
         var probes = $('select').select2('val');
         if(jQuery.inArray(e.val, $('select').select2('val')) == -1) {
             probes.push(e.val);
         }
-        $('#summary').attr('src', "/network/summary-graph/1411124629/1411124929/?probes=" + probes);
+        $('#summary').attr('src', "{{ url_for('v1.send_summary_graph', start=start, end=end, metric=metric) }}?probes=" + probes);
         $('#zip').text('Download selected probes RRD');
         reloadAllImages('last');
     });
@@ -248,10 +222,10 @@ $(document).ready(function () {
         $('#' + e.val.replace(/\./g, '\\.')).parent().remove();
         if($('select').select2('val') == '') {
             $('#zip').text('Download all probes RRD');
-            $('#summary').attr('src', "/network/summary-graph/1411124629/1411124929/");
+            $('#summary').attr('src', "{{ url_for('v1.send_summary_graph', start=start, end=end, metric=metric) }}");
         } else {
             $('#zip').text('Download selected probes RRD');
-            $('#summary').attr('src', "/network/summary-graph/1411124629/1411124929/?probes=" + $('select').select2('val'));
+            $('#summary').attr('src', "{{ url_for('v1.send_summary_graph', start=start, end=end, metric=metric) }}?probes=" + $('select').select2('val'));
         }
         reloadAllImages('last');
     });
@@ -269,16 +243,15 @@ $(document).ready(function () {
         });
     });
 
-
-    // Set a cookie storing the probe list
-    $(window).unload(function() {
-        var value = $('select').val();
-        if(value == null) {
-            $.removeCookie('probes', {path: '/'});
-        } else {
-            $.cookie('probes', JSON.stringify(value), {path: '/'});
-        }
-    });
-
+    {% if view == 'scale' %}
+        // Set a cookie storing the probe list
+        $(window).unload(function() {
+            var value = $('select').val();
+            if(value == null) {
+                $.removeCookie('probes', {path: '/'});
+            } else {
+                $.cookie('probes', JSON.stringify(value), {path: '/'});
+            }
+        });
+    {% endif %}
 });
-

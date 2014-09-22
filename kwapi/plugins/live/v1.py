@@ -44,19 +44,6 @@ cfg.CONF.register_opts(web_opts)
 
 blueprint = flask.Blueprint('v1', __name__, static_folder='static')
 
-def select_probes(metric):
-    probes=set()
-    # Select network or energy probes
-    if metric == 'energy':
-        probes=flask.request.probes_energy
-    elif metric == 'network':
-        probes=flask.request.probes_network
-    elif metric == 'all':
-        probes=flask.request.probes_energy.union(flask.request.probes_network)
-    else:
-        probes=set()
-    return probes
-
 @blueprint.route('/')
 def welcome():
     """Shows specified page."""
@@ -72,7 +59,7 @@ def welcome_scale(metric, scale):
         return flask.render_template('index.html',
                                      hostname=flask.request.hostname,
                                      metric=metric,
-                                     probes=sorted(select_probes(metric)),
+                                     probes=flask.request.probes,
                                      refresh=cfg.CONF.refresh_interval,
                                      scales=flask.request.scales,
                                      scale=scale,
@@ -86,7 +73,7 @@ def welcome_scale(metric, scale):
 @blueprint.route('/<metric>/probe/<probe>/')
 def welcome_probe(metric, probe):
     """Shows all graphs of a probe."""
-    if probe not in select_probes(metric):
+    if probe not in flask.request.probes:
         flask.abort(404)
     try:
         scales = collections.OrderedDict()
@@ -135,18 +122,17 @@ def send_zip():
     if probes:
         probes = probes.split(',')
     else:
-        probes = select_probes('all')
+        probes = flask.request.probes
     tmp_file = tempfile.NamedTemporaryFile()
     zip_file = zipfile.ZipFile(tmp_file.name, 'w')
     probes = [probe.encode('utf-8') for probe in probes
               if os.path.exists(live.get_rrd_filename(probe))]
-    probes_energy = select_probes('energy')
     if len(probes) == 1:
         probe = probes[0]
         rrd_file = live.get_rrd_filename(probe)
         zip_file.write(rrd_file, '/rrd/' + probe + '.rrd')
         for scale in ['minute', 'hour', 'day', 'week', 'month', 'year']:
-            metric = 'energy' if probe in probes_energy else 'network'
+            metric = 'energy'
             png_file = live.build_graph(metric,
                                         int(time.time()) - flask.request.scales[scale][0]['interval'],
                                         int(time.time()),
@@ -158,7 +144,7 @@ def send_zip():
             rrd_file = live.get_rrd_filename(probe)
             zip_file.write(rrd_file, '/rrd/' + probe + '.rrd')
             for scale in ['minute', 'hour', 'day', 'week', 'month', 'year']:
-                metric = 'energy' if probe in probes_energy else 'network'
+                metric = 'energy'
                 png_file = live.build_graph(metric,
                                             int(time.time()) - flask.request.scales[scale][0]['interval'],
                                             int(time.time()),
@@ -198,16 +184,16 @@ def send_summary_graph(metric,start, end):
         probes = probes.split(',')
         probes = [probe.encode('utf-8') for probe in probes]
         for probe in probes:
-            if probe not in select_probes(metric):
+            if probe not in flask.request.probes:
                 flask.abort(404)
     else:
-        probes = list(select_probes(metric))
+        probes = list(flask.request.probes)
     start = start.encode('utf-8')
     end = end.encode('utf-8')
     png_file = live.build_graph(metric, int(start), int(end), probes, True)
     tmp_file = tempfile.NamedTemporaryFile()
     shutil.copy2(png_file, tmp_file.name)
-    if not png_file.endswith('summary.png'):
+    if not png_file.endswith('summary-'+metric+'.png'):
         os.unlink(png_file)
     try:
         return flask.send_file(tmp_file,
