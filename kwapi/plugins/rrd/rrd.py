@@ -104,14 +104,14 @@ def create_rrd_file(filename, params):
                     '--start', '0',
                     '--step', '1',
                     # Heartbeat = 600 seconds, Min = 0, Max = Unlimited
-                    'DS:v:COUNTER:600:0:4294967295',
+                    'DS:o:DERIVE:600:0:U',
             ]
         else:
             args = [filename,
                     '--start', '0',
                     '--step', '1',
                     # Heartbeat = 600 seconds, Min = 0, Max = Unlimited
-                    'DS:v:GAUGE:600:0:U',
+                    'DS:w:GAUGE:600:0:U',
             ]
         for scale in scales.keys():
             args.append('RRA:AVERAGE:0.5:%s:%s'

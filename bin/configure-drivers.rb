@@ -161,12 +161,12 @@ def write_probes(site,switch)
   printf "probes = [%s]\n", probesIN.join(",")
   printf "driver = Snmp\n"
   printf "data_type = {'name':'switch.port.receive.bytes', 'type':'Cumulative', 'unit':'B'}\n"
-  printf "parameters = {'protocol': '1', 'community': 'public', 'ip': '%s.%s.grid5000.fr', 'oid': '1.3.6.1.2.1.2.2.1.16'}\n", switch, site
+  printf "parameters = {'protocol': '1', 'community': 'public', 'ip': '%s.%s.grid5000.fr', 'oid': '1.3.6.1.2.1.31.1.1.1.6'}\n", switch, site
   printf "[%s-OUT]\n", switch
   printf "probes = [%s]\n", probesOUT.join(",")
   printf "driver = Snmp\n"
   printf "data_type = {'name':'switch.port.transmit.bytes', 'type':'Cumulative', 'unit':'B'}\n"
-  printf "parameters = {'protocol': '1', 'community': 'public', 'ip': '%s.%s.grid5000.fr', 'oid': '1.3.6.1.2.1.2.2.1.10'}\n", switch, site
+  printf "parameters = {'protocol': '1', 'community': 'public', 'ip': '%s.%s.grid5000.fr', 'oid': '1.3.6.1.2.1.31.1.1.1.10'}\n", switch, site
 end
 
 #Iteration on each network_equipment of the site
