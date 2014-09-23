@@ -15,6 +15,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+
 import setuptools
 
 setuptools.setup(
@@ -64,7 +65,8 @@ setuptools.setup(
                       'numpy',
                       'pandas',
                       'tables',
-                      'numexpr'],
+                      'numexpr',
+                      'httplib2'],
     entry_points={
         'console_scripts': [
             'kwapi-api = kwapi.plugins.api.app:start',

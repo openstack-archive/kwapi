@@ -39,7 +39,7 @@ class kwapi {
   }
   file {
     '/var/log/kwapi':
-      ensure => file,
+      ensure => directory,
       mode   => '0755',
       owner  => root,
       group  => root,

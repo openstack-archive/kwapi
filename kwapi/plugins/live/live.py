@@ -91,12 +91,12 @@ for section, entries in parser.sections.iteritems():
         topo_g5k = ast.literal_eval(entries['topo'][0])
         reverse = {}
         for k in topo_g5k.keys():
+            #probes_set.add(k)
             for v in topo_g5k[k]:
                 if not v in reverse:
                     reverse[v]=[]
                 reverse[v].append(k)
         topo_g5k.update(reverse)
-
 probe_colors = {}
 lock = Lock()
 
@@ -322,11 +322,12 @@ def build_graph_network(start, end, probes, summary):
     probes_in = []
     probes_out = []
     for probe in sorted(probes, reverse=True):
-        dest = topo_g5k[probe][0]
         site = probe.split('.')[0]
         probe_name = probe.split('.')[1]
-        probes_in.append(probe + '_' + dest)
-        probes_out.append(site + '.' + dest + '_' + probe_name)
+        for dest in topo_g5k[probe]:
+            dest_name = dest.split('.')[1]
+            probes_in.append(probe + '_' + dest_name)
+            probes_out.append(dest + '_' + probe_name)
 
     if len(probes_set) == 0:
         return
@@ -373,6 +374,7 @@ def build_graph_network(start, end, probes, summary):
              '--vertical-label', 'bits/s',
              #'--lower-limit', '0',
              #'--rigid',
+             '--base', '1000',
              ]
     if end - start <= 300:
         args += ['--x-grid', 'SECOND:30:MINUTE:1:MINUTE:1:0:%H:%M']
@@ -392,22 +394,24 @@ def build_graph_network(start, end, probes, summary):
         # Data source
         args.append('DEF:metric_with_unknown_%s_in=%s:o:AVERAGE'
             % (probe_uuid, rrd_file_in))
+        args.append('CDEF:metric_with_unknown_%s_in_scale=metric_with_'
+                    'unknown_%s_in,8,*,' % (probe_uuid,probe_uuid))
         # Data source without unknown values
         args.append('CDEF:metric_%s_in=metric_with_unknown_%s_in,UN,0,'
-                    'metric_with_unknown_%s_in,IF'
+                    'metric_with_unknown_%s_in,8,*,IF,'
             % (probe_uuid, probe_uuid, probe_uuid))
         # Prepare CDEF expression of total metric in
-        cdef_metric_in += 'metric_%s_in,' % probe_uuid
-        cdef_metric_with_unknown_in += 'metric_with_unknown_%s_in,' \
+        cdef_metric_in += 'metric_%s_in,8,*,' % probe_uuid
+        cdef_metric_with_unknown_in += 'metric_with_unknown_%s_in,8,*,' \
                                        % probe_uuid
         # Draw the area for the probe in
         color = '#336600'
         if not stack_in:
-            args.append('AREA:metric_with_unknown_%s_in%s::'
+            args.append('AREA:metric_with_unknown_%s_in_scale%s::'
                 % (probe_uuid, color))
             stack_in = True
         else:
-            graph_lines_in.append('STACK:metric_with_unknown_%s_in%s::'
+            graph_lines_in.append('STACK:metric_with_unknown_%s_in_scale%s::'
                     % (probe_uuid, color))
     args += graph_lines_in
     #OUT
@@ -419,14 +423,14 @@ def build_graph_network(start, end, probes, summary):
         args.append('DEF:metric_with_unknown_%s_out=%s:o:AVERAGE'
             % (probe_uuid, rrd_file_out))
         args.append('CDEF:metric_with_unknown_%s_out_neg=metric_with_'
-                    'unknown_%s_out,-1,*' % (probe_uuid,probe_uuid))
+                    'unknown_%s_out,-8,*,' % (probe_uuid,probe_uuid))
         # Data source without unknown values
         args.append('CDEF:metric_%s_out=metric_with_unknown_%s_out,UN,0,'
-                    'metric_with_unknown_%s_out,IF'
+                    'metric_with_unknown_%s_out,8,*,IF,'
             % (probe_uuid, probe_uuid, probe_uuid))
         # Prepare CDEF expression of total metric out
-        cdef_metric_out += 'metric_%s_out,' % probe_uuid
-        cdef_metric_with_unknown_out += 'metric_with_unknown_%s_out,' \
+        cdef_metric_out += 'metric_%s_out,8,*,' % probe_uuid
+        cdef_metric_with_unknown_out += 'metric_with_unknown_%s_out,8,*,' \
                                         % probe_uuid
         #Draw the probe out
         color = '#0033CC'
