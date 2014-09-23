@@ -135,11 +135,11 @@ def get_rrd_filename(probe):
 def update_probe(probe, data_type, timestamp, metrics, params):
     if not '_' in probe:
         if not probe in probes_set:
-            lock.acquire()
             color_seq = color_generator(len(probes_set)+1)
+            lock.acquire()
+            probes_set.add(probe)
             for probe in sorted(probes_set, reverse=True):
                 probe_colors[probe] = color_seq.next()
-            probes_set.add(probe)
             lock.release()
 
 def build_graph(metric, start, end, probes, summary=True):
@@ -322,7 +322,7 @@ def build_graph_network(start, end, probes, summary):
     probes_in = []
     probes_out = []
     for probe in sorted(probes, reverse=True):
-        dest = topo_g5k[probe]
+        dest = topo_g5k[probe][0]
         site = probe.split('.')[0]
         probe_name = probe.split('.')[1]
         probes_in.append(probe + '_' + dest)
