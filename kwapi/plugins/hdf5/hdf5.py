@@ -33,7 +33,7 @@ measurements = {}
 
 def get_probe_path(probe):
     site = probe.split(".")[0]
-    node = probe.split(".")[1].replace("-","_")
+    node = "-".join(probe.split(".")[1:]).replace("-","_")
     return "/%s/%s" % (site, node)
 
 def get_probe_path_network(probe, data_type, flow, dest):
@@ -69,32 +69,20 @@ def create_dir():
 
 def update_hdf5(probe, data_type, timestamp, metrics, params):
     """Updates HDF5 file associated with this probe."""
-    flow = params['flow'] #in or out
-    dest = params['dest'] #traffic destination
     if probe not in measurements:
-        measurements[probe] = dict()
-    if not measurements[probe].has_key(data_type):
-        measurements[probe][data_type] = dict()
-    if not measurements[probe][data_type].has_key(flow):
-        measurements[probe][data_type][flow] = dict()
-    if not measurements[probe][data_type][flow].has_key(dest):
-        measurements[probe][data_type][flow][dest] = list()
-    measurements[probe][data_type][flow][dest].append((timestamp, metrics))
-    if len(measurements[probe][data_type][flow][dest]) == 10:
-        zipped = map(list, zip(*measurements[probe][data_type][flow][dest]))
+        measurements[probe] = []
+    measurements[probe].append((timestamp, metrics))
+    if len(measurements[probe]) == 10:
+        zipped = map(list, zip(*measurements[probe]))
         LOG.debug('%s %s', zipped[0], zipped[1])
         write_hdf5_file(probe,
-			data_type,
-			flow,
-			dest,
 			np.array(zipped[0]), #timestamp
 			np.array(zipped[1])) #measures
-        measurements[probe][data_type][flow][dest] = list()
+        measurements[probe] = list()
 
-
-def write_hdf5_file(probe, data_type, flow, dest, timestamps, measurements):
+def write_hdf5_file(probe, timestamps, measurements):
     store = HDFStore(cfg.CONF.hdf5_dir + '/store.h5')
     df = DataFrame(measurements, index=timestamps)
-    path = get_probe_path_network(probe, data_type, flow, dest)
+    path = get_probe_path(probe)
     store.append(path, df)
     store.close()
