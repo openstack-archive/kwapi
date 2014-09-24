@@ -120,7 +120,6 @@ def create_rrd_file(filename, params):
                            scales[scale][0]['resolution']))
         rrdtool.create(args)
 
-
 def update_rrd(probe, data_type, timestamp, metrics, params):
     """Updates RRD file associated with this probe."""
     if not probe in probes_set:
@@ -132,7 +131,7 @@ def update_rrd(probe, data_type, timestamp, metrics, params):
     if not os.path.isfile(filename):
         create_rrd_file(filename, params)
     try:
-        rrdtool.update(filename, '%d:%d' % (round(timestamp), metrics))
-    except rrdtool.error as e:
-        LOG.error('Error updating RRD: %s' % e)
+        rrdtool.update(filename, '%d:%d' % (round(timestamp,0), metrics))
+    except:
+        LOG.error('Error updating RRD: %s %s' % (timestamp, metrics))
 

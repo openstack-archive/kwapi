@@ -97,6 +97,8 @@ for section, entries in parser.sections.iteritems():
                     reverse[v]=[]
                 reverse[v].append(k)
         topo_g5k.update(reverse)
+probes_set = set(topo_g5k.keys())
+multi_probes_set = set()
 probe_colors = {}
 lock = Lock()
 
@@ -134,11 +136,11 @@ def get_rrd_filename(probe):
 
 def update_probe(probe, data_type, timestamp, metrics, params):
     if not '_' in probe:
-        if not probe in probes_set:
+        if not probe in multi_probes_set:
             color_seq = color_generator(len(probes_set)+1)
             lock.acquire()
-            probes_set.add(probe)
-            for probe in sorted(probes_set, reverse=True):
+            multi_probes_set.add(probe)
+            for probe in sorted(multi_probes_set, reverse=True):
                 probe_colors[probe] = color_seq.next()
             lock.release()
 
@@ -173,6 +175,27 @@ def color_generator(nb_colors):
         if step == 0:
             break
 
+def find_multi_probe(probe):
+    """Input: nancy.griffon-1"""
+    """Output: nancy.giffon-1-2-3...-x"""
+    site = probe.split('.')[0]
+    pb = probe.split('.')[1]
+    cluster = pb.split('-')[0]
+    number = 0
+    try: 
+        number = pb.split('-')[1]
+        test = int(number)
+    except:
+        #Switch or other
+        return probe
+    for multi_probe in multi_probes_set:
+        if site == multi_probe.split('.')[0]:
+            multi_pb = multi_probe.split('.')[1]
+            if cluster == multi_pb.split('-')[0]:
+                if number in multi_pb.split('-'):
+                    return multi_probe
+
+
 def build_graph_energy(start, end, probes, summary):
     """Builds the graph for the probes, or a summary graph."""
     cachable = False
@@ -189,16 +212,21 @@ def build_graph_energy(start, end, probes, summary):
             cachable = True
     if not isinstance(probes, list):
         probes = [probes]
-    probes = [probe for probe in probes if probe in probes_set]
-    if len(probes_set) == 0:
+    multi_probes_selected = []
+    for probe in probes:
+        multi_probes_selected.append(find_multi_probe(probe))
+    probes = set(multi_probes_selected)
+    probes = [probe for probe in probes if probe in multi_probes_set]
+    print "probes", probes, multi_probes_set 
+    if len(multi_probes_set) == 0:
         return
     # Only one probe
     if len(probes) == 1 and not summary and cachable:
         png_file = get_png_filename(scale, probes[0])
     # All probes
-    elif not probes or set(probes) == probes_set and cachable:
+    elif not probes or set(probes) == multi_probes_set and cachable:
         png_file = cfg.CONF.png_dir + '/' + scale + '/summary-energy.png'
-        probes = list(probes_set)
+        probes = list(multi_probes_set)
     # Specific combinaison of probes
     else:
         png_file = '/tmp/' + str(uuid.uuid4()) + '.png'
