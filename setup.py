@@ -60,13 +60,14 @@ setuptools.setup(
     install_requires=['flask',
                       'pyserial',
                       'pyzmq',
-                      'rrdtool',
+                      'py_rrdtool',
                       #'execo',
                       'numpy',
                       'pandas',
                       'tables',
                       'numexpr',
-                      'httplib2'],
+                      'httplib2',
+                      'pysnmp'],
     entry_points={
         'console_scripts': [
             'kwapi-api = kwapi.plugins.api.app:start',
