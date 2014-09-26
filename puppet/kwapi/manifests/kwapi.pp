@@ -1,42 +1,51 @@
-import 'hdf5.pp'
-import 'python.pp'
-import 'rrd.pp'
 import 'git.pp'
-import 'other_packages.pp'
+import 'debian_pkg.pp'
+import 'execo.pp'
 
 require 'git'
-require 'hdf5'
-require 'rrd'
-require 'other_packages'
-require 'python'
+require 'debian_pkg'
+require 'execo'
 
 class kwapi {
   exec { "apt-update":
     command => "/usr/bin/apt-get update"
-  }->
+  }
+
   git::clone {"clone kwapi-g5k":
     path => "/tmp",
     dir => "kwapi-g5k",
-    url => "https://github.com/lpouillo/kwapi-g5k.git";
+    url => "https://github.com/lpouillo/kwapi-g5k.git",
+    require => Exec['apt-update'];
   }->
   git::checkout {"checkout network-monitoring":
-    name => "network-monitoring",
-    path => "/tmp/kwapi-g5k";
-  }->
-  exec { "easy_install execo":
-    command => "/usr/bin/easy_install execo"
-  }->
-  python::pip_install{"install requirements":
-    path_requirements_file => '/tmp/kwapi-g5k/requirements.txt',
-    path => '/tmp/kwapi-g5k';
-  }->
+    name => "network-monitoring-dev",
+    path => "/tmp/kwapi-g5k",
+    notify => Exec['generate deb package'];
+  }
+
   exec {
-    "setup":
+    "generate deb package":
       cwd => '/tmp/kwapi-g5k',
       path => "/usr/bin:/usr/sbin:/bin",
-      command => "python setup.py install",
+      command => "python setup.py --command-packages=stdeb.command bdist_deb",
       user => root;
   }
+  package {
+    "python-kwapi-g5k":
+      provider => dpkg,
+      ensure => latest,
+      source => "/tmp/kwapi-g5k/deb_dist/python-kwapi-g5k_0.1-1_all.deb",
+      require => Exec['generate deb package'];
+  }
+  exec {
+    "update pandas":
+      cwd => '/tmp/kwapi-g5k',
+      path => "/usr/bin:/usr/sbin:/bin",
+      command => "echo \"deb http://ftp.fr.debian.org/debian wheezy-backports main\" >> /etc/apt/sources.list && apt-get update && apt-get -t wheezy-backports python-pandas",
+      user => root,
+      require => Package['python-kwapi-g5k']
+  }
+  
   file {
     '/var/log/kwapi':
       ensure => directory,
