@@ -17,7 +17,8 @@
 import time
 
 from pysnmp.entity.rfc3413.oneliner import cmdgen
-
+from pysnmp import version as pysnmp_version
+from pysnmp.smi.exval import endOfMibView
 from kwapi.utils import log
 from driver import Driver
 
@@ -89,14 +90,23 @@ class Snmp(Driver):
                 mpModel=1)
         elif protocol == '3':
             community_or_user = cmdgen.UsmUserData(self.kwargs.get('user'))
-        errorIndication, errorStatus, errorIndex, varBindTable = \
-            self.cmd_gen.bulkCmd(
-                community_or_user,
-                cmdgen.UdpTransportTarget((self.kwargs.get('ip'), 161)),
-                1, 0,
-                self.kwargs.get('oid'),
-                maxRows=len(self.probe_ids),
-            )
+        if pysnmp_version >= (4, 2, 4):
+            errorIndication, errorStatus, errorIndex, varBindTable = \
+                self.cmd_gen.bulkCmd(
+                    community_or_user,
+                    cmdgen.UdpTransportTarget((self.kwargs.get('ip'), 161)),
+                    1, 0,
+                    self.kwargs.get('oid'),
+                    maxRows=len(self.probe_ids),
+                )
+        else:
+            errorIndication, errorStatus, errorIndex, varBindTable = \
+                self.cmd_gen.bulkCmd(
+                    community_or_user,
+                    cmdgen.UdpTransportTarget((self.kwargs.get('ip'), 161)),
+                    1, 0,
+                    tuple(int(x) for x in self.kwargs.get('oid').replace('iso','1').split('.')),
+                )
 
         if errorIndication:
             LOG.error(errorIndication)
@@ -111,8 +121,13 @@ class Snmp(Driver):
                 return None
             else:
                 outlet_list = []
+                i = 0
                 for varBindTableRow in varBindTable:
-                    for name, value in varBindTableRow:
-                        outlet_list.append(int(value))
+                    if i < len(self.probe_ids):
+                        for name, value in varBindTableRow:
+                            if isinstance(value,type(endOfMibView)):
+                                return outlet_list
+                            outlet_list.append(int(value))
+                        i+=1
                 return outlet_list
 

@@ -60,7 +60,7 @@ setuptools.setup(
     install_requires=['flask',
                       'pyserial',
                       'pyzmq',
-                      'py_rrdtool',
+                      #'py_rrdtool',
                       #'execo',
                       'numpy',
                       'pandas',
