@@ -130,16 +130,19 @@ for equip in equips.itervalues():
             equip['probes'].append(cluster + '-' + '-'.join(map(str, sorted(radicals))))
 
 network_probes = {}
+topo = {}
 for switch in switchs:
     #Exclude some switchs
     if switch.endswith("ib") or switch in ["", None, "sgrelon1"]:
         logger.warn("Ignore switch: %s" % switch)
     else:
-        switch_addr = "%s.%s.grid5000.fr" % (switch, site)
+        switch_addr = "%s.%s" % (site, switch)
         probesIN = []
         probesOUT = []
+        topo[switch_addr] = []
         for node in switchs[switch]:
             if node:
+                topo[switch_addr].append("%s.%s" % (site, node))
                 probesIN.append("%s.%s_%s" % (site, switch, node))
                 probesOUT.append("%s.%s_%s" % (site, node, switch))
             else:
@@ -157,6 +160,7 @@ for switch in switchs:
             network_probes[switch] = {'in':probesIN,
                                       'out':probesOUT,}
 
+# pprint(topo)
 # pprint(equips)    
 # pprint(network_probes)
 logger.info('Writing new configuration file')
@@ -209,12 +213,26 @@ for switch, probes in network_probes.iteritems():
     f.write(sec)    
 f.close()
 
+f = open('/tmp/kwapi-live-topo.conf', 'w')
+f.write("\n[TOPO]\n")
+f.write("topo=")
+f.write(str(topo))
+f.flush()
+f.close()
 
 logger.info('Adding drivers from API to /etc/kwapi/drivers.conf')
 bak_conf = Process('[ -f /etc/kwapi/drivers.conf.orig ] && cp /etc/kwapi/drivers.conf.orig /etc/kwapi/drivers.conf || cp /etc/kwapi/drivers.conf /etc/kwapi/drivers.conf.orig')
 bak_conf.shell = True
 bak_conf.run()
 cat_conf = Process('cat /tmp/kwapi-drivers-list.conf >> /etc/kwapi/drivers.conf ; rm /tmp/kwapi-drivers-list.conf')
+cat_conf.shell = True
+cat_conf.run()
+
+logger.info('Adding topology to /etc/kwapi/live.conf')
+bak_conf = Process('[ -f /etc/kwapi/live.conf.orig ] && cp /etc/kwapi/live.conf.orig /etc/kwapi/live.conf || cp /etc/kwapi/live.conf /etc/kwapi/live.conf.orig')
+bak_conf.shell = True
+bak_conf.run()
+cat_conf = Process('cat /tmp/kwapi-live-topo.conf >> /etc/kwapi/live.conf ; rm /tmp/kwapi-live-topo.conf')
 cat_conf.shell = True
 cat_conf.run()
 
