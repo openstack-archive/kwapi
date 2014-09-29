@@ -123,7 +123,7 @@ class Snmp(Driver):
                 outlet_list = []
                 i = 0
                 for varBindTableRow in varBindTable:
-                    if i < len(self.probe_ids):
+                    if i < len(self.probe_ids) and not isinstance(varBindTableRow,type(endOfMibView)):
                         for name, value in varBindTableRow:
                             if isinstance(value,type(endOfMibView)):
                                 return outlet_list
