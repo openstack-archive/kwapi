@@ -197,7 +197,7 @@ for switch, probes in network_probes.iteritems():
     sec += "driver = Snmp\n"
     sec += "data_type = {'name':'switch.port.receive.bytes', 'type':'Cumulative', 'unit':'B'}\n"
     sec += "parameters = {'protocol': '"+_protocol+"', 'community': 'public', 'ip': '"+switch+"."+site+".grid5000.fr', 'oid': '"+OID_IN+"'}\n"
-    f.write(sec)
+    #f.write(sec)
     sec = "\n[%s-OUT]\n" % switch
     sec += "probes = ["
     for probe in probes['out']:
@@ -210,7 +210,7 @@ for switch, probes in network_probes.iteritems():
     sec += "driver = Snmp\n"
     sec += "data_type = {'name':'switch.port.transmit.bytes', 'type':'Cumulative', 'unit':'B'}\n"
     sec += "parameters = {'protocol': '"+_protocol+"', 'community': 'public', 'ip': '"+switch+"."+site+".grid5000.fr', 'oid': '"+OID_OUT+"'}\n"
-    f.write(sec)    
+    #f.write(sec)    
 f.close()
 
 f = open('/tmp/kwapi-live-topo.conf', 'w')
