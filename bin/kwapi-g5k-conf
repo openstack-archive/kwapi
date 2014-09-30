@@ -57,7 +57,7 @@ for network_equipment in get_resource_attributes('/sites/'+site+'/network_equipm
                             snmp_pattern = linecard['snmp_pattern']
                         else:
                             logger.warn("No snmp_pattern for %s: %s" % (switch, l))
-                            #break
+                            continue
                         p = -1
                         if linecard.has_key('ports'):
                             ports = linecard['ports']
