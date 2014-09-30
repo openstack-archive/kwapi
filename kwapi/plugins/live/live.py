@@ -102,6 +102,7 @@ multi_probes_set = set()
 probe_colors = {}
 lock = Lock()
 
+print probes_set
 
 def create_dirs():
     """Creates all required directories."""
@@ -417,7 +418,7 @@ def build_graph_network(start, end, probes, summary):
     probe_list = probes_in
     #IN
     for probe in probe_list:
-        probe_uuid = uuid.uuid5(uuid.NAMESPACE_DNS, probe)
+        probe_uuid = uuid.uuid5(uuid.NAMESPACE_DNS, str(probe))
         rrd_file_in = get_rrd_filename(probe)
         # Data source
         args.append('DEF:metric_with_unknown_%s_in=%s:o:AVERAGE'
@@ -445,7 +446,7 @@ def build_graph_network(start, end, probes, summary):
     #OUT
     probe_list = probes_out
     for probe in probe_list:
-        probe_uuid = uuid.uuid5(uuid.NAMESPACE_DNS, probe)
+        probe_uuid = uuid.uuid5(uuid.NAMESPACE_DNS, str(probe))
         rrd_file_out = get_rrd_filename(probe)
         # Data source
         args.append('DEF:metric_with_unknown_%s_out=%s:o:AVERAGE'
