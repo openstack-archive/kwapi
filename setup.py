@@ -44,7 +44,8 @@ setuptools.setup(
     ],
 
     packages=setuptools.find_packages(),
-    package_data={'kwapi.plugins.live': ['templates/*', 'static/*.css', 'static/*.png', 'static/*.jpg', 'static/*.js', 'static/select2/*']},
+    package_data={'kwapi.plugins.live': ['templates/*', 'static/*.css', 'static/*.png', 'static/*.jpg', 'static/*.js', 'static/select2/*'],
+                  'kwapi.plugins.rrd':  ['templates/*', 'static/*.css', 'static/*.png', 'static/*.jpg', 'static/*.js', 'static/select2/*']},
 
     scripts=['bin/kwapi-g5k-conf'],
 
@@ -60,8 +61,8 @@ setuptools.setup(
     install_requires=['flask',
                       'pyserial',
                       'pyzmq',
-                      #'py_rrdtool',
-                      #'execo',
+                      'py_rrdtool',
+                      'execo',
                       'numpy',
                       'pandas',
                       'tables',
