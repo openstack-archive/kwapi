@@ -60,6 +60,9 @@ for cluster in get_site_clusters(site):
                         if 'port' in pdu:     
                             equips[pdu['uid'].split('.')[0]]['mapping'].append((node['uid'], pdu['port']))
                         else:
+                            if isinstance(pdu, list):
+                                logger.error("Malformed pdu : %s" % pdu)
+                                continue
                             if pdu['uid'] is None:
                                 print power
                             else:
