@@ -147,7 +147,7 @@ for node in sorted(nodes, key=lambda x: int(x.address.split('.')[0].split('-')[1
 ## Retrieving post-mortem measurement
 h2 = httplib2.Http()
 resp, content = h2.request("http://energy." + site + 
-    ".grid5000.fr:12000/timeseries/?job=" + str(job[0]), "GET")
+    ".grid5000.fr:12000/timeseries/?job_id=" + str(job[0]), "GET")
 content = loads(content) 
 
-    
+print content
