@@ -79,7 +79,7 @@ for cluster in get_site_clusters(site):
                     equips[pdu['uid']]['probes'].append(node['uid'])
 
 
-# pprint(equips)    
+#pprint(equips)    
 logger.info('Generating probe list for Snmp drivers') 
 for equip in equips.itervalues():
     if 'mapping' in equip and len(equip['mapping']) > 0:
@@ -94,6 +94,7 @@ for equip in equips.itervalues():
             equip['probes'].append(cluster + '-' + '-'.join(map(str, sorted(radicals))))
 
 logger.info('Writing new configuration file')
+powerProbes = []
 f = open('/tmp/kwapi-drivers-list.conf', 'w')
 for equip, data in equips.iteritems():
     if 'probes' in data and data['probes']:
@@ -102,6 +103,7 @@ for equip, data in equips.iteritems():
         for probe in data['probes']:
             if probe:
                 sec += "'" + site + '.' + probe +"'"
+                powerProbes.append(site + '.' + probe)
             else:
                 sec += str(None)
             sec += ", "
@@ -112,12 +114,22 @@ for equip, data in equips.iteritems():
         f.write(sec)
 
 f.close()
+f = open('/tmp/kwapi-live-list.conf', 'w')
+f.write("powerProbes = %s" % powerProbes)
+f.close()
 
 logger.info('Adding drivers from API to /etc/kwapi/drivers.conf')
 bak_conf = Process('[ -f /etc/kwapi/drivers.conf.orig ] && cp /etc/kwapi/drivers.conf.orig /etc/kwapi/drivers.conf || cp /etc/kwapi/drivers.conf /etc/kwapi/drivers.conf.orig')
 bak_conf.shell = True
 bak_conf.run()
 cat_conf = Process('cat /tmp/kwapi-drivers-list.conf >> /etc/kwapi/drivers.conf ; rm /tmp/kwapi-drivers-list.conf')
+cat_conf.shell = True
+cat_conf.run()
+logger.info('Adding probe-list from API to /etc/kwapi/live.conf')
+bak_conf = Process('[ -f /etc/kwapi/live.conf.orig ] && cp /etc/kwapi/live.conf.orig /etc/kwapi/live.conf || cp /etc/kwapi/live.conf /etc/kwapi/live.conf.orig')
+bak_conf.shell = True
+bak_conf.run()
+cat_conf = Process('cat /tmp/kwapi-live-list.conf >> /etc/kwapi/live.conf ; rm /tmp/kwapi-live-list.conf')
 cat_conf.shell = True
 cat_conf.run()
 
