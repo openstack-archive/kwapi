@@ -130,6 +130,7 @@ def send_zip():
     probes = [probe.encode('utf-8') for probe in probes
               if os.path.exists(live.get_rrd_filename(probe))]
     metrics = ['energy','network']
+    print 'Zip', probes
     if len(probes) == 1:
         probe = probes[0]
         rrd_file = live.get_rrd_filename(probe)
@@ -192,6 +193,8 @@ def send_summary_graph(metric,start, end):
     start = start.encode('utf-8')
     end = end.encode('utf-8')
     png_file = live.build_graph(metric, int(start), int(end), probes, True)
+    if not png_file:
+        flask.abort(404)
     tmp_file = tempfile.NamedTemporaryFile()
     shutil.copy2(png_file, tmp_file.name)
     if not png_file.endswith('summary-'+metric+'.png'):
@@ -212,6 +215,8 @@ def send_probe_graph(metric, probe, start, end):
     start = start.encode('utf-8')
     end = end.encode('utf-8')
     png_file = live.build_graph(metric, int(start), int(end), probe, False)
+    if not png_file:
+        flask.abort(404)
     try:
         return flask.send_file(png_file, cache_timeout=0, conditional=True)
     except:

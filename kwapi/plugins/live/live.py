@@ -83,12 +83,14 @@ scales['year'] = {'interval': 31622400, 'resolution': 604800, 'label': 'year'},
 
 probes_set = set()
 topo_g5k = {}
+multi_probes_set = set()
 """Loads topology from config file."""
 parser = cfg.ConfigParser('/etc/kwapi/live.conf', {})
 parser.parse()
 for section, entries in parser.sections.iteritems():
     if section == 'TOPO':
         topo_g5k = ast.literal_eval(entries['topo'][0])
+        multi_probes_set = set(ast.literal_eval(entries['powerProbes'][0]))
         reverse = {}
         for k in topo_g5k.keys():
             #probes_set.add(k)
@@ -98,11 +100,10 @@ for section, entries in parser.sections.iteritems():
                 reverse[v].append(k)
         topo_g5k.update(reverse)
 probes_set = set(topo_g5k.keys())
-multi_probes_set = set()
 probe_colors = {}
 lock = Lock()
 
-print probes_set
+print probes_set, multi_probes_set
 
 def create_dirs():
     """Creates all required directories."""
@@ -121,10 +122,15 @@ def create_dirs():
         except OSError as exception:
             if exception.errno != errno.EEXIST:
                 raise
+    color_seq = color_generator(len(multi_probes_set)+1)
+    for probe in sorted(multi_probes_set, reverse=True):
+        probe_colors[probe] = color_seq.next()
+
 
 
 def get_png_filename(scale, probe):
     """Returns the png filename."""
+
     return cfg.CONF.png_dir + '/' + scale + '/' + \
         str(uuid.uuid5(uuid.NAMESPACE_DNS, str(probe))) + '.png'
 
@@ -132,18 +138,16 @@ def get_png_filename(scale, probe):
 def get_rrd_filename(probe):
     """Returns the rrd filename."""
     # Include params in the path
-    return cfg.CONF.rrd_dir + '/' + str(uuid.uuid5(uuid.NAMESPACE_DNS,
+    filename = cfg.CONF.rrd_dir + '/' + str(uuid.uuid5(uuid.NAMESPACE_DNS,
                                         str(probe))) + '.rrd'
+    if os.path.exists(filename):
+        return filename
+    else:
+        LOG.error("No file for %s." % probe)
+        return None
 
 def update_probe(probe, data_type, timestamp, metrics, params):
-    if not '_' in probe:
-        if not probe in multi_probes_set:
-            color_seq = color_generator(len(probes_set)+1)
-            lock.acquire()
-            multi_probes_set.add(probe)
-            for probe in sorted(multi_probes_set, reverse=True):
-                probe_colors[probe] = color_seq.next()
-            lock.release()
+    pass
 
 def build_graph(metric, start, end, probes, summary=True):
     """Builds the graph for the probes, or a summary graph."""
@@ -152,8 +156,10 @@ def build_graph(metric, start, end, probes, summary=True):
     else:
         return build_graph_network(start, end, probes, summary)
 
-def color_generator(nb_colors):
+def color_generator(nb_colors, hue=None):
     """Generates colors."""
+    if not hue:
+        hue=cfg.CONF.hue
     min_brightness = 50-nb_colors*15/2.0
     if min_brightness < 5:
         min_brightness = 5
@@ -167,7 +173,7 @@ def color_generator(nb_colors):
         step = (max_brightness-min_brightness) / (nb_colors-1.0)
     i = min_brightness
     while int(i) <= max_brightness:
-        rgb = colorsys.hsv_to_rgb(cfg.CONF.hue/360.0,
+        rgb = colorsys.hsv_to_rgb(hue/360.0,
                                   1,
                                   i/100.0)
         rgb = tuple([int(x*255) for x in rgb])
@@ -217,10 +223,9 @@ def build_graph_energy(start, end, probes, summary):
     for probe in probes:
         multi_probes_selected.append(find_multi_probe(probe))
     probes = set(multi_probes_selected)
-    probes = [probe for probe in probes if probe in multi_probes_set]
-    print "probes", probes, multi_probes_set 
+    probes = [probe for probe in probes if (probe in multi_probes_set and get_rrd_filename(probe))]
     if len(multi_probes_set) == 0:
-        return
+        return None
     # Only one probe
     if len(probes) == 1 and not summary and cachable:
         png_file = get_png_filename(scale, probes[0])
@@ -250,7 +255,7 @@ def build_graph_energy(start, end, probes, summary):
     else:
         # Specific arguments for probe graph
         args = [png_file,
-                '--title', probes[0] + scale_label,
+                '--title', str(probes[0]) + scale_label,
                 '--width', '497',
                 '--height', '187',
                 '--upper-limit', str(cfg.CONF.max_watts),
@@ -273,7 +278,7 @@ def build_graph_energy(start, end, probes, summary):
     stack = False
     probe_list = sorted(probes, reverse=True)
     for probe in probe_list:
-        probe_uuid = uuid.uuid5(uuid.NAMESPACE_DNS, probe)
+        probe_uuid = uuid.uuid5(uuid.NAMESPACE_DNS, str(probe))
         rrd_file = get_rrd_filename(probe)
         # Data source
         args.append('DEF:watt_with_unknown_%s=%s:w:AVERAGE'
@@ -355,18 +360,23 @@ def build_graph_network(start, end, probes, summary):
         probe_name = probe.split('.')[1]
         for dest in topo_g5k[probe]:
             dest_name = dest.split('.')[1]
-            probes_in.append(probe + '_' + dest_name)
-            probes_out.append(dest + '_' + probe_name)
+            probe_in = probe + '_' + dest_name
+            probe_out = dest + '_' + probe_name
+            if get_rrd_filename(probe_in) and get_rrd_filename(probe_out):
+                probes_in.append(probe_in)
+                probes_out.append(probe_out)
 
     if len(probes_set) == 0:
         return
     # Only one probe
     if len(probes_in) == 1 and not summary and cachable:
         png_file = get_png_filename(scale, probes_in[0])
+        if not png_file:
+            return None
     # All probes
     elif not probes_in or len(set(probes_in)) == len(probes_set) and cachable:
         png_file = cfg.CONF.png_dir + '/' + scale + '/summary-network.png'
-        #probes = list(probes_in)
+        probes = list(probes_set)
     # Specific combinaison of probes
     else:
         png_file = '/tmp/' + str(uuid.uuid4()) + '.png'
@@ -389,7 +399,7 @@ def build_graph_network(start, end, probes, summary):
     else:
         # Specific arguments for probe graph
         args = [png_file,
-                '--title', probes[0] + scale_label,
+                '--title', str(probes[0]) + scale_label,
                 '--width', '497',
                 '--height', '187',
                 #'--upper-limit', str(cfg.CONF.max_metrics),
@@ -416,8 +426,13 @@ def build_graph_network(start, end, probes, summary):
     stack_in = False
     stack_out = False
     probe_list = probes_in
+    # Generate colors
+    color_seq_green = color_generator(len(probes_in)+1)
+    for probe in sorted(probes_in, reverse=True):
+        probe_colors[probe] = color_seq_green.next()
+
     #IN
-    for probe in probe_list:
+    for probe in sorted(probe_list, reverse=True):
         probe_uuid = uuid.uuid5(uuid.NAMESPACE_DNS, str(probe))
         rrd_file_in = get_rrd_filename(probe)
         # Data source
@@ -434,20 +449,28 @@ def build_graph_network(start, end, probes, summary):
         cdef_metric_with_unknown_in += 'metric_with_unknown_%s_in,8,*,' \
                                        % probe_uuid
         # Draw the area for the probe in
-        color = '#336600'
+        color = probe_colors.get(str(probe), '#336600')
         if not stack_in:
             args.append('AREA:metric_with_unknown_%s_in_scale%s::'
-                % (probe_uuid, color))
+                % (probe_uuid, color + 'AA'))
             stack_in = True
         else:
             graph_lines_in.append('STACK:metric_with_unknown_%s_in_scale%s::'
-                    % (probe_uuid, color))
+                    % (probe_uuid, color + 'AA'))
     args += graph_lines_in
+
+    # Generate colors
+    color_seq_blue = color_generator(len(probes_out)+1, 190)
+    for probe in sorted(probes_out, reverse=True):
+        probe_colors[probe] = color_seq_blue.next()
+
     #OUT
     probe_list = probes_out
-    for probe in probe_list:
+    for probe in sorted(probe_list, reverse=True):
         probe_uuid = uuid.uuid5(uuid.NAMESPACE_DNS, str(probe))
         rrd_file_out = get_rrd_filename(probe)
+        if not rrd_file_out:
+            break
         # Data source
         args.append('DEF:metric_with_unknown_%s_out=%s:o:AVERAGE'
             % (probe_uuid, rrd_file_out))
@@ -462,21 +485,21 @@ def build_graph_network(start, end, probes, summary):
         cdef_metric_with_unknown_out += 'metric_with_unknown_%s_out,8,*,' \
                                         % probe_uuid
         #Draw the probe out
-        color = '#0033CC'
+        color = probe_colors.get(str(probe),'#0033CC')
         if not stack_out:
             args.append('AREA:metric_with_unknown_%s_out_neg%s::'
-                % (probe_uuid, color))
+                % (probe_uuid, color + 'AA'))
             stack_out = True
         else:
             graph_lines_out.append('STACK:metric_with_unknown_%s_out_neg%s::'
-                    % (probe_uuid, color))
+                    % (probe_uuid, color + 'AA'))
     args += graph_lines_out
     if len(probe_list) >= 2:
         # Prepare CDEF expression by adding the required number of '+'
-        cdef_metric_in += '+,' * int(len(probe_list)-2) + '+'
-        cdef_metric_with_unknown_in += '+,' * int(len(probe_list)-2) + '+'
-        cdef_metric_out += '+,' * int(len(probe_list)-2) + '+'
-        cdef_metric_with_unknown_out += '+,' * int(len(probe_list)-2) + '+'
+        cdef_metric_in += '+,' * int(len(probes_in)-2) + '+'
+        cdef_metric_with_unknown_in += '+,' * int(len(probes_in)-2) + '+'
+        cdef_metric_out += '+,' * int(len(probes_out)-2) + '+'
+        cdef_metric_with_unknown_out += '+,' * int(len(probes_out)-2) + '+'
     args.append('HRULE:0#000000')
     args.append(cdef_metric_in)
     args.append(cdef_metric_out)
@@ -511,5 +534,7 @@ def build_graph_network(start, end, probes, summary):
     args.append('GPRINT:metric_with_unknown_out:LAST:LastOUT\: %3.1lf%sb/s\j')
     args.append('TEXTALIGN:center')
     LOG.info('Build PNG graph')
+    if len(probes_in) == 0 or len(probes_out) == 0:
+        return None
     rrdtool.graph(args)
     return png_file
