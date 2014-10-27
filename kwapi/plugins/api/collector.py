@@ -43,49 +43,37 @@ cfg.CONF.register_opts(collector_opts)
 
 
 class Record(dict):
-    """Contains fields (timestamp, kwh, w) and a method to update
+    """Contains fields (timestamp, value, unit) and a method to update
     consumption.
 
     """
 
-    def __init__(self, timestamp, measure, data_type, params, avg):
+    def __init__(self, timestamp, measure, data_type, params, integrated):
         """Initializes fields with the given arguments."""
         dict.__init__(self)
         self._dict = {}
         self['timestamp'] = timestamp
-        self['data_type'] = data_type
-        if data_type == "ifOctets":
-            self['measure'] = {}
-            if not params['flow'] in self['measure']:
-                self['measure'][params['flow']] = {}
-            if not params['dest'] in self['measure'][params['flow']]:
-                self['measure'][params['flow']][params['dest']] = {}
-            self['measure'][params['flow']][params['dest']]['value'] = measure
-            #self['measure'][params['flow']][params['dest']]['avg'] = avg
+        self['type'] = params['type']
+        self['unit'] = params['unit']
+        if self['type'] != 'Gauge':
+            # No integrated value
+            self['value'] = measure
+            #self['integrated'] = None
         else:
-            self['avg'] = avg
-            self['measure'] = measure
+            self['integrated'] = integrated
+            self['value'] = measure
         
 
     def add(self, timestamp, measure, params):
         """Updates fields with consumption data."""
         currentTime = timestamp 
-        if self['data_type'] == "ifOctets":
-            if not params['flow'] in self['measure']:
-                self['measure'][params['flow']] = {}
-            if not params['dest'] in self['measure'][params['flow']]:
-                self['measure'][params['flow']][params['dest']] = {}
-            if not 'value' in self['measure'][params['flow']][params['dest']]:
-                self['measure'][params['flow']][params['dest']]['value'] = 0
-            #if not 'avg' in self['measure'][params['flow']][params['dest']]:
-            #    self['measure'][params['flow']][params['dest']]['avg'] = 0.0
-            #delta = measure - self['measure'][params['flow']][params['dest']]['value']
-            self['measure'][params['flow']][params['dest']]['value'] = measure
-            #self['measure'][params['flow']][params['dest']]['avg'] += (currentTime - self['timestamp']) / 3600.0 * (delta)
+        if self['type'] != 'Gauge':
+            # self['integrated'] = None
+            self['value'] = measure
         else:
-            self['avg'] += (currentTime - self['timestamp']) / 3600.0 * \
+            self['integrated'] += (currentTime - self['timestamp']) / 3600.0 * \
                            (measure / 1000.0)
-            self['measure'] = measure
+            self['value'] = measure
         self['timestamp'] = currentTime
 
 
@@ -101,22 +89,30 @@ class Collector:
         self.database = {}
         self.lock = threading.Lock()
 
-    def add(self, probe, name, timestamp, measure, params):
+    def add(self, probe, data_type, timestamp, measure, params):
         """Creates (or updates) consumption data for this probe."""
         self.lock.acquire()
-        if probe in self.database.keys():
-            self.database[probe].add(timestamp, measure, params)
-        else:
-            record = Record(timestamp=timestamp, measure=measure, data_type=name, \
-                            params=params, avg=0.0)
-            self.database[probe] = record
-        self.lock.release()
+        try:
+            if data_type not in self.database.keys():
+                self.database[data_type] = {}
+            if probe in self.database[data_type].keys():
+                self.database[data_type][probe].add(timestamp, measure, params)
+            else:
+                record = Record(timestamp=timestamp, measure=measure, data_type=data_type, \
+                                params=params, integrated=0.0)
+                self.database[data_type][probe] = record
+        except:
+            LOG.error("Fail to add %s datas" % probe)
+        finally:
+            self.lock.release()
 
     def remove(self, probe):
         """Removes this probe from database."""
         self.lock.acquire()
         try:
-            del self.database[probe]
+            for data_type in self.database.keys():
+                if probe in self.database[data_type].keys():
+                    del self.database[data_type][probe]
             return True
         except KeyError:
             return False
@@ -131,12 +127,12 @@ class Collector:
         """
         LOG.info('Cleaning collector')
         # Cleaning
-        for probe in self.database.keys():
-            if time.time() - self.database[probe]['timestamp'] > \
-                    cfg.CONF.cleaning_interval:
-                LOG.info('Removing data of probe %s' % probe)
-                self.remove(probe)
-
+        for data_type in self.database.keys():
+            for probe in self.database[data_type].keys():
+                if time.time() - self.database[data_type][probe]['timestamp'] > \
+                            cfg.CONF.cleaning_interval:
+                    LOG.info('Removing data of probe %s' % probe)
+                    self.remove(probe)
         # Schedule periodic execution of this function
         if cfg.CONF.cleaning_interval > 0:
             timer = threading.Timer(cfg.CONF.cleaning_interval, self.clean)

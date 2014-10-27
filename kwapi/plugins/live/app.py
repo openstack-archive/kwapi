@@ -16,7 +16,6 @@
 
 """Set up the RRD server application instance."""
 
-import signal
 import socket
 import sys
 import thread
@@ -25,15 +24,12 @@ import flask
 
 from kwapi.plugins import listen
 from kwapi.utils import cfg, log
-import rrd
+import live
 import v1
 
 LOG = log.getLogger(__name__)
 
 app_opts = [
-    cfg.BoolOpt('visualization',
-                required=True,
-                ),
     cfg.MultiStrOpt('probes_endpoint',
                     required=True,
                     ),
@@ -49,9 +45,9 @@ cfg.CONF.register_opts(app_opts)
 
 
 class ReverseProxied(object):
-    '''Wrap the application in this middleware and configure the 
-    front-end server to add these headers, to let you quietly bind 
-    this to a URL other than / and to an HTTP scheme that is 
+    '''Wrap the application in this middleware and configure the
+    front-end server to add these headers, to let you quietly bind
+    this to a URL other than / and to an HTTP scheme that is
     different than what is used locally.
 
     In nginx:
@@ -92,13 +88,13 @@ class ReverseProxied(object):
 
 def make_app():
     """Instantiates Flask app, attaches collector database. """
-    LOG.info('Starting RRD')
+    LOG.info('Starting LIVE')
     app = flask.Flask(__name__)
     app.wsgi_app = ReverseProxied(app.wsgi_app)
     app.register_blueprint(v1.blueprint)
 
-    thread.start_new_thread(listen, (rrd.update_rrd,))
-    rrd.create_dirs()
+    thread.start_new_thread(listen, (live.update_probe,))
+    live.create_dirs()
 
     hostname = socket.getfqdn().split('.')
     hostname = hostname[1] if len(hostname) >= 2 else hostname[0]
@@ -106,26 +102,17 @@ def make_app():
     @app.before_request
     def attach_config():
         flask.request.hostname = hostname
-        flask.request.probes = rrd.probes_set
-        flask.request.scales = rrd.scales
+        #TODO: choose energy or network
+        flask.request.probes = live.probes_set
+        flask.request.scales = live.scales
     return app
 
 
 def start():
-    """Starts Kwapi RRD."""
+    """Starts Kwapi Live."""
     cfg.CONF(sys.argv[1:],
              project='kwapi',
-             default_config_files=['/etc/kwapi/rrd.conf'])
+             default_config_files=['/etc/kwapi/live.conf'])
     log.setup(cfg.CONF.log_file)
-    if cfg.CONF.visualization:
-        root = make_app()
-        root.run(host='0.0.0.0', port=cfg.CONF.rrd_port)
-    else:
-        thread.start_new_thread(listen, (rrd.update_rrd,))
-        rrd.create_dirs()
-        signal.signal(signal.SIGINT, signal_handler)
-        signal.pause()
-
-
-def signal_handler(signal, frame):
-        sys.exit(0)
+    root = make_app()
+    root.run(host='0.0.0.0', port=cfg.CONF.rrd_port)

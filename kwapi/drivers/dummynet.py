@@ -14,41 +14,39 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import json
-import urllib2
+from random import randrange
+import math
 import time
 
-from kwapi.utils import log
 from driver import Driver
 
-LOG = log.getLogger(__name__)
 
-
-class Json_url(Driver):
-    """Driver for Json URL interface."""
+class DummyNet(Driver):
+    """Dummy driver derived from Driver class. Usefull for tests."""
 
     def __init__(self, probe_ids, probe_data_type, **kwargs):
-        """Initializes the Json URL driver.
+        """Initializes the dummy driver.
+
         Keyword arguments:
         probe_ids -- list containing the probes IDs
                      (a wattmeter monitor sometimes several probes)
-        kwargs -- keyword (url) defining the Json URL driver parameters
+        kwargs -- keywords (min_value and max_value)
+                  defining the random value interval
 
         """
         Driver.__init__(self, probe_ids, probe_data_type, kwargs)
+        self.min_value = int(kwargs.get('min', 75))
+        self.max_value = int(kwargs.get('max', 100))
 
     def run(self):
         """Starts the driver thread."""
         while not self.stop_request_pending():
-            json_content = json.load(urllib2.urlopen(self.kwargs.get('url')))
+            measure_time = time.time()
             for probe_id in self.probe_ids:
-                probe = json_content.get(probe_id.split('.')[1])
-                # Grid5000 specific as we declare probes as site.cluster-#
-                if probe:
-                    measurements = self.create_measurements(probe_id,
-                                                            probe['timestamp'],
-                                                            probe['watt'])
-                    self.send_measurements(probe_id, measurements)
+                if not probe_id:
+                    continue
+                measurements = self.create_measurements(probe_id,
+                               measure_time,
+                               int(measure_time + (round(math.sin(math.pi*(measure_time%100)/100),2)*100)) % 2**32)
+                self.send_measurements(probe_id, measurements)
             time.sleep(1)
-
-

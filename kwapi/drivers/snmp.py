@@ -56,8 +56,10 @@ class Snmp(Driver):
 		    i+=1
                     if not probe:
 		        continue
-
-                    if self.probe_data_type['summable']:
+                    # probe_data_type =  {'name':'switch.port.receive.bytes',
+                    #                     'type':'Cummulative',
+                    #                     'unit':'B'}
+                    if self.probe_data_type['type'] == 'Gauge':
 		        if not probe in agg_values:
 		            agg_values[probe] = 0
 		        agg_values[probe] += metrics
@@ -77,15 +79,15 @@ class Snmp(Driver):
     def get_metrics(self):
         """Returns the OID field."""
         protocol = self.kwargs.get('protocol')
-        if protocol is '1':
+        if protocol == '1':
             community_or_user = cmdgen.CommunityData(
                 self.kwargs.get('community'),
                 mpModel=0)
-        elif protocol is '2c':
+        elif protocol == '2c':
             community_or_user = cmdgen.CommunityData(
                 self.kwargs.get('community'),
                 mpModel=1)
-        elif protocol is '3':
+        elif protocol == '3':
             community_or_user = cmdgen.UsmUserData(self.kwargs.get('user'))
         errorIndication, errorStatus, errorIndex, varBindTable = \
             self.cmd_gen.bulkCmd(
@@ -98,6 +100,7 @@ class Snmp(Driver):
 
         if errorIndication:
             LOG.error(errorIndication)
+            LOG.error("Request: %s\t%s\t%s\t%s" % (self.kwargs.get('user'),self.kwargs.get('ip'), self.kwargs.get('oid'), self.probe_ids[0]))
             return None
         else:
             if errorStatus:

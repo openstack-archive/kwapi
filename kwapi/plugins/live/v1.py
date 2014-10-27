@@ -29,7 +29,7 @@ import flask
 from jinja2 import TemplateNotFound
 
 from kwapi.utils import cfg
-import rrd
+import live
 
 web_opts = [
     cfg.IntOpt('refresh_interval',
@@ -44,22 +44,24 @@ cfg.CONF.register_opts(web_opts)
 
 blueprint = flask.Blueprint('v1', __name__, static_folder='static')
 
-
 @blueprint.route('/')
 def welcome():
     """Shows specified page."""
-    return flask.redirect(flask.url_for('v1.welcome_scale', scale='minute'))
+    return flask.redirect(flask.url_for('v1.welcome_scale',
+                                        metric='energy',
+                                        scale='minute'))
 
 
-@blueprint.route('/last/<scale>/')
-def welcome_scale(scale):
+@blueprint.route('/<metric>/last/<scale>/')
+def welcome_scale(metric, scale):
     """Shows a specific scale of a probe."""
     try:
         return flask.render_template('index.html',
                                      hostname=flask.request.hostname,
-                                     probes=sorted(flask.request.probes, 
-                                        key=lambda x: (x.split('.')[1].split('-')[0], 
-                                            int(x.split('.')[1].split('-')[1]))),
+                                     metric=metric,
+                                     probes=sorted(flask.request.probes),
+                                     #  key=lambda x: (x.split('.')[1].split('-')[0],
+                                     #  int(x.split('.')[1].split('-')[1]))),
                                      refresh=cfg.CONF.refresh_interval,
                                      scales=flask.request.scales,
                                      scale=scale,
@@ -70,8 +72,8 @@ def welcome_scale(scale):
         flask.abort(404)
 
 
-@blueprint.route('/probe/<probe>/')
-def welcome_probe(probe):
+@blueprint.route('/<metric>/probe/<probe>/')
+def welcome_probe(metric, probe):
     """Shows all graphs of a probe."""
     if probe not in flask.request.probes:
         flask.abort(404)
@@ -84,6 +86,7 @@ def welcome_probe(probe):
             }
         return flask.render_template('index.html',
                                      hostname=flask.request.hostname,
+                                     metric=metric,
                                      probe=probe,
                                      refresh=cfg.CONF.refresh_interval,
                                      scales=scales,
@@ -125,24 +128,47 @@ def send_zip():
     tmp_file = tempfile.NamedTemporaryFile()
     zip_file = zipfile.ZipFile(tmp_file.name, 'w')
     probes = [probe.encode('utf-8') for probe in probes
-              if os.path.exists(rrd.get_rrd_filename(probe))]
+              if os.path.exists(live.get_rrd_filename(probe))]
+    metrics = ['energy','network']
+    print 'Zip', probes
     if len(probes) == 1:
         probe = probes[0]
-        rrd_file = rrd.get_rrd_filename(probe)
+        rrd_file = live.get_rrd_filename(probe)
         zip_file.write(rrd_file, '/rrd/' + probe + '.rrd')
         for scale in ['minute', 'hour', 'day', 'week', 'month', 'year']:
-            png_file = rrd.build_graph(int(time.time()) - flask.request.scales[scale][0]['interval'], int(time.time()), probe, False)
-            zip_file.write(png_file, '/png/' + probe + '-' + scale + '.png')
+            for metric in metrics:
+                png_file = live.build_graph(metric,
+                                        int(time.time()) - flask.request.scales[scale][0]['interval'],
+                                        int(time.time()),
+                                        probe,
+                                        False)
+                zip_file.write(png_file, '/png/'+ metric + '/' + probe + '-' + scale + '.png')
     elif len(probes) > 1:
         for probe in probes:
-            rrd_file = rrd.get_rrd_filename(probe)
+            rrd_file = live.get_rrd_filename(probe)
             zip_file.write(rrd_file, '/rrd/' + probe + '.rrd')
             for scale in ['minute', 'hour', 'day', 'week', 'month', 'year']:
-                png_file = rrd.build_graph(int(time.time()) - flask.request.scales[scale][0]['interval'], int(time.time()), probe, False)
-                zip_file.write(png_file, '/png/' + probe + '/' + scale + '.png')
+                for metric in metrics:
+                    png_file = live.build_graph(metric,
+                                            int(time.time()) - flask.request.scales[scale][0]['interval'],
+                                            int(time.time()),
+                                            probe,
+                                            False)
+                    zip_file.write(png_file, '/png/'+metric + '/' + probe + '/' + scale + '.png')
+        # Separate energy and network
         for scale in ['minute', 'hour', 'day', 'week', 'month', 'year']:
-            png_file = rrd.build_graph(int(time.time()) - flask.request.scales[scale][0]['interval'], int(time.time()), probes, True)
-            zip_file.write(png_file, '/png/summary-' + scale + '.png')
+            png_file_energy = live.build_graph('energy',
+                                               int(time.time()) - flask.request.scales[scale][0]['interval'],
+                                               int(time.time()),
+                                               probes,
+                                               True)
+            zip_file.write(png_file_energy, '/png/summary-energy-' + scale + '.png')
+            png_file_network = live.build_graph('network',
+                                                int(time.time()) - flask.request.scales[scale][0]['interval'],
+                                                int(time.time()),
+                                                probes,
+                                                True)
+            zip_file.write(png_file_network, '/png/summary-network-' + scale + '.png')
     else:
         flask.abort(404)
     return flask.send_file(tmp_file,
@@ -152,8 +178,8 @@ def send_zip():
                            conditional=True)
 
 
-@blueprint.route('/summary-graph/<start>/<end>/')
-def send_summary_graph(start, end):
+@blueprint.route('/<metric>/summary-graph/<start>/<end>/')
+def send_summary_graph(metric,start, end):
     """Sends summary graph."""
     probes = flask.request.args.get('probes')
     if probes:
@@ -166,10 +192,12 @@ def send_summary_graph(start, end):
         probes = list(flask.request.probes)
     start = start.encode('utf-8')
     end = end.encode('utf-8')
-    png_file = rrd.build_graph(int(start), int(end), probes, True)
+    png_file = live.build_graph(metric, int(start), int(end), probes, True)
+    if not png_file:
+        flask.abort(404)
     tmp_file = tempfile.NamedTemporaryFile()
     shutil.copy2(png_file, tmp_file.name)
-    if not png_file.endswith('summary.png'):
+    if not png_file.endswith('summary-'+metric+'.png'):
         os.unlink(png_file)
     try:
         return flask.send_file(tmp_file,
@@ -180,13 +208,15 @@ def send_summary_graph(start, end):
         flask.abort(404)
 
 
-@blueprint.route('/graph/<probe>/<start>/<end>/')
-def send_probe_graph(probe, start, end):
+@blueprint.route('/<metric>/graph/<probe>/<start>/<end>/')
+def send_probe_graph(metric, probe, start, end):
     """Sends graph."""
     probe = probe.encode('utf-8')
     start = start.encode('utf-8')
     end = end.encode('utf-8')
-    png_file = rrd.build_graph(int(start), int(end), probe, False)
+    png_file = live.build_graph(metric, int(start), int(end), probe, False)
+    if not png_file:
+        flask.abort(404)
     try:
         return flask.send_file(png_file, cache_timeout=0, conditional=True)
     except:

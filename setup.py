@@ -15,12 +15,13 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+
 import setuptools
 
 setuptools.setup(
 
     name='kwapi-g5k',
-    version='0.1',
+    version='0.1-1',
 
     description='Grid5000 Energy Framework',
 
@@ -43,34 +44,39 @@ setuptools.setup(
     ],
 
     packages=setuptools.find_packages(),
-    package_data={'kwapi.plugins.rrd': ['templates/*', 'static/*.css', 'static/*.png', 'static/*.jpg', 'static/*.js', 'static/select2/*']},
+    package_data={'kwapi.plugins.live': ['templates/*', 'static/*.css', 'static/*.png', 'static/*.jpg', 'static/*.js', 'static/select2/*'],
+                  'kwapi.plugins.rrd':  ['templates/*', 'static/*.css', 'static/*.png', 'static/*.jpg', 'static/*.js', 'static/select2/*']},
 
-    scripts=['bin/kwapi-g5k-conf'],
+    scripts=['bin/kwapi-g5k-conf', 'bin/kwapi-g5k-conf-net', 'bin/kwapi-g5k-conf-topo'],
 
     data_files=[('/etc/kwapi', ['etc/kwapi/api.conf',
                                 'etc/kwapi/drivers.conf',
                                 'etc/kwapi/rrd.conf',
                                 'etc/kwapi/forwarder.conf',
                                 'etc/kwapi/daemon.conf',
-                                'etc/kwapi/hdf5.conf']),
+                                'etc/kwapi/hdf5.conf',
+                                'etc/kwapi/live.conf']),
                 ('/etc/init.d', ['etc/init/kwapi'])],
 
     install_requires=['flask',
                       'pyserial',
                       'pyzmq',
-                      'python-rrdtool',
+                      'py_rrdtool',
                       'execo',
                       'numpy',
                       'pandas',
                       'tables',
-                      'numexpr'],
+                      'numexpr',
+                      'httplib2',
+                      'pysnmp'],
     entry_points={
         'console_scripts': [
             'kwapi-api = kwapi.plugins.api.app:start',
             'kwapi-drivers = kwapi.drivers.driver_manager:start',
             'kwapi-forwarder = kwapi.forwarder:start',
             'kwapi-rrd = kwapi.plugins.rrd.app:start',
-            'kwapi-hdf5 = kwapi.plugins.hdf5.app:start',]
+            'kwapi-hdf5 = kwapi.plugins.hdf5.app:start',
+            'kwapi-live = kwapi.plugins.live.app:start']
     }
     
 )

@@ -119,7 +119,10 @@ def check_drivers_alive():
 def start_zmq_server():
     """Binds the sockets."""
     context = zmq.Context.instance()
-    context.set(zmq.MAX_SOCKETS, 100000)
+    if zmq.zmq_version_info() < (3,):
+        LOG.warning("Please update pyzmq version to have MAX_SOCKETS improvements.")
+    else:
+        context.set(zmq.MAX_SOCKETS, 100000)
     frontend = context.socket(zmq.XPUB)
     frontend.bind(cfg.CONF.probes_endpoint)
     backend = context.socket(zmq.XSUB)
