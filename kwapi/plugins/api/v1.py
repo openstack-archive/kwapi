@@ -31,10 +31,13 @@ def welcome():
 def list_probes_ids():
     """Returns all known probes IDs."""
     message = {}
-    message['probe_ids'] = map(lambda x: x.split('.')[1], 
+    try:
+        message['probe_ids'] = map(lambda x: x.split('.')[1], 
                                flask.request.collector.database.keys())
-    response = flask.jsonify(message)
-    response.headers.add('Access-Control-Allow-Origin', '*')
+        response = flask.jsonify(message)
+        response.headers.add('Access-Control-Allow-Origin', '*')
+    except:
+        flask.abort(404)
     return response
 
 

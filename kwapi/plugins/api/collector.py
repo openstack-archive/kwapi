@@ -89,22 +89,30 @@ class Collector:
         self.database = {}
         self.lock = threading.Lock()
 
-    def add(self, probe, name, timestamp, measure, params):
+    def add(self, probe, data_type, timestamp, measure, params):
         """Creates (or updates) consumption data for this probe."""
         self.lock.acquire()
-        if probe in self.database.keys():
-            self.database[probe].add(timestamp, measure, params)
-        else:
-            record = Record(timestamp=timestamp, measure=measure, data_type=name, \
-                            params=params, integrated=0.0)
-            self.database[probe] = record
-        self.lock.release()
+        try:
+            if data_type not in self.database.keys():
+                self.database[data_type] = {}
+            if probe in self.database[data_type].keys():
+                self.database[data_type][probe].add(timestamp, measure, params)
+            else:
+                record = Record(timestamp=timestamp, measure=measure, data_type=data_type, \
+                                params=params, integrated=0.0)
+                self.database[data_type][probe] = record
+        except:
+            LOG.error("Fail to add %s datas" % probe)
+        finally:
+            self.lock.release()
 
     def remove(self, probe):
         """Removes this probe from database."""
         self.lock.acquire()
         try:
-            del self.database[probe]
+            for data_type in self.database.keys():
+                if probe in self.database[data_type].keys():
+                    del self.database[data_type][probe]
             return True
         except KeyError:
             return False
@@ -119,12 +127,12 @@ class Collector:
         """
         LOG.info('Cleaning collector')
         # Cleaning
-        for probe in self.database.keys():
-            if time.time() - self.database[probe]['timestamp'] > \
-                    cfg.CONF.cleaning_interval:
-                LOG.info('Removing data of probe %s' % probe)
-                self.remove(probe)
-
+        for data_type in self.database.keys():
+            for probe in self.database[data_type].keys():
+                if time.time() - self.database[data_type][probe]['timestamp'] > \
+                            cfg.CONF.cleaning_interval:
+                    LOG.info('Removing data of probe %s' % probe)
+                    self.remove(probe)
         # Schedule periodic execution of this function
         if cfg.CONF.cleaning_interval > 0:
             timer = threading.Timer(cfg.CONF.cleaning_interval, self.clean)
