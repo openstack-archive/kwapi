@@ -192,7 +192,8 @@
 
             $(function() {
                 $('#zip').click(function(){
-                    $(this).attr('href', "{{ url_for('v1.send_zip') }}?probes=" + $('select').select2('val'));
+                    //$(this).attr('href', "{{ url_for('v1.send_zip') }}?probes=" + $('select').select2('val'));
+                    alert("Service not available.");
                 });
             });
 
@@ -327,7 +328,7 @@
                     <input type="text" id="job-field"/><button type="button" id="job-button">Job</button>
                     <button type="button" id="select-all">All</button>
                     <button type="button" id="deselect-all">Clear</button>
-                    <a style="float:right; margin-top:10px" id="zip" href="{{ url_for('v1.send_zip') }}">Download all probes RRD</a>
+                    <!-- <a style="float:right; margin-top:10px" id="zip" href="{{ url_for('v1.send_zip') }}">Download all probes RRD</a> -->
                     <div id="probes"></div>
                     <div id="probes-not-found" style="display:none">Probes not found:
                         <ul id="not-found"></ul>
@@ -338,7 +339,7 @@
 
             <!-- Probe view (all scales for one probe) -->
             {% elif view == 'probe' %}
-                <h2>{{ probe }} <a style="float:right" href="{{ url_for('v1.send_zip') }}?probes={{ probe }}">Download RRD</a></h2>
+                <h2>{{ probe }} <!-- <a style="float:right" href="{{ url_for('v1.send_zip') }}?probes={{ probe }}">Download RRD</a> --></h2>
                 {% for scale in scales %}
                     <img class="graph" src="{{ url_for('v1.send_probe_graph', metric=metric, probe=probe, start=scales[scale]['start'], end=scales[scale]['end'])}}" alt="Graph {{ probe }}" onerror="this.src='http://goo.gl/lZ17rQ'"/>
                 {% endfor %}
