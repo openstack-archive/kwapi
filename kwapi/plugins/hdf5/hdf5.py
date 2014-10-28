@@ -55,7 +55,8 @@ def get_probe_path(probe, data_type):
             cluster = get_host_cluster(host.split("_")[1])
         if not cluster:
             cluster = 'network_equipment'
-    return "/%s/%s/%s/%s" % (site, data_type.replace('.', '_'), cluster, host.replace('_', "__").replace('-','_'))
+    return "/%s/%s/%s/%s" % (site, data_type.replace('.', '_'), cluster, \
+            host.replace('_', "__").replace('-','_'))
 
 def get_probes_list(data_type):
     hostname = socket.getfqdn().split('.')
@@ -71,12 +72,14 @@ def get_probes_list(data_type):
                 if data_type == probe_data_type:
                     if data_type == 'power':
                         # /site/power/cluster/host => host.site.grid5000.fr
-                        probes.append("%s.%s.grid5000.fr" % (host.replace('_','-'), site))
+                        probes.append("%s.%s.grid5000.fr" \
+                                      % (host.replace('_','-'), site))
                     else:
                         # /site/energy/cluster|network_equipment/source-host_dest-host
                         # => host-source.site.grid5000.fr
-                        host_source = host.split("__")[0]
-                        probes.append("%s.%s.grid5000.fr" % (host_source.replace('_','-'), site))
+                        host_source = host.split("__")[1]
+                        probes.append("%s.%s.grid5000.fr" \
+                                      % (host_source.replace('_','-'), site))
             except:
                 LOG.error("Can't parse %s" % k) 
         store.close()
@@ -87,6 +90,7 @@ def get_probes_list(data_type):
     return probes
 
 def get_hdf5_file():
+    """ Split in one file per month"""
     return cfg.CONF.hdf5_dir + '/' + str(date.today().year)  + \
                                '_' + str(date.today().month) + '_store.h5'
 

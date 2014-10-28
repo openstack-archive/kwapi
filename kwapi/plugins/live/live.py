@@ -103,7 +103,6 @@ probes_set = set(topo_g5k.keys())
 probe_colors = {}
 lock = Lock()
 
-print probes_set, multi_probes_set
 
 def create_dirs():
     """Creates all required directories."""
@@ -122,10 +121,13 @@ def create_dirs():
         except OSError as exception:
             if exception.errno != errno.EEXIST:
                 raise
+
+
+def create_color_gen():
+    """Creates colors generator"""
     color_seq = color_generator(len(multi_probes_set)+1)
     for probe in sorted(multi_probes_set, reverse=True):
         probe_colors[probe] = color_seq.next()
-
 
 
 def get_png_filename(scale, probe):
@@ -181,6 +183,7 @@ def color_generator(nb_colors, hue=None):
         i += step
         if step == 0:
             break
+
 
 def find_multi_probe(probe):
     """Input: nancy.griffon-1"""
@@ -334,6 +337,7 @@ def build_graph_energy(start, end, probes, summary):
     LOG.info('Build PNG graph')
     rrdtool.graph(args)
     return png_file
+
 
 def build_graph_network(start, end, probes, summary):
     """Builds the graph for the probes, or a summary graph."""

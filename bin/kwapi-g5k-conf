@@ -12,7 +12,8 @@ from execo_g5k import get_site_clusters, get_cluster_hosts, get_host_attributes,
 
 
 _community = 'public'
-_protocol = '2c'
+_protocol_power = '1'
+_protocol_network = '2c'
 
 # Determining site
 site = getfqdn().split('.')[1]
@@ -33,7 +34,7 @@ for pdu in get_resource_attributes('/sites/'+site+'/pdus/')['items']:
                     else:
                         oid = sensor['power']['snmp']['total_oids'][0][0:-2]
                     equips[pdu['uid']] = {'driver': 'Snmp', 'parameters':
-                        {'community': _community, 'protocol': _protocol,
+                        {'community': _community, 'protocol': _protocol_power,
                          'ip': pdu['uid'] + '.' + site + '.grid5000.fr',
                          'oid': oid }, 'mapping': [], 'probes': []}
                 if 'wattmetre' in sensor['power']:
@@ -201,7 +202,7 @@ for switch, probes in network_probes.iteritems():
     sec += "]\n"
     sec += "driver = Snmp\n"
     sec += "data_type = {'name':'network_out', 'type':'Cumulative', 'unit':'B'}\n"
-    sec += "parameters = {'protocol': '"+_protocol+"', 'community': 'public', 'ip': '"+switch+"."+site+".grid5000.fr', 'oid': '"+OID_IN+"'}\n"
+    sec += "parameters = {'protocol': '"+_protocol_network+"', 'community': 'public', 'ip': '"+switch+"."+site+".grid5000.fr', 'oid': '"+OID_IN+"'}\n"
     f.write(sec)
     sec = "\n[%s-OUT]\n" % switch
     sec += "probes = ["
@@ -214,7 +215,7 @@ for switch, probes in network_probes.iteritems():
     sec += "]\n"
     sec += "driver = Snmp\n"
     sec += "data_type = {'name':'network_in', 'type':'Cumulative', 'unit':'B'}\n"
-    sec += "parameters = {'protocol': '"+_protocol+"', 'community': 'public', 'ip': '"+switch+"."+site+".grid5000.fr', 'oid': '"+OID_OUT+"'}\n"
+    sec += "parameters = {'protocol': '"+_protocol_network+"', 'community': 'public', 'ip': '"+switch+"."+site+".grid5000.fr', 'oid': '"+OID_OUT+"'}\n"
     f.write(sec)
 f.close()
 f = open('/tmp/kwapi-live-list.conf', 'w')

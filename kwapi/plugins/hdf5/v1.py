@@ -48,7 +48,7 @@ def welcome_type(metric):
     headers = flask.request.headers
     hostname = socket.getfqdn().split('.')
     site = hostname[1] if len(hostname) >= 2 else hostname[0]
-    message = {'step': 1, 'available_on': get_probes_list(metric), "type": "metric",
+    message = {'step': 1, 'available_on': get_probes_list(metric), "type": metric,
                "links": [
             {
               "rel": "self",
@@ -139,7 +139,6 @@ def retrieve_measurements(metric):
         LOG.info(','.join(probes))
         for probe in probes:
             path = get_probe_path(probe, metric)
-            print path
             if path:
                 message['items'].append({"uid": probe.split('.')[1],
                             "to": int(end_time),

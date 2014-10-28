@@ -60,10 +60,8 @@ def load_all_drivers():
             if 'parameters' in entries.keys():
                 kwargs = ast.literal_eval(entries['parameters'][0])
             lock.acquire()
-            driver_thread = load_driver(class_name, 
-					probe_ids,
-					probe_data_type,
-					kwargs)
+            driver_thread = load_driver(class_name, probe_ids, 
+                                        probe_data_type, kwargs)
             if driver_thread is not None:
                 threads.append(driver_thread)
             lock.release()
@@ -119,10 +117,7 @@ def check_drivers_alive():
 def start_zmq_server():
     """Binds the sockets."""
     context = zmq.Context.instance()
-    if zmq.zmq_version_info() < (3,):
-        LOG.warning("Please update pyzmq version to have MAX_SOCKETS improvements.")
-    else:
-        context.set(zmq.MAX_SOCKETS, 100000)
+    context.set(zmq.MAX_SOCKETS, 100000)
     frontend = context.socket(zmq.XPUB)
     frontend.bind(cfg.CONF.probes_endpoint)
     backend = context.socket(zmq.XSUB)

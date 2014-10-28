@@ -95,6 +95,7 @@ def make_app():
 
     thread.start_new_thread(listen, (live.update_probe,))
     live.create_dirs()
+    live.create_color_gen()
 
     hostname = socket.getfqdn().split('.')
     hostname = hostname[1] if len(hostname) >= 2 else hostname[0]
@@ -102,7 +103,6 @@ def make_app():
     @app.before_request
     def attach_config():
         flask.request.hostname = hostname
-        #TODO: choose energy or network
         flask.request.probes = live.probes_set
         flask.request.scales = live.scales
     return app

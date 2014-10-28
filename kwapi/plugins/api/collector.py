@@ -58,7 +58,6 @@ class Record(dict):
         if self['type'] != 'Gauge':
             # No integrated value
             self['value'] = measure
-            #self['integrated'] = None
         else:
             self['integrated'] = integrated
             self['value'] = measure
@@ -68,7 +67,7 @@ class Record(dict):
         """Updates fields with consumption data."""
         currentTime = timestamp 
         if self['type'] != 'Gauge':
-            # self['integrated'] = None
+            # No integrated value
             self['value'] = measure
         else:
             self['integrated'] += (currentTime - self['timestamp']) / 3600.0 * \
@@ -98,8 +97,8 @@ class Collector:
             if probe in self.database[data_type].keys():
                 self.database[data_type][probe].add(timestamp, measure, params)
             else:
-                record = Record(timestamp=timestamp, measure=measure, data_type=data_type, \
-                                params=params, integrated=0.0)
+                record = Record(timestamp=timestamp, measure=measure, \
+                         data_type=data_type, params=params, integrated=0.0)
                 self.database[data_type][probe] = record
         except:
             LOG.error("Fail to add %s datas" % probe)
