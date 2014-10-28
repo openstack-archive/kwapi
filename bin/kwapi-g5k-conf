@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # This file is part of kwapi-g5k
-# 
+#
 # It allows to configure automatically the probes using the reference API
 #
 
@@ -32,17 +32,56 @@ for pdu in get_resource_attributes('/sites/'+site+'/pdus/')['items']:
                         oid = sensor['power']['snmp']['outlet_prefix_oid']
                     else:
                         oid = sensor['power']['snmp']['total_oids'][0][0:-2]
-                    equips[pdu['uid']] = {'driver': 'Snmp', 'parameters': 
+                    equips[pdu['uid']] = {'driver': 'Snmp', 'parameters':
                         {'community': _community, 'protocol': _protocol,
                          'ip': pdu['uid'] + '.' + site + '.grid5000.fr',
                          'oid': oid }, 'mapping': [], 'probes': []}
                 if 'wattmetre' in sensor['power']:
-                    equips[pdu['uid']] = {'driver': 'Json_url', 'parameters': 
+                    equips[pdu['uid']] = {'driver': 'Json_url', 'parameters':
                         {'url': sensor['power']['wattmetre']['www']['url']},
                                         'probes': []}
 
-#pprint(equips)                            
-       
+logger.info('Retrieving network equipments information')
+switchs = {}
+for network_equipment in get_resource_attributes('/sites/'+site+'/network_equipments/')['items']:
+    if network_equipment.has_key('type'):
+        if network_equipment['type'] == 'network_equipment':
+            if network_equipment.has_key('uid'):
+                switch = network_equipment['uid']
+                l = -1
+                if network_equipment.has_key('linecards'):
+                    for linecard in network_equipment['linecards']:
+                        l+=1
+                        snmp_pattern = None
+                        if linecard.has_key('snmp_pattern'):
+                            snmp_pattern = linecard['snmp_pattern']
+                        else:
+                            logger.warn("No snmp_pattern for %s: %s" % (switch, l))
+                            continue
+                        p = -1
+                        if linecard.has_key('ports'):
+                            ports = linecard['ports']
+                            for port in ports:
+                                p+=1
+                                uid = None
+                                device_port = ""
+                                if port.has_key('uid'):
+                                    uid = port['uid']
+                                    if port.has_key('port'):
+                                        device_port = '-' + port['port']
+                                try:
+                                    device = uid + device_port if uid else None
+                                    #switch_port = snmp_pattern.replace('%LINECARD%', str(l)).replace('%PORT%', str(p))
+                                    #if uid:
+                                    if switchs.has_key(switch):
+                                        switchs[switch].append(device)
+                                    else:
+                                        switchs[switch] = [device]
+                                except:
+                                    logger.error("Can't write %s:%s:%d:%d:%s" % (switch, snmp_pattern, l, p, uid))
+#pprint(switchs)
+#pprint(equips)
+
 logger.info('Retrieving hosts plug mapping')
 for cluster in get_site_clusters(site):
     nodes = get_resource_attributes('/sites/' + site + '/clusters/' + cluster + \
@@ -52,12 +91,12 @@ for cluster in get_site_clusters(site):
             print node['uid']
             continue
         power = node['sensors']['power']
-        
+
         if power['available']:
-            if 'pdu' in power['via']:               
-                if isinstance(power['via']['pdu'], list): 
+            if 'pdu' in power['via']:
+                if isinstance(power['via']['pdu'], list):
                     for pdu in power['via']['pdu']:
-                        if 'port' in pdu:     
+                        if 'port' in pdu:
                             equips[pdu['uid'].split('.')[0]]['mapping'].append((node['uid'], pdu['port']))
                         else:
                             if isinstance(pdu, list):
@@ -70,22 +109,22 @@ for cluster in get_site_clusters(site):
                 else:
                     pdu = power['via']['pdu']
                     if 'port' in pdu:
-                        logger.warning('node ' + node['uid'] + ' has str instead of list for power[\'via\']')     
+                        logger.warning('node ' + node['uid'] + ' has str instead of list for power[\'via\']')
                         equips[pdu['uid'].split('.')[0]]['mapping'].append((node['uid'], pdu['port']))
                     else:
                         equips[pdu['uid'].split('.')[0]]['mapping'].append((node['uid'], 0))
             if 'www' in power['via']:
-                if not 'per_outlets' in power or power['per_outlets']:  
+                if not 'per_outlets' in power or power['per_outlets']:
                     equips[pdu['uid']]['probes'].append(node['uid'])
 
 
-#pprint(equips)    
-logger.info('Generating probe list for Snmp drivers') 
+#pprint(equips)
+logger.info('Generating probe list for Snmp drivers')
 for equip in equips.itervalues():
     if 'mapping' in equip and len(equip['mapping']) > 0:
         if len(filter(lambda x: x[1] != 0, equip['mapping'])) > 0:
             equip['mapping'] = sorted(equip['mapping'], key=lambda x: x[1])
-            equip['probes'] = [None] * equip['mapping'][-1][1]        
+            equip['probes'] = [None] * equip['mapping'][-1][1]
             for probe, outlet in equip['mapping']:
                 equip['probes'][outlet-1] = probe
         else:
@@ -93,6 +132,40 @@ for equip in equips.itervalues():
             radicals = map(lambda x: int(x[0].split('-')[1]), equip['mapping'])
             equip['probes'].append(cluster + '-' + '-'.join(map(str, sorted(radicals))))
 
+network_probes = {}
+topo = {}
+for switch in switchs:
+    #Exclude some switchs
+    if switch.endswith("ib") or switch in ["", None, "sgrelon1"]:
+        logger.warn("Ignore switch: %s" % switch)
+    else:
+        switch_addr = "%s.%s" % (site, switch)
+        probesIN = []
+        probesOUT = []
+        topo[switch_addr] = []
+        for node in switchs[switch]:
+            if node:
+                topo[switch_addr].append("%s.%s" % (site, node))
+                probesIN.append("%s.%s_%s" % (site, switch, node))
+                probesOUT.append("%s.%s_%s" % (site, node, switch))
+            else:
+                probesIN.append(None)
+                probesOUT.append(None)
+        #Erase last None values
+        while not probesIN[-1]:
+            probesIN.pop()
+        while not probesOUT[-1]:
+            probesOUT.pop()
+        if len(probesIN) == 0 or len(probesOUT) == 0:
+            logger.warn("No probes on switch %s" % switch)
+            continue
+        else:
+            network_probes[switch] = {'in':probesIN[1:],
+                                      'out':probesOUT[1:],}
+
+# pprint(topo)
+# pprint(equips)
+# pprint(network_probes)
 logger.info('Writing new configuration file')
 powerProbes = []
 f = open('/tmp/kwapi-drivers-list.conf', 'w')
@@ -113,9 +186,43 @@ for equip, data in equips.iteritems():
         sec += "parameters = "+str(data['parameters']) + "\n"
         f.write(sec)
 
+OID_IN  = "1.3.6.1.2.1.31.1.1.1.6"
+OID_OUT = "1.3.6.1.2.1.31.1.1.1.10"
+
+for switch, probes in network_probes.iteritems():
+    sec = "\n[%s-IN]\n" % switch
+    sec += "probes = ["
+    for probe in probes['in']:
+        if probe:
+            sec += "'" + probe + "'"
+        else:
+            sec += str(None)
+        sec += ", "
+    sec += "]\n"
+    sec += "driver = Snmp\n"
+    sec += "data_type = {'name':'network_out', 'type':'Cumulative', 'unit':'B'}\n"
+    sec += "parameters = {'protocol': '"+_protocol+"', 'community': 'public', 'ip': '"+switch+"."+site+".grid5000.fr', 'oid': '"+OID_IN+"'}\n"
+    f.write(sec)
+    sec = "\n[%s-OUT]\n" % switch
+    sec += "probes = ["
+    for probe in probes['out']:
+        if probe:
+            sec += "'" + probe + "'"
+        else:
+            sec += str(None)
+        sec += ", "
+    sec += "]\n"
+    sec += "driver = Snmp\n"
+    sec += "data_type = {'name':'network_in', 'type':'Cumulative', 'unit':'B'}\n"
+    sec += "parameters = {'protocol': '"+_protocol+"', 'community': 'public', 'ip': '"+switch+"."+site+".grid5000.fr', 'oid': '"+OID_OUT+"'}\n"
+    f.write(sec)
 f.close()
 f = open('/tmp/kwapi-live-list.conf', 'w')
-f.write("powerProbes = %s" % powerProbes)
+f.write("\n[TOPO]\n")
+f.write("topo=")
+f.write(str(topo))
+f.flush()
+f.write("\npowerProbes = %s" % powerProbes)
 f.close()
 
 logger.info('Adding drivers from API to /etc/kwapi/drivers.conf')
@@ -126,6 +233,7 @@ cat_conf = Process('cat /tmp/kwapi-drivers-list.conf >> /etc/kwapi/drivers.conf 
 cat_conf.shell = True
 cat_conf.run()
 logger.info('Adding probe-list from API to /etc/kwapi/live.conf')
+logger.info('Adding topology to /etc/kwapi/live.conf')
 bak_conf = Process('[ -f /etc/kwapi/live.conf.orig ] && cp /etc/kwapi/live.conf.orig /etc/kwapi/live.conf || cp /etc/kwapi/live.conf /etc/kwapi/live.conf.orig')
 bak_conf.shell = True
 bak_conf.run()
@@ -134,3 +242,4 @@ cat_conf.shell = True
 cat_conf.run()
 
 logger.info('Done')
+
