@@ -16,6 +16,7 @@
 
 import serial
 from serial.serialutil import SerialException
+import time
 
 from driver import Driver
 
@@ -23,7 +24,7 @@ from driver import Driver
 class Wattsup(Driver):
     """Driver for Wattsup wattmeters."""
 
-    def __init__(self, probe_ids, **kwargs):
+    def __init__(self, probe_ids, data_type, **kwargs):
         """Initializes the Wattsup driver.
 
         Keyword arguments:
@@ -32,7 +33,7 @@ class Wattsup(Driver):
         kwargs -- keyword (device) defining the device to read (/dev/ttyUSB0)
 
         """
-        Driver.__init__(self, probe_ids, kwargs)
+        Driver.__init__(self, probe_ids, data_type, kwargs)
 
     def run(self):
         """Starts the driver thread."""
@@ -52,14 +53,16 @@ class Wattsup(Driver):
         self.serial.write('#L,W,3,E,1,1;')
         self.serial.read(256)
         # Take measurements
-        measurements = {}
         while not self.stop_request_pending():
             try:
                 packet = self.get_packet()
             except SerialException:
                 self.serial.close()
                 self.stop()
-            measurements['w'] = self.extract_watts(packet)
+            measure_time = time.time()
+            measurements = self.create_measurements(self.probe_ids[0],
+                                                    measure_time,
+                                                    self.extract_watts(packet))
             self.send_measurements(self.probe_ids[0], measurements)
 
     def get_packet(self):

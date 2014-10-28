@@ -54,8 +54,9 @@ class Driver(Thread):
         self.publisher.connect('inproc://drivers')
 
     def run(self):
-        """Runs the driver thread. Needs to be implemented in a derived
-        class.
+        """
+        Runs the driver thread. 
+        Needs to be implemented in a derived class.
 
         """
         raise NotImplementedError

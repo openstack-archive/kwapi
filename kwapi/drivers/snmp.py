@@ -100,7 +100,9 @@ class Snmp(Driver):
 
         if errorIndication:
             LOG.error(errorIndication)
-            LOG.error("Request: %s\t%s\t%s\t%s" % (self.kwargs.get('user'),self.kwargs.get('ip'), self.kwargs.get('oid'), self.probe_ids[0]))
+            LOG.error("Request: %s\t%s\t%s\t%s" 
+                      % (self.kwargs.get('user'), self.kwargs.get('ip'),
+                         self.kwargs.get('oid'), self.probe_ids[0]))
             return None
         else:
             if errorStatus:
