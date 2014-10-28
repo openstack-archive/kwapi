@@ -53,10 +53,17 @@ def listen(function):
         else:
             try:
                 probe = measurements['probe_id'].encode('utf-8')
-                function(probe, float(measurements['w']))
+                # params = {'name':'switch.port.receive.bytes',
+                #           'type':'Cummulative',
+                #           'unit':'B'}
+                params = measurements['data_type']
+                name = params['name']
+                timestamp = measurements['timestamp']
+                measure = measurements['measure']
+                function(probe, name, timestamp, measure, params)
             except (TypeError, ValueError):
                 raise
-                LOG.error('Malformed power consumption data: %s'
-                          % measurements['w'])
+                LOG.error('Malformed data: %s' % measurements)
             except KeyError:
                 LOG.error('Malformed message (missing required key)')
+

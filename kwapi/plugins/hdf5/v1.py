@@ -22,7 +22,7 @@ import socket
 from execo_g5k import get_resource_attributes
 from kwapi.utils import cfg, log
 from pandas import read_hdf
-from hdf5 import get_probe_path, get_probes_list
+from hdf5 import get_probe_path, get_probes_list, get_hdf5_file, lock
 
 LOG = log.getLogger(__name__)
 
@@ -38,23 +38,28 @@ blueprint = flask.Blueprint('v1', __name__)
 
 @blueprint.route('/')
 def welcome():
+    return flask.redirect(flask.url_for('v1.welcome_type',
+                                        metric='power'))
+
+@blueprint.route('/<metric>/')
+def welcome_type(metric):
     """Returns detailed information about this specific version of the API."""
 
     headers = flask.request.headers
     hostname = socket.getfqdn().split('.')
     site = hostname[1] if len(hostname) >= 2 else hostname[0]
-    message = {'step': 1, 'available_on': get_probes_list(), "type": "metric",
+    message = {'step': 1, 'available_on': get_probes_list(metric), "type": "metric",
                "links": [
             {
               "rel": "self",
               "type": "application/vnd.fr.grid5000.api.Metric+json;level=1",
               "href": _get_api_path(headers) + "/sites/" + site
-              + "/power"
+              + "/" + metric
            },
            {
               "title": "timeseries",
               "href": _get_api_path(headers) + "/sites/" + site
-              + "/power/timeseries",
+              + "/" + metric + "/timeseries",
               "type": "application/vnd.fr.grid5000.api.Collection+json;level=1",
               "rel": "collection"
            },
@@ -92,8 +97,8 @@ def _get_api_path(headers):
 #     return response
 
 
-@blueprint.route('/timeseries/')
-def retrieve_measurements():
+@blueprint.route('/<metric>/timeseries/')
+def retrieve_measurements(metric):
     """Returns measurements."""
     headers = flask.request.headers
     hostname = socket.getfqdn().split('.')
@@ -119,12 +124,12 @@ def retrieve_measurements():
         message = {'total': len(probes), 'offset': 0, 'links': [
               {
                  "rel": "self",
-                 "href": _get_api_path(headers) + site + "/metrics/power",
+                 "href": _get_api_path(headers) + site,
                  "type": "application/vnd.fr.grid5000.api.Collection+json;level=1"
               },
               {
                  "rel": "parent",
-                 "href": _get_api_path(headers) + "/sites/" + site + "/metrics/power",
+                 "href": _get_api_path(headers) + "/sites/" + site ,
                  "type": "application/vnd.fr.grid5000.api.Metric+json;level=1"
               }
            ],
@@ -133,41 +138,43 @@ def retrieve_measurements():
 
         LOG.info(','.join(probes))
         for probe in probes:
-            path = get_probe_path(probe)
+            path = get_probe_path(probe, metric)
+            print path
             if path:
                 message['items'].append({"uid": probe.split('.')[1],
                             "to": int(end_time),
                             "from": int(start_time),
                             "resolution": 1,
-                            "metric_uid": "power",
                             "type": "timeseries",
                             "values": [],
                             "timestamps": [],
                             "links": [
                     {
-                       "rel": "self",
-                       "href": _get_api_path(headers) +
-                        "/sites/" + site + "/metrics/power/timeseries/" +probe.split('.')[1],
-                       "type": "application/vnd.fr.grid5000.api.Timeseries+json;level=1"
+                        "rel": "self",
+                        "href": _get_api_path(headers) +
+                        "/sites/" + site + "/timeseries/" +probe.split('.')[1],
+                        "type": "application/vnd.fr.grid5000.api.Timeseries+json;level=1"
                     },
                     {
-                       "rel": "parent",
-                       "href": _get_api_path(headers) +
-                        "/sites/" + site + "/metrics/power",
-                       "type": "application/vnd.fr.grid5000.api.Metric+json;level=1"
+                        "rel": "parent",
+                        "href": _get_api_path(headers) +
+                        "/sites/" + site,
+                        "type": "application/vnd.fr.grid5000.api.Metric+json;level=1"
                     }
-                 ]})
+                ]})
+                lock.acquire()
                 try:
-
-                    df = read_hdf(cfg.CONF.hdf5_dir + '/store.h5',
-                        get_probe_path(probe),
-                        where=['index>=' + str(start_time),
-                               'index<=' + str(end_time)])
+                    df = read_hdf(get_hdf5_file(),
+                         path,
+                         where=['index>=' + str(start_time),
+                                'index<=' + str(end_time)])
                     for ts, mes in df.iterrows():
                         message['items'][-1]['values'].append(mes[0])
                         message['items'][-1]['timestamps'].append(ts)
                 except:
                     message['items'][-1]['values'] = ['Unknown probe']
+                finally:
+                    lock.release()
     response = flask.jsonify(message)
     response.headers.add('Access-Control-Allow-Origin', '*')
     return response

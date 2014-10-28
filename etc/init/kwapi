@@ -11,7 +11,7 @@
 
 # Author: Laurent Pouilloux, François Rossigneux
 #
-PREFIX=/usr/local/bin/
+PREFIX=/usr/bin/
 DESC="Energy monitoring service"
 NAME=kwapi
 SCRIPTNAME=/etc/init.d/kwapi

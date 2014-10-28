@@ -40,12 +40,13 @@ cfg.CONF.register_opts(driver_opts)
 class Driver(Thread):
     """Generic driver class, derived from Thread."""
 
-    def __init__(self, probe_ids, kwargs):
+    def __init__(self, probe_ids, probe_data_type, kwargs):
         """Initializes driver."""
         LOG.info('Loading driver %s(probe_ids=%s, kwargs=%s)'
                  % (self.__class__.__name__, probe_ids, kwargs))
         Thread.__init__(self)
         self.probe_ids = probe_ids
+        self.probe_data_type = probe_data_type
         self.kwargs = kwargs
         self.probe_observers = []
         self.stop_request = Event()
@@ -82,6 +83,16 @@ class Driver(Thread):
             ]
         )
 
+    def create_measurements(self, probe_id, time, metrics):
+        """Return the measure with specific fields associated"""
+	measurements = {}
+	# Add default fields
+	measurements['probe_id'] = probe_id
+	measurements['timestamp'] = time
+        measurements['measure'] = metrics
+        measurements['data_type'] = self.probe_data_type
+	return measurements
+
     def subscribe(self, observer):
         """Appends the observer (callback method) to the observers list."""
         self.probe_observers.append(observer)
@@ -89,3 +100,4 @@ class Driver(Thread):
     def stop(self):
         """Asks the probe to terminate."""
         self.terminate = True
+
