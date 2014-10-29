@@ -26,6 +26,7 @@ import zipfile
 
 from execo_g5k.api_utils import get_resource_attributes
 import flask
+from flask import flash
 from jinja2 import TemplateNotFound
 
 from kwapi.utils import cfg
@@ -55,6 +56,9 @@ def welcome():
 @blueprint.route('/<metric>/last/<scale>/')
 def welcome_scale(metric, scale):
     """Shows a specific scale of a probe."""
+    probes = flask.request.probes
+    if live.contains_multiprobes(probes) and metric == 'energy':
+        flash('Multiprobes somewhere!') 
     try:
         return flask.render_template('index.html',
                                      hostname=flask.request.hostname,
@@ -74,7 +78,9 @@ def welcome_scale(metric, scale):
 
 @blueprint.route('/<metric>/probe/<probe>/')
 def welcome_probe(metric, probe):
-    """Shows all graphs of a probe."""
+    """Shows all graphs of a probe."""                                              
+    if live.contains_multiprobes([probe]) and metric == 'energy':
+        flash("Multiprobes somewhere !")
     if probe not in flask.request.probes:
         flask.abort(404)
     try:

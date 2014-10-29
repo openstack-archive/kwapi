@@ -205,6 +205,13 @@ def find_multi_probe(probe):
                 if number in multi_pb.split('-'):
                     return multi_probe
 
+def contains_multiprobes(probes):
+    for probe in probes:
+        if(not find_multi_probe(probe) == probe):
+            LOG.info("Contain multiprobe")
+            return True
+    LOG.info("Contain no multiprobe") 
+    return False
 
 def build_graph_energy(start, end, probes, summary):
     """Builds the graph for the probes, or a summary graph."""

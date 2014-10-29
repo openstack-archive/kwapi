@@ -92,6 +92,7 @@ def make_app():
     app = flask.Flask(__name__)
     app.wsgi_app = ReverseProxied(app.wsgi_app)
     app.register_blueprint(v1.blueprint)
+    app.secret_key = 'kwapi-secret'
 
     thread.start_new_thread(listen, (live.update_probe,))
     live.create_dirs()
