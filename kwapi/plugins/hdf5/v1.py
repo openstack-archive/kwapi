@@ -138,8 +138,7 @@ def retrieve_measurements(metric):
 
         LOG.info(','.join(probes))
         for probe in probes:
-            path = get_probe_path(probe, metric)
-            print path
+            path = get_probe_path(probe)
             if path:
                 message['items'].append({"uid": probe.split('.')[1],
                             "to": int(end_time),
@@ -164,7 +163,7 @@ def retrieve_measurements(metric):
                 ]})
                 lock.acquire()
                 try:
-                    df = read_hdf(get_hdf5_file(),
+                    df = read_hdf(get_hdf5_file(metric),
                          path,
                          where=['index>=' + str(start_time),
                                 'index<=' + str(end_time)])
