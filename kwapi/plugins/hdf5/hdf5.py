@@ -35,28 +35,22 @@ cfg.CONF.register_opts(hdf5_opts)
 measurements = {}
 lock = Lock()
 
-def get_probe_path(probe, data_type):
-    # Metric in the path
-    if(data_type == 'power'):
-        # site.probe-id
-        # ex nancy.griffon-42
-        site = probe.split(".")[0]
-        host = probe.split(".")[1]
-        cluster = get_host_cluster(host)
-    else:
-        # site.source-probe-id_dest-probe-id
-        # ex nancy.griffon-42_sgriffon2
-        site = probe.split(".")[0]
-        host = probe.split(".")[1]
+def get_cluster(host):
+    if('_' in host):
         # source cluster ?
-        cluster = get_host_cluster(host.split("_")[0])
-        if not cluster:
+        cluster = get_host_cluster(host.split("_")[0])              
+        if not cluster:                                     
             # dest cluster ?
             cluster = get_host_cluster(host.split("_")[1])
-        if not cluster:
-            cluster = 'network_equipment'
-    return "/%s/%s/%s/%s" % (site, data_type.replace('.', '_'), cluster, \
-            host.replace('_', "__").replace('-','_'))
+    else:
+        cluster = get_host_cluster(host.split("_")[0])
+    return cluster if cluster else 'other'
+
+def get_probe_path(probe):
+    site = probe.split(".")[0]
+    host = probe.split(".")[1]
+    cluster = get_cluster(host)
+    return "/%s/%s/%s" % (site, cluster, host.replace('_', "__").replace('-','_'))
 
 def get_probes_list(data_type):
     hostname = socket.getfqdn().split('.')
@@ -64,22 +58,14 @@ def get_probes_list(data_type):
     probes = []
     lock.acquire()
     try:
-        store = HDFStore(get_hdf5_file())
+        store = HDFStore(get_hdf5_file(data_type))
         for k in store.keys():
             try:
-                # /site/data_type/cluster|network_equipment/host
-                _, site, probe_data_type, cluster, host = k.split("/")
-                if data_type == probe_data_type:
-                    if data_type == 'power':
-                        # /site/power/cluster/host => host.site.grid5000.fr
-                        probes.append("%s.%s.grid5000.fr" \
-                                      % (host.replace('_','-'), site))
-                    else:
-                        # /site/energy/cluster|network_equipment/source-host_dest-host
-                        # => host-source.site.grid5000.fr
-                        host_source = host.split("__")[1]
-                        probes.append("%s.%s.grid5000.fr" \
-                                      % (host_source.replace('_','-'), site))
+                # /site/cluster/host
+                _, site, cluster, host = k.split("/")
+                for probe in host.split('__'):
+                    # /site/power/cluster/host => host.site.grid5000.fr
+                    probes.append("%s.%s.grid5000.fr" % (probe.replace('_','-'), site))
             except:
                 LOG.error("Can't parse %s" % k) 
         store.close()
@@ -89,10 +75,10 @@ def get_probes_list(data_type):
         lock.release()
     return probes
 
-def get_hdf5_file():
-    """ Split in one file per month"""
+def get_hdf5_file(data_type):
     return cfg.CONF.hdf5_dir + '/' + str(date.today().year)  + \
-                               '_' + str(date.today().month) + '_store.h5'
+                               '_' + str(date.today().month) + \
+                               '_' + str(data_type) + '_store.h5'
 
 def create_dir():
     """Creates all required directories."""
@@ -118,10 +104,10 @@ def update_hdf5(probe, data_type, timestamp, metrics, params):
 
 def write_hdf5_file(probe, data_type, timestamps, measurements):
     df = DataFrame(measurements, index=timestamps)
-    path = get_probe_path(probe, data_type)
+    path = get_probe_path(probe)
     lock.acquire()
     try:
-        df.to_hdf(get_hdf5_file(), path, append = True)
+        df.to_hdf(get_hdf5_file(data_type), path, append = True)
     except:
         LOG.error('Unexpected error: %s' % sys.exc_info()[0])
     finally:
