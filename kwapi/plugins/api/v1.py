@@ -59,7 +59,8 @@ def probe_info(probe):
     site = hostname[1] if len(hostname) >= 2 else hostname[0]
     probe = site + '.' + probe
     try:
-        message[probe] = flask.request.collector.database[probe]
+        for k in flask.request.collector.database.keys():
+            message[k][probe] = flask.request.collector.database[k][probe]
     except KeyError:
         flask.abort(404)
     response = flask.jsonify(message)
@@ -74,7 +75,7 @@ def probe_value(probe, meter):
     try:
         message[probe] = \
             {
-                meter: flask.request.collector.database[probe][meter]
+                meter: flask.request.collector.database[meter][probe]
             }
     except KeyError:
         flask.abort(404)

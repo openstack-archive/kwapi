@@ -21,7 +21,7 @@ import setuptools
 setuptools.setup(
 
     name='kwapi-g5k',
-    version='0.1-1',
+    version='0.1-2',
 
     description='Grid5000 Energy Framework',
 

@@ -50,6 +50,7 @@ def make_app():
     app.register_blueprint(v1.blueprint, url_prefix='')
 
     hdf5.create_dir()
+    hdf5.init_date()
     thread.start_new_thread(listen, (hdf5.update_hdf5,))
 
     return app

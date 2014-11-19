@@ -74,7 +74,7 @@ class Snmp(Driver):
 							     measure_time,
 							     agg_value)
 		     self.send_measurements(probe, measurements)
-            time.sleep(1)
+            time.sleep(self.kwargs.get('resolution', 1))
 
     def get_metrics(self):
         """Returns the OID field."""

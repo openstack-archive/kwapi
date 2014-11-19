@@ -104,7 +104,8 @@ def make_app():
     @app.before_request
     def attach_config():
         flask.request.hostname = hostname
-        flask.request.probes = live.probes_set
+        flask.request.probes_network = live.probes_set_network
+        flask.request.probes_power = live.probes_set_power
         flask.request.scales = live.scales
     return app
 
