@@ -23,7 +23,7 @@ import flask
 from kwapi.plugins import listen
 from kwapi.utils import cfg, log
 import v1
-import hdf5
+from hdf5_collector import HDF5_Collector
 
 
 LOG = log.getLogger(__name__)
@@ -49,8 +49,20 @@ def make_app():
     app = flask.Flask(__name__)
     app.register_blueprint(v1.blueprint, url_prefix='')
 
-    hdf5.create_dir()
-    thread.start_new_thread(listen, (hdf5.update_hdf5,))
+    storePower = HDF5_Collector('power')
+    storeNetworkIn = HDF5_Collector('network_in')
+    storeNetworkOut = HDF5_Collector('network_out')
+
+    #s.create_dir()
+    thread.start_new_thread(listen, (storePower.update_hdf5,))
+    thread.start_new_thread(listen, (storeNetworkIn.update_hdf5,))
+    thread.start_new_thread(listen, (storeNetworkOut.update_hdf5,))
+
+    @app.before_request
+    def attach_config():
+        flask.request.storePower = storePower
+        flask.request.storeNetworkIn = storeNetworkIn
+        flask.request.storeNetworkOut = storeNetworkOut
 
     return app
 

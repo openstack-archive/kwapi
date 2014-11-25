@@ -22,9 +22,10 @@ import socket
 from execo_g5k import get_resource_attributes
 from kwapi.utils import cfg, log
 from pandas import read_hdf
-from hdf5 import get_probe_path, get_probes_list, get_hdf5_file, lock
+from hdf5_collector import *
 
 LOG = log.getLogger(__name__)
+metrics = ['power', 'network_in', 'network_out']
 
 web_opts = [
     cfg.StrOpt('hdf5_dir',
@@ -34,6 +35,8 @@ web_opts = [
 cfg.CONF.register_opts(web_opts)
 
 blueprint = flask.Blueprint('v1', __name__)
+hostname = socket.getfqdn().split('.')
+site = hostname[1] if len(hostname) >= 2 else hostname[0]
 
 
 @blueprint.route('/')
@@ -44,11 +47,21 @@ def welcome():
 @blueprint.route('/<metric>/')
 def welcome_type(metric):
     """Returns detailed information about this specific version of the API."""
-
+    # Needs probe list
+    if not metric in metrics:
+        return flask.abort(404)
     headers = flask.request.headers
-    hostname = socket.getfqdn().split('.')
-    site = hostname[1] if len(hostname) >= 2 else hostname[0]
-    message = {'step': 1, 'available_on': get_probes_list(metric), "type": metric,
+    try:
+        if metric == 'power':
+            probe_list = flask.request.storePower.get_probes_list()
+        elif metric == 'network_in':
+            probe_list = flask.request.storeNetworkIn.get_probes_list()
+        else :
+            probe_list = flask.request.storeNetworkOut.get_probes_list()
+    except:
+        LOG.error("fail to retrieve probe list")
+        flask.abort(404)
+    message = {'step': 1, 'available_on': probe_list, "type": metric,
                "links": [
             {
               "rel": "self",
@@ -100,6 +113,8 @@ def _get_api_path(headers):
 @blueprint.route('/<metric>/timeseries/')
 def retrieve_measurements(metric):
     """Returns measurements."""
+    if not metric in metrics:
+        flask.abort(404)
     headers = flask.request.headers
     hostname = socket.getfqdn().split('.')
     site = hostname[1] if len(hostname) >= 2 else hostname[0]
@@ -137,43 +152,41 @@ def retrieve_measurements(metric):
                 }
 
         LOG.info(','.join(probes))
-        for probe in probes:
-            path = get_probe_path(probe)
-            if path:
-                message['items'].append({"uid": probe.split('.')[1],
-                            "to": int(end_time),
-                            "from": int(start_time),
-                            "resolution": 1,
-                            "type": "timeseries",
-                            "values": [],
-                            "timestamps": [],
-                            "links": [
-                    {
-                        "rel": "self",
-                        "href": _get_api_path(headers) +
-                        "/sites/" + site + "/timeseries/" +probe.split('.')[1],
-                        "type": "application/vnd.fr.grid5000.api.Timeseries+json;level=1"
-                    },
-                    {
-                        "rel": "parent",
-                        "href": _get_api_path(headers) +
-                        "/sites/" + site,
-                        "type": "application/vnd.fr.grid5000.api.Metric+json;level=1"
-                    }
-                ]})
-                lock.acquire()
-                try:
-                    df = read_hdf(get_hdf5_file(metric),
-                         path,
-                         where=['index>=' + str(start_time),
-                                'index<=' + str(end_time)])
-                    for ts, mes in df.iterrows():
-                        message['items'][-1]['values'].append(mes[0])
-                        message['items'][-1]['timestamps'].append(ts)
-                except:
-                    message['items'][-1]['values'] = ['Unknown probe']
-                finally:
-                    lock.release()
+        store = None
+        try:
+            if metric == 'power':
+                store = flask.request.storePower
+            elif metric == 'network_in':
+                store = flask.request.storeNetworkIn
+            else :
+                store = flask.request.storeNetworkOut
+        except:
+            LOG.error("fail to retrieve store")
+            flask.abort(404)
+        items = store.select_probes_datas(probes, start_time, end_time)
+        print items
+        for item in items.values():
+            message['items'].append({"uid": item["uid"],
+                                  "to": item["to"],
+                                  "from": item["from"],
+                                  "resolution": 1,
+                                  "type": "timeseries",
+                                  "values": item["values"],
+                                  "timestamps": item.get("timestamps", None),
+                                  "links": [
+                                      {
+                                          "rel": "self",
+                                          "href": _get_api_path(headers) +
+                                          "/sites/" + site + "/timeseries/" + item["uid"],
+                                          "type": "application/vnd.fr.grid5000.api.Timeseries+json;level=1"
+                                      },
+                                      {
+                                          "rel": "parent",
+                                          "href": _get_api_path(headers) +
+                                          "/sites/" + site,
+                                          "type": "application/vnd.fr.grid5000.api.Metric+json;level=1"
+                                      }
+                                  ]})
     response = flask.jsonify(message)
     response.headers.add('Access-Control-Allow-Origin', '*')
     return response
