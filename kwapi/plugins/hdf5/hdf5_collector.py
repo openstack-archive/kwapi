@@ -120,7 +120,7 @@ class HDF5_Collector:
             return
         for probe, timestamp, metrics in iter(buffered_values[self.data_type].get, 'STOP'):
             if not probe in self.measurements:
-                self.measurements[probe] = [(timestamp,metrics)] * 100
+                self.measurements[probe] = []
             self.measurements[probe].append((timestamp, metrics))
             if len(self.measurements[probe]) >= self.chunk_size:
                 zipped = map(list, zip(*self.measurements[probe]))
