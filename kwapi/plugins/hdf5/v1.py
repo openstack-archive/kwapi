@@ -90,7 +90,6 @@ def welcome_type(metric):
               "cf": "AVERAGE"
            }]}
     response = flask.jsonify(message)
-    LOG.info(response)
     response.headers.add('Access-Control-Allow-Origin', '*')
     return response
 
@@ -151,7 +150,6 @@ def retrieve_measurements(metric):
                 "items": [],
                 }
 
-        LOG.info(','.join(probes))
         store = None
         try:
             if metric == 'power':
@@ -164,7 +162,6 @@ def retrieve_measurements(metric):
             LOG.error("fail to retrieve store")
             flask.abort(404)
         items = store.select_probes_datas(probes, start_time, end_time)
-        print items
         for item in items.values():
             message['items'].append({"uid": item["uid"],
                                   "to": item["to"],

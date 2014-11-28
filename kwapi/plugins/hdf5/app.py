@@ -16,15 +16,16 @@
 
 """Set up the HDF5 server application instance."""
 
-import sys
+import sys, signal
 import thread
+from threading import Thread
 
 import flask
 from kwapi.plugins import listen
 from kwapi.utils import cfg, log
 import v1
 from hdf5_collector import HDF5_Collector
-
+import hdf5_collector
 
 LOG = log.getLogger(__name__)
 
@@ -42,6 +43,7 @@ app_opts = [
 
 cfg.CONF.register_opts(app_opts)
 
+writters = []
 
 def make_app():
     """Instantiates Flask app, attaches collector database. """
@@ -54,9 +56,13 @@ def make_app():
     storeNetworkOut = HDF5_Collector('network_out')
 
     #s.create_dir()
-    thread.start_new_thread(listen, (storePower.update_hdf5,))
-    thread.start_new_thread(listen, (storeNetworkIn.update_hdf5,))
-    thread.start_new_thread(listen, (storeNetworkOut.update_hdf5,))
+    thread.start_new_thread(listen, (hdf5_collector.update_hdf5,))
+    writters.append(Thread(target=storePower.write_datas,name="PowerWritter"))
+    writters.append(Thread(target=storeNetworkIn.write_datas,name="NetworkInWritter"))
+    writters.append(Thread(target=storeNetworkOut.write_datas,name="NetworkOutWritter"))
+    for writter in writters:
+        writter.daemon = True
+        writter.start()
 
     @app.before_request
     def attach_config():
@@ -66,6 +72,15 @@ def make_app():
 
     return app
 
+def signal_handler(signal, frame):
+    LOG.info("FLUSH DATAS")
+    for data_type in hdf5_collector.buffered_values:
+        hdf5_collector.buffered_values[data_type].put('STOP')
+    for writter in writters:
+        writter.join()
+        LOG.info("DATA from %s FLUSHED" % writter.name)
+        writter = None
+    sys.exit(0)
 
 def start():
     """Starts Kwapi HDF5."""
@@ -73,5 +88,7 @@ def start():
              project='kwapi',
              default_config_files=['/etc/kwapi/hdf5.conf'])
     log.setup(cfg.CONF.log_file)
+    signal.signal(signal.SIGINT, signal_handler)
     root = make_app()
     root.run(host='0.0.0.0', port=cfg.CONF.hdf5_port)
+    signal.pause()

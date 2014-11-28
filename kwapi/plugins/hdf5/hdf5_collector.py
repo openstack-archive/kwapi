@@ -4,8 +4,10 @@ import socket
 from pandas import HDFStore, TimeSeries, get_store, to_datetime, read_hdf
 import numpy as np
 from kwapi.utils import cfg, log
-from datetime import date
 from threading import Lock, Timer
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
+from Queue import Queue
 
 LOG = log.getLogger(__name__)
 
@@ -25,11 +27,41 @@ hdf5_opts = [
     cfg.StrOpt('hdf5_dir',
                required=True,
                ),
+    cfg.StrOpt('hdf5_dir',
+               required=True,
+               ),
+    cfg.StrOpt('start_date',
+               required=True,
+               ),
+    cfg.IntOpt('split_days',
+               required=True,
+               ),
+    cfg.IntOpt('split_weeks',
+               required=True,
+               ),
+    cfg.IntOpt('split_months',
+               required=True,
+               ),
+    cfg.IntOpt('chunk_size',
+               required=True,
+               ),
 ]
 
 cfg.CONF.register_opts(hdf5_opts)
 hostname = socket.getfqdn().split('.')
 site = hostname[1] if len(hostname) >= 2 else hostname[0]
+# One queue per metric
+buffered_values = {
+    "power": Queue(),
+    "network_in" : Queue(),
+    "network_out": Queue(),
+}
+
+def update_hdf5(probe, data_type, timestamp, metrics, params):
+    """Updates HDF5 file associated with this probe."""
+    if not data_type in buffered_values:
+        return
+    buffered_values[data_type].put((probe, timestamp, metrics))
 
 
 def get_probe_path(probe):
@@ -46,12 +78,10 @@ class HDF5_Collector:
     def __init__(self, data_type):
         """Initializes an empty database and start listening the endpoint."""
         LOG.info('Starting Writter')
-        self.database = get_hdf5_file(data_type)
-        store = HDFStore(self.database, complevel=9, complib='blosc')
-        store.close()
         self.data_type = data_type
         self.lock = Lock()
         self.measurements = dict()
+        self.chunk_size = cfg.CONF.chunk_size
         """Creates all required directories."""
         try:
             os.makedirs(cfg.CONF.hdf5_dir)
@@ -59,33 +89,65 @@ class HDF5_Collector:
             if exception.errno != errno.EEXIST:
                 raise
 
+        """Retrieve next update date"""
+        self.save_date = datetime.strptime(cfg.CONF.start_date, "%Y/%m/%d")
+        self.delta = relativedelta(days = cfg.CONF.split_days, weeks = cfg.CONF.split_weeks,
+                            months = cfg.CONF.split_months)
+        self.next_save_date = self.save_date + self.delta
+        today = datetime.now()
+        while self.next_save_date < today:
+            self.save_date = self.next_save_date
+            self.next_save_date += self.delta
+        LOG.info("Current save date: %s" % self.save_date)
+        LOG.info("Next save date:    %s" % self.next_save_date)
+        self.database = self.get_hdf5_file()
+        store = HDFStore(self.database, complevel=9, complib='blosc')
+        store.close()
 
-    def update_hdf5(self, probe, data_type, timestamp, metrics, params):
+    def get_hdf5_file(self):
+        if self.next_save_date <= datetime.now():
+            self.save_date = self.next_save_date
+            self.next_save_date += self.delta
+        return cfg.CONF.hdf5_dir + \
+            '/%s_%s_%s' % (self.save_date.strftime("%Y_%m_%d"), self.data_type, 'store.h5')
+
+
+
+    def write_datas(self):
+        """Stores data for this probe."""
         """Updates HDF5 file associated with this probe."""
-        if not data_type == self.data_type:
+        if not self.data_type in buffered_values:
             return
-        if probe not in self.measurements:
-            self.measurements[probe] = []
-        self.measurements[probe].append((timestamp, metrics))
-        if len(self.measurements[probe]) == 10:
-            zipped = map(list, zip(*self.measurements[probe]))
-            self.write_datas(probe,
-                                data_type,
+        for probe, timestamp, metrics in iter(buffered_values[self.data_type].get, 'STOP'):
+            if not probe in self.measurements:
+                self.measurements[probe] = [(timestamp,metrics)] * 100
+            self.measurements[probe].append((timestamp, metrics))
+            if len(self.measurements[probe]) >= self.chunk_size:
+                zipped = map(list, zip(*self.measurements[probe]))
+                self.write_hdf5(probe,
                                 np.array(zipped[0]),  # Timestp
                                 np.array(zipped[1]))  # measures
+                del self.measurements[probe][:]
+            buffered_values[self.data_type].task_done()
+        # Flush datas
+        LOG.info("FLUSH DATAS... %s", self.data_type)
+        keys = self.measurements.keys()
+        for probe in keys:
+            zipped = map(list, zip(*self.measurements[probe]))
+            self.write_hdf5(probe,
+                            np.array(zipped[0]),  # Timestp
+                            np.array(zipped[1]))  # measures
             del self.measurements[probe]
+        buffered_values[self.data_type].task_done()
 
 
-    def write_datas(self, probe, data_type, timestamps, measures):
-        """Stores data for this probe."""
+    def write_hdf5(self, probe, timestamps, measures):
         self.lock.acquire()
         try:
             path = get_probe_path(probe)
-            to_datetime(timestamps, unit='s')
-            s = TimeSeries(measures, index=to_datetime(timestamps, unit='s'))
-            with get_store(self.database) as store:
-                store.append(path, s)
-                store.flush(fsync=True)
+            s = TimeSeries(measures, index=to_datetime(timestamps, unit='s'), copy = True)
+            s.to_hdf(self.database, path, append=True, mode='a', complevel=9, compib='blosc')
+            del s
         except:
             LOG.error("Fail to add %s datas" % probe)
         finally:
@@ -121,17 +183,27 @@ class HDF5_Collector:
         LOG.info('Rotate file')
         # Stop writings
         self.lock.acquire()
-        # Retrieving last written values
-        #TODO
         # Rotate file name
-        self.database = get_hdf5_file(self.data_type)
-        # Append missing values to new file
-        #TODO
+        old_database = str(self.database)
+        old_save = self.next_save_date
+        self.database = self.get_hdf5_file()
+        #TODO Finish implementation
+        #if not self.database == old_database:
+        #    # Retrieving last written values
+        #    old_store = HDFStore(old_database)
+        #    for k in old_store.keys():
+        #        ts = read_hdf(old_database,
+        #                      k,
+        #                      where="index>'%s'"%old_save)
+        #        # Append missing values to new file
+        #        with get_store(self.database) as new_store:
+        #            new_store.append(k, ts)
+        #            new_store.flush(fsync=True)
+
         # Schedule periodic execution of this function
-        if cfg.CONF.cleaning_interval > 0:
-            timer = Timer(3600.0, self.clean)
-            timer.daemon = True
-            timer.start()
+        timer = Timer(3600.0, self.rotate)
+        timer.daemon = True
+        timer.start()
         # Release lock
         self.lock.release()
 
@@ -148,20 +220,11 @@ class HDF5_Collector:
                 try:
                     ts = read_hdf(self.database,
                                   path,
-                                  where=["index>='%s'"%to_timestamp(start_time),
-                                         "index<='%s'"%to_timestamp(end_time)])
+                                  where=["index>='%s'"%to_datetime(start_time, unit='s'),
+                                         "index<='%s'"%to_datetime(end_time, unit='s')])
                     message[probe]['values'] = list(ts.values)
                     message[probe]['timestamps'] = list(ts.index.astype(np.int64) // 10**9)
                 except:
                     message[probe]['values'] = ['Unknown probe']
         self.lock.release()
         return message
-
-def get_hdf5_file(data_type):
-    return cfg.CONF.hdf5_dir + '/' + str(date.today().year)  + \
-                               '_' + str(date.today().month) + \
-                               '_' + str(data_type) + '_store.h5'
-
-
-def to_timestamp(t):
-    return to_datetime(t, unit='s')
