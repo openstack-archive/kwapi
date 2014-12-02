@@ -25,12 +25,14 @@ import struct
 import time
 import uuid
 import ast
+import re
 
 import rrdtool
 
 from kwapi.utils import cfg, log
 from socket import getfqdn
 from execo_g5k.topology import g5k_graph
+from execo_g5k import get_host_attributes, get_resource_attributes
 import networkx as nx
 
 LOG = log.getLogger(__name__)
@@ -95,7 +97,8 @@ probes_uid_set_power = nx.Graph()
 # Loads topology from config file.
 parser = cfg.ConfigParser('/etc/kwapi/live.conf', {})
 parser.parse()
-topo_g5k = g5k_graph(getfqdn().split('.')[1])
+site = getfqdn().split('.')[1]
+topo_g5k = g5k_graph(site)
 for section, entries in parser.sections.iteritems():
     if section == 'TOPO':
         powerProbes = set(ast.literal_eval(entries['powerProbes'][0]))
@@ -108,7 +111,40 @@ for section, entries in parser.sections.iteritems():
 
 all_uid_power = [n[0] for n in probes_uid_set_power.nodes(True) \
              if n[1].get('rrd', False)]
-probes_set_network = [getfqdn().split('.')[1] + '.' + x.split('.')[0] for x in topo_g5k.nodes()]
+
+node_to_remove = set()
+
+# Retrieve node/ports list
+probes_ports_list = {}
+for r in get_resource_attributes("/sites/nancy/network_equipments/")['items']:
+    if not r:
+        continue
+    for l in r.get('linecards', None):
+        if not l:
+            continue
+        for p in l.get('ports', None):
+            if not p:
+                continue
+            if not p.get('uid', "") in probes_ports_list:
+                probes_ports_list[p.get('uid', "")] = [p.get('port', None)]
+            else:
+                probes_ports_list[p.get('uid', "")].append(p.get('port', None))
+
+for probe in topo_g5k.nodes():
+    # For each port of a node
+    for port in probes_ports_list.get(probe.split('.')[0].replace('renater','renater-'+site), None):
+        # Add it to probes_set_network
+        if port == None:
+            probes_set_network.add(site + '.' + probe.split('.')[0]) 
+        else:
+            new_node = site + '.' + probe.split('.')[0] + '-' + port
+            probes_set_network.add(new_node)
+            # Add the node in topo_g5k
+            new_node_uid = probe.split('.')[0] + '-' + port + '.'+ site + '.grid5000.fr'
+            topo_g5k.add_node(new_node_uid)
+            for neighbor in topo_g5k.neighbors_iter(probe):
+                topo_g5k.add_edge(new_node_uid, neighbor)
+    del probes_ports_list[probe.split('.')[0].replace('renater', 'renater-'+site)]
 
 probe_colors = {}
 lock = Lock()
@@ -133,13 +169,12 @@ def find_probe_uid(metric, probe_name):
         #    return None
         # Return (probe_uid in, probe_uid out)
         switch_or_probes = []
-        site = getfqdn().split('.')[1]
-        res = topo_g5k.neighbors(probe_name.split('.')[1] + '.' + site +
-        '.grid5000.fr')
+        res = topo_g5k.neighbors(probe_name.split('.')[1] + '.' +
+                site + '.grid5000.fr')
         res2 = []
         for p in res:
             res2.append((probe_name + '_' + str(p).split('.')[0],\
-                    getfqdn().split('.')[1] + '.' + str(p).split('.')[0] + '_' + probe_name.split('.')[1]))
+                    site + '.' + str(p).split('.')[0] + '_' + probe_name.split('.')[1]))
         return res2
 
 for probe in probes_set_network:

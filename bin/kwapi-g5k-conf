@@ -8,8 +8,8 @@
 from socket import getfqdn
 from pprint import pprint
 from execo import Process, logger
-from execo_g5k import get_site_clusters, get_cluster_hosts, get_host_attributes, get_resource_attributes
-
+from execo_g5k import get_site_clusters, get_cluster_hosts, get_host_attributes, get_resource_attributes, topology
+import re
 
 _community = 'public'
 _protocol_power = '1'
@@ -47,6 +47,7 @@ except:
 
 logger.info('Retrieving network equipments information')
 switchs = {}
+hosts_cluster = topology.g5k_graph(site).nodes()
 try:
     for network_equipment in get_resource_attributes('/sites/'+site+'/network_equipments/')['items']:
         if network_equipment.has_key('type'):
@@ -71,9 +72,11 @@ try:
                                     uid = None
                                     device_port = ""
                                     if port.has_key('uid'):
-                                        uid = port['uid']
+                                        uid = re.sub(r"renater(-.*)", "renater", port['uid'])
                                         if port.has_key('port'):
                                             device_port = '-' + port['port']
+                                        if not len([x for x in hosts_cluster if uid in x]) > 0:
+                                            uid = None
                                     try:
                                         device = uid + device_port if uid else None
                                         #switch_port = snmp_pattern.replace('%LINECARD%', str(l)).replace('%PORT%', str(p))
@@ -164,11 +167,19 @@ try:
                 else:
                     probesIN.append(None)
                     probesOUT.append(None)
+            #Remove entry if empty lists
+            if len(probesIN) == 0 or len(probesOUT) == 0:
+                logger.warn("No probes on switch %s" % switch)
+                continue
             #Erase last None values
             while not probesIN[-1]:
                 probesIN.pop()
+                if len(probesIN) == 0:
+                    break
             while not probesOUT[-1]:
                 probesOUT.pop()
+                if len(probesOUT) == 0:
+                    break
             if len(probesIN) == 0 or len(probesOUT) == 0:
                 logger.warn("No probes on switch %s" % switch)
                 continue
