@@ -74,7 +74,7 @@ try:
                                     if port.has_key('uid'):
                                         uid = re.sub(r"renater(-.*)", "renater", port['uid'])
                                         if port.has_key('port'):
-                                            device_port = '-' + port['port']
+                                            device_port = '-' + port['port'].replace("/", "").replace(":", "")
                                         if not len([x for x in hosts_cluster if uid in x]) > 0:
                                             uid = None
                                     try:
@@ -99,7 +99,6 @@ try:
                                         '/nodes')['items']
         for node in nodes:
             if not node.has_key('sensors'):
-                print node['uid']
                 continue
             power = node['sensors']['power']
 
@@ -114,7 +113,8 @@ try:
                                     logger.error("Malformed pdu : %s" % pdu)
                                     continue
                                 if pdu['uid'] is None:
-                                    print power
+                                    #print power
+                                    continue
                                 else:
                                     equips[pdu['uid'].split('.')[0]]['mapping'].append((node['uid'], 0))
                     else:

@@ -125,16 +125,16 @@ for r in get_resource_attributes("/sites/"+site+"/network_equipments/")['items']
         for p in l.get('ports', None):
             if not p:
                 continue
-            if not p.get('uid', "") in probes_ports_list:
-                probes_ports_list[p.get('uid', "")] = [p.get('port', None)]
+            elif not p.get('uid', "") in probes_ports_list:
+                probes_ports_list[p.get('uid', "")] = [p.get('port', "").replace("/", "").replace(":", "")]
             else:
-                probes_ports_list[p.get('uid', "")].append(p.get('port', None))
+                probes_ports_list[p.get('uid', "")].append(p.get('port', "").replace("/", "").replace(":", ""))
 
 for probe in topo_g5k.nodes():
     # For each port of a node
     for port in probes_ports_list.get(probe.split('.')[0].replace('renater','renater-'+site), [None]):
         # Add it to probes_set_network
-        if port == None:
+        if port == None or port == "":
             probes_set_network.add(site + '.' + probe.split('.')[0]) 
         else:
             new_node = site + '.' + probe.split('.')[0] + '-' + port
