@@ -132,7 +132,7 @@ for r in get_resource_attributes("/sites/nancy/network_equipments/")['items']:
 
 for probe in topo_g5k.nodes():
     # For each port of a node
-    for port in probes_ports_list.get(probe.split('.')[0].replace('renater','renater-'+site), None):
+    for port in probes_ports_list.get(probe.split('.')[0].replace('renater','renater-'+site), [None]):
         # Add it to probes_set_network
         if port == None:
             probes_set_network.add(site + '.' + probe.split('.')[0]) 
@@ -144,7 +144,8 @@ for probe in topo_g5k.nodes():
             topo_g5k.add_node(new_node_uid)
             for neighbor in topo_g5k.neighbors_iter(probe):
                 topo_g5k.add_edge(new_node_uid, neighbor)
-    del probes_ports_list[probe.split('.')[0].replace('renater', 'renater-'+site)]
+
+del probes_ports_list
 
 probe_colors = {}
 lock = Lock()
