@@ -21,7 +21,7 @@ import setuptools
 setuptools.setup(
 
     name='kwapi-g5k',
-    version='0.1-2',
+    version='0.1-3',
 
     description='Grid5000 Energy Framework',
 
@@ -44,7 +44,7 @@ setuptools.setup(
     ],
 
     packages=setuptools.find_packages(),
-    package_data={'kwapi.plugins.live': ['templates/*', 'static/*.css', 'static/*.png', 'static/*.jpg', 'static/*.js', 'static/select2/*'],
+    package_data={'kwapi.plugins.live': ['templates/*', 'static/*.css', 'static/*.png', 'static/*.jpg', 'static/*.gif', 'static/*.js', 'static/select2/*'],
                   'kwapi.plugins.rrd':  ['templates/*', 'static/*.css', 'static/*.png', 'static/*.jpg', 'static/*.js', 'static/select2/*']},
 
     scripts=['bin/kwapi-g5k-conf'],
