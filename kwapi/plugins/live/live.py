@@ -116,7 +116,7 @@ node_to_remove = set()
 
 # Retrieve node/ports list
 probes_ports_list = {}
-for r in get_resource_attributes("/sites/nancy/network_equipments/")['items']:
+for r in get_resource_attributes("/sites/"+site+"/network_equipments/")['items']:
     if not r:
         continue
     for l in r.get('linecards', None):
