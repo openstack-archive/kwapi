@@ -1,13 +1,21 @@
 import os
 import errno
 import socket
-from pandas import HDFStore, TimeSeries, get_store, to_datetime, read_hdf
 import numpy as np
 from kwapi.utils import cfg, log
 from threading import Lock, Timer
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from Queue import Queue
+import gc
+import psutil
+from tables import *
+
+def print_memory(m=None):
+    p = psutil.Process(os.getpid())
+    (rss, vms) = p.get_memory_info()
+    mp = p.get_memory_percent()
+    print("%-10.10s cur_mem->%.2f (MB),per_mem->%.2f" % (m, rss / 1000000.0, mp))
 
 LOG = log.getLogger(__name__)
 
@@ -52,9 +60,9 @@ hostname = socket.getfqdn().split('.')
 site = hostname[1] if len(hostname) >= 2 else hostname[0]
 # One queue per metric
 buffered_values = {
-    "power": Queue(),
-    "network_in" : Queue(),
-    "network_out": Queue(),
+    "power": Queue(600),
+    "network_in" : Queue(600),
+    "network_out": Queue(600),
 }
 
 def update_hdf5(probe, data_type, timestamp, metrics, params):
@@ -68,6 +76,10 @@ def get_probe_path(probe):
     host = probe.split(".")[1]
     return "/%s/%s" % (site, host.replace('_', "__").replace('-', '_'))
 
+
+class ProbeMeasures(IsDescription):
+    timestamp = Float64Col()
+    measure = Int64Col()
 
 class HDF5_Collector:
     """
@@ -101,7 +113,7 @@ class HDF5_Collector:
         LOG.info("Current save date: %s" % self.save_date)
         LOG.info("Next save date:    %s" % self.next_save_date)
         self.database = self.get_hdf5_file()
-        store = HDFStore(self.database, complevel=9, complib='blosc')
+        store = openFile(self.database, mode="w", title = "Fine grained measures")
         store.close()
 
     def get_hdf5_file(self):
@@ -128,6 +140,7 @@ class HDF5_Collector:
                                 np.array(zipped[0]),  # Timestp
                                 np.array(zipped[1]))  # measures
                 del self.measurements[probe][:]
+                #print "size %d" % buffered_values[self.data_type].qsize()
             buffered_values[self.data_type].task_done()
         # Flush datas
         LOG.info("FLUSH DATAS... %s", self.data_type)
@@ -143,15 +156,31 @@ class HDF5_Collector:
 
     def write_hdf5(self, probe, timestamps, measures):
         self.lock.acquire()
+        f = open_file(self.database, mode = "a")
         try:
             path = get_probe_path(probe)
-            s = TimeSeries(measures, index=to_datetime(timestamps, unit='s'), copy = True)
-            s.to_hdf(self.database, path, append=True, mode='a', complevel=9, compib='blosc')
-            del s
+            if not path in f:
+                _, cluster, probe = path.split('/')
+                if not group in f.root:
+                    group = f.create_group("/", cluster, "cluster")
+                if not path in f:
+                    table = f.create_table(group, probe, ProbeMeasures, "probe")
+            table = f.get_node(path)
+            for x in range(len(timestamps)):
+                table.row['timestamp'] = timestamps[x]
+                table.row['measure'] = measures[x]
+                table.row.append()
+            table.flush()
         except:
             LOG.error("Fail to add %s datas" % probe)
         finally:
+            f.flush()
+            f.close()
             self.lock.release()
+            #print_memory("write2 %s" % probe)
+            #print gc.collect(),
+            #print gc.collect()
+            #print_memory("gc2 %s" % probe)
 
     def get_probes_list(self):
         probes = []
