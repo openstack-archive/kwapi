@@ -210,7 +210,7 @@
                 $('#loading-div-background').css({opacity: 0.75});
 
                 // Init select probe list
-                var cookie = $.cookie('probes');
+                var cookie = $.cookie("probes_{{ hostname.capitalize() }}");
                 if(!cookie) {
                     var probes = [];
                 } else {
@@ -280,9 +280,9 @@
                     $(window).unload(function() {
                         var value = $('select').val();
                         if(value == null) {
-                            $.removeCookie('probes', {path: '/'});
+                          $.removeCookie("probes_{{ hostname.capitalize() }}", {path: '/'});
                         } else {
-                            $.cookie('probes', JSON.stringify(value), {path: '/'});
+                        $.cookie("probes_{{ hostname.capitalize() }}", JSON.stringify(value), {path: '/'});
                         }
                     });
                 {% endif %}
