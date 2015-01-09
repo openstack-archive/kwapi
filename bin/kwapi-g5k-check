@@ -5,12 +5,13 @@ from socket import getfqdn
 from pprint import pformat, pprint
 from time import time
 from json import loads
-from execo import logger, SshProcess, sleep, Host
+from execo import logger, Process, SshProcess, sleep, Host
 from execo.log import style
 from execo_g5k import OarSubmission, oarsub, get_current_oar_jobs, get_oar_job_info, \
-    wait_oar_job_start, get_host_attributes, get_oar_job_nodes
+    wait_oar_job_start, get_host_attributes, get_oar_job_nodes, default_frontend_connection_params
 from argparse import ArgumentParser, RawTextHelpFormatter
-
+from execo_engine import copy_outputs
+from execo_g5k.config import default_frontend_connection_params
 
 prog = 'kwapi-g5k-check'
 description = 'This tool check the consistency of Kwapi energy monitoring system.' + \
@@ -27,6 +28,8 @@ optinout.add_argument("-h", "--help",
 optinout.add_argument("-j", "--job-name",
                 default="Kwapi-check",
                 help="Name of the job to be used for the check.")
+optinout.add_argument("-m", "--kwapi-machine",
+                help="name of the kwapi instance")
 
 optio = optinout.add_mutually_exclusive_group()
 optio.add_argument("-q", "--quiet",
@@ -40,6 +43,7 @@ optio.add_argument("-v", "--verbose",
                 default=False,
                 help="Run in verbose mode")
 
+
 args = parser.parse_args()
 
 if args.verbose:
@@ -49,6 +53,9 @@ elif args.quiet:
 else:
     logger.setLevel('INFO')
 
+copy_outputs('kwapi_check.log', 'kwapi_check.log')
+
+machine = 'energy' if not args.kwapi_machine else args.kwapi_machine
 
 # Configuration
 stress_time = 30
@@ -76,35 +83,41 @@ logger.info('Waiting for job start')
 wait_oar_job_start(job[0], job[1])
 logger.info('Retrieving node list')
 nodes = get_oar_job_nodes(job[0], job[1])
-
 ## Checking that all nodes have a probe declared in Kwapi configuration
 h1 = httplib2.Http()
-resp, content = h1.request("http://energy." + site + ".grid5000.fr:5000/probes/", "GET")
+resp, content = h1.request("http://" + machine + "." + site + ".grid5000.fr:5000/probes/", "GET")
 content = loads(content)
 
-for node in nodes:
-    if site + '.' + node.address.split('.')[0] not in content['probes']:
-        logger.warning('%s is not declared in Kwapi', node)
-        nodes.remove(node)
+# for node in nodes:
+#     if site + '.' + node.address.split('.')[0] not in content['probes']['power']:
+#         logger.warning('%s is not declared in Kwapi', node)
+#         nodes.remove(node)
 
-## Stressing hosts and retrieving measures from Kwapi-API
+# Stressing hosts and retrieving power measures from Kwapi-API
 measures = {}
 i = 1
 for node in sorted(nodes, key=lambda x: int(x.address.split('.')[0].split('-')[1])):
+    if site + '.' + node.address.split('.')[0] not in content['probes']['power']:
+        logger.warning('%s is not monitored energically', node)
+        continue
     n_proc = get_host_attributes(node)['architecture']['smt_size']
     logger.info(str(i) + ' Host %s has %s cores', style.host(node.address), n_proc)
     ts = time()
     measures[ts] = {'stress': node.address}
     logger.info('Launching stress on ' + style.host(node.address))
-    stress = SshProcess('killall stress; stress --cpu ' + str(n_proc) + ' --timeout '+ str(stress_time), node)
+    stress = SshProcess('killall stress; stress --cpu ' + 
+                        str(n_proc) + ' --timeout '+ str(stress_time), 
+                        node,
+                        connection_params={'user': default_frontend_connection_params['user']})
     while True:
-        resp, content = h1.request("http://energy." + site + ".grid5000.fr:5000/probes/", "GET")
+        resp, content = h1.request("http://" + machine + "." + site + ".grid5000.fr:5000/probes/", "GET")
         content = loads(content)
+        
         if resp['status'] == '200':
-            for probe, values in content['probes'].iteritems():
+            for probe, values in content['probes']['power'].iteritems():
                 if probe not in measures[ts]:
                     measures[ts][probe] = []
-                measures[ts][probe].append(values['w'])
+                measures[ts][probe].append(values['value'])
         if not stress.started:
             stress.start()        
         if stress.ended:
@@ -119,7 +132,7 @@ for node in sorted(nodes, key=lambda x: int(x.address.split('.')[0].split('-')[1
             last = measure[-1]
             med = np.median(measure)
             logger.info('%s: %s %s %s', node.address.split('.')[0], first, med, last)
-            if abs(last - med) < abs(first - med) and last >= first:
+            if abs(last - med) > abs(first - med):
                 logger.info(style.user1('OK')+ " " + node.address )
             else:
                 logger.info('Looking for a variation in other probes')
@@ -143,11 +156,54 @@ for node in sorted(nodes, key=lambda x: int(x.address.split('.')[0].split('-')[1
         
     logger.info('Waiting for energy decrease')
     sleep(30)
-    
-## Retrieving post-mortem measurement
-h2 = httplib2.Http()
-resp, content = h2.request("http://energy." + site + 
-    ".grid5000.fr:12000/timeseries/?job_id=" + str(job[0]), "GET")
-content = loads(content) 
+from execo_g5k.topology import *
 
-print content
+gr = g5k_graph()
+for node in nodes:
+    gr.add_host(node.address)
+
+server = Process('iperf -s').start()
+
+i=1
+try:
+    for node in sorted(nodes, key=lambda x: int(x.address.split('.')[0].split('-')[1])):
+        logger.info('Checking host %s', style.host(node.address))
+        net_in = {}
+        net_out = {}
+        switch = list(nx.all_neighbors(gr, node.address))[0]
+        probe_in = site + '.' + switch.split('.')[0] + '_' + node.address.split('.')[0]
+        probe_out = site + '.' + node.address.split('.')[0] + '_' + switch.split('.')[0] 
+        
+        iperf = SshProcess('iperf -c ' + site + ' -r -t 20', node) 
+        while True:
+            resp, content = h1.request("http://" + machine + "." + site + ".grid5000.fr:5000/probes/", "GET")
+            content = loads(content)
+            if resp['status'] == '200':
+                data_in = content['probes']['network_in'][probe_in]
+                data_out = content['probes']['network_in'][probe_out]
+                net_in[data_in['timestamp']] = data_in['value']
+                net_out[data_out['timestamp']] = data_out['value']
+            if not iperf.started:
+                iperf.start()        
+            if iperf.ended:
+                i += 1
+                break
+            sleep(1)
+        
+        print net_in.values()[0], net_in.values()[-1]
+        print net_out.values()[0], net_out.values()[-1]
+        
+finally:
+    server.kill()
+    
+    
+
+
+ 
+## Retrieving post-mortem measurement
+# h2 = httplib2.Http()
+# resp, content = h2.request("http://energy." + site + 
+#     ".grid5000.fr:12000/timeseries/?job_id=" + str(job[0]), "GET")
+# content = loads(content) 
+# 
+# print content
