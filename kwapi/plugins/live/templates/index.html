@@ -223,8 +223,9 @@
 
                 // Event handler for adding a probe
                 $(document.body).on('select2-selecting', 'select', function(e) {
-                    $('.activable').addClass('active');
-                    var probe = '<a href="{{ url_for("v1.welcome") }}{{ metric }}/probe/' + e.val + '/' + '"><img class="graph" id="' + e.val + '" src="{{ url_for("v1.welcome") }}{{ metric }}/graph/' + e.val + '/{{ start }}/{{ end }}/" alt="Graph ' + e.val + '" onerror="this.src=\'{{ url_for("v1.static", filename="not_found.gif") }}\'" /></a>';
+                  $('.activable').addClass('active');
+                    var on_error_file = "{{ url_for("v1.static", filename="not_found.gif") }}"
+                    var probe = '<a href="{{ url_for("v1.welcome") }}{{ metric }}/probe/' + e.val + '/' + '"><img class="graph" id="' + e.val + '" src="{{ url_for("v1.welcome") }}{{ metric }}/graph/' + e.val + '/{{ start }}/{{ end }}/" alt="Graph ' + e.val + '" onerror="this.src=\'' + on_error_file.val + '\'" width="694" height="261" /></a>';
                     $('#probes').append(probe);
                     var probes = $('select').select2('val');
                     if(jQuery.inArray(e.val, $('select').select2('val')) == -1) {
@@ -335,7 +336,7 @@
                 {% if probes|count > 0 %}
                     <h2>Summary</h2>
                     <!-- Display summary graph -->
-                    <img class="graph" id="summary" src="{{ url_for('v1.send_summary_graph', metric=metric, start=start, end=end) }}" alt="Summary graph" onerror="this.src='{{ url_for('v1.static', filename='not_found.gif') }}')}}'"/>
+                    <img class="graph" id="summary" src="{{ url_for('v1.send_summary_graph', metric=metric, start=start, end=end) }}" alt="Summary graph" onerror="this.src='{{ url_for('v1.static', filename='not_found.gif') }}'" width="694" height="261" />
                     <h2>Details</h2>
                     <!-- Display all probe graphs -->
                     <select multiple>
@@ -359,7 +360,7 @@
             {% elif view == 'probe' %}
                 <h2>{{ probe }} <!-- <a style="float:right" href="{{ url_for('v1.send_zip') }}?probes={{ probe }}">Download RRD</a> --></h2>
                 {% for scale in scales %}
-                    <img class="graph" src="{{ url_for('v1.send_probe_graph', metric=metric, probe=probe, start=scales[scale]['start'], end=scales[scale]['end'])}}" alt="Graph {{ probe }}" onerror="this.src='{{ url_for('v1.static', filename='not_found.gif') }}'"/>
+                    <img class="graph" src="{{ url_for('v1.send_probe_graph', metric=metric, probe=probe, start=scales[scale]['start'], end=scales[scale]['end'])}}" alt="Graph {{ probe }}" onerror="this.src='{{ url_for('v1.static', filename='not_found.gif') }}'" width="497" height="187" />
                 {% endfor %}
             {% endif %}
         </div>
