@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="1512.0223"
+   height="183.49113"
+   id="svg2"
+   version="1.1"
+   inkscape:version="0.48.5 r10040"
+   sodipodi:docname="Nouveau document 1">
+  <defs
+     id="defs4" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.49497475"
+     inkscape:cx="288.15829"
+     inkscape:cy="534.6114"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     units="cm"
+     fit-margin-top="1"
+     fit-margin-left="1"
+     fit-margin-bottom="1"
+     fit-margin-right="1"
+     inkscape:window-width="1920"
+     inkscape:window-height="1134"
+     inkscape:window-x="0"
+     inkscape:window-y="27"
+     inkscape:window-maximized="1" />
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Calque 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-8.2544291,-88.848179)">
+    <rect
+       style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1.49225962;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       id="rect3823"
+       width="1439.646"
+       height="111.11678"
+       x="44.446712"
+       y="125.04214" />
+    <rect
+       style="fill:#ee8d8e;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1.70292056px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       id="rect2985"
+       width="216.84299"
+       height="91.703651"
+       x="58.352913"
+       y="135.16643" />
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="85.862968"
+       y="180.60054"
+       id="text3763"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan3765"
+         x="85.862968"
+         y="180.60054">Probe id</tspan></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text3767"
+       y="213.32034"
+       x="144.45181"
+       style="font-size:20px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans"
+       xml:space="preserve"><tspan
+         y="213.32034"
+         x="144.45181"
+         id="tspan3769"
+         sodipodi:role="line">Key</tspan></text>
+    <rect
+       y="135.16643"
+       x="283.61691"
+       height="91.703651"
+       width="216.84299"
+       id="rect3771"
+       style="fill:#eecaa6;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1.70292056px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+    <text
+       sodipodi:linespacing="125%"
+       id="text3773"
+       y="179.37007"
+       x="334.13684"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       xml:space="preserve"><tspan
+         y="179.37007"
+         x="334.13684"
+         id="tspan3775"
+         sodipodi:role="line">Name</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:20px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans"
+       x="330.93372"
+       y="213.93558"
+       id="text3777"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan3779"
+         x="330.93372"
+         y="213.93558">Metric name</tspan></text>
+    <rect
+       style="fill:#eecaa6;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:2.04669356px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       id="rect3781"
+       width="313.22922"
+       height="91.703651"
+       x="509.89111"
+       y="135.33832" />
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="555.97839"
+       y="180.60054"
+       id="text3783"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan3785"
+         x="555.97839"
+         y="180.60054">Timestamp</tspan></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text3787"
+       y="213.93558"
+       x="561.84265"
+       style="font-size:20px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans"
+       xml:space="preserve"><tspan
+         y="213.93558"
+         x="561.84265"
+         id="tspan3789"
+         sodipodi:role="line">Seconds since epoch</tspan></text>
+    <rect
+       y="135.33832"
+       x="833.13995"
+       height="91.703651"
+       width="313.22922"
+       id="rect3791"
+       style="fill:#eecaa6;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:2.04669356px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+    <text
+       sodipodi:linespacing="125%"
+       id="text3793"
+       y="179.37007"
+       x="903.77802"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       xml:space="preserve"><tspan
+         y="179.37007"
+         x="903.77802"
+         id="tspan3795"
+         sodipodi:role="line">Measure</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:20px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans"
+       x="882.92352"
+       y="213.93558"
+       id="text3797"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan3799"
+         x="882.92352"
+         y="213.93558">Raw data from driver</tspan></text>
+    <rect
+       style="fill:#eecaa6;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:2.04669356px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       id="rect3801"
+       width="313.22922"
+       height="91.703651"
+       x="1157.3989"
+       y="135.33832" />
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="1198.4667"
+       y="179.37007"
+       id="text3803"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan3805"
+         x="1198.4667"
+         y="179.37007">Parameters</tspan></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text3807"
+       y="213.93558"
+       x="1192.7245"
+       style="font-size:20px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans"
+       xml:space="preserve"><tspan
+         y="213.93558"
+         x="1192.7245"
+         id="tspan3809"
+         sodipodi:role="line">Depends on metric type</tspan></text>
+    <flowRoot
+       xml:space="preserve"
+       id="flowRoot3811"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"><flowRegion
+         id="flowRegion3813"><rect
+           id="rect3815"
+           width="11088.571"
+           height="265.71429"
+           x="-122.85714"
+           y="46.647896" /></flowRegion><flowPara
+         id="flowPara3817"></flowPara></flowRoot>  </g>
+</svg>

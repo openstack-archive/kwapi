@@ -199,6 +199,11 @@ Webpage with a summary graph and all probe graphs:
 .. image:: ./webpage.png
     :width: 675px
 
+Webpage with scales summaries of a probe:
+
+.. image:: ./webpage-net.png
+    :width: 675px
+
 In the menu bar, you can choose the period the metric you want to display.
 For each metric you can select a timescale (last minutes, hour, day, week,
 month or year). By clicking on a probe, you can display all graphs available
@@ -248,17 +253,17 @@ Kwapi HDF5
 
 Kwapi HDF5 is used to store fine grained metric with Kwapi. Each measure returned by the drivers are stored in an HDF5 file on the server.
 The main advantages of this database are:
-  * Very large datasets: store several months of power consumption of numerous probes
-  * Fast access
-  * Hierarchical store: data can be groupped by site or cluster
-  * Parallel writing
-  * Compressed file for low storage cost
-  * Heterogeneous data support
+* Very large datasets: store several months of power consumption of numerous probes
+* Fast access
+* Hierarchical store: data can be groupped by site or cluster
+* Parallel writing
+* Compressed file for low storage cost
+* Heterogeneous data support
 
 You can configure the split period of your HDF5 files in the configuration file (1 file per month or less) depending on how much data you want to save.
 
 Collector
-^^^^^^^^^
+---------
 
 The HDF5 Collector is composed of one Writter by metric with their proper buffers and a single queue per metric where all the data from drivers are appended.
   * The update function put the new received value in the queue that correspond to his metric.
@@ -270,7 +275,7 @@ The HDF5 Collector is composed of one Writter by metric with their proper buffer
 Writes on the database are made with a fixed `chunk_size` that can be set in the configuration file.
 
 API
-^^^
+---
 
 REST API permits to retrieve measures from those databases. Unlike RRD database, HDFStore store raw measures and datas are not alterated.
 API is very similar to Kwapi-API
@@ -301,7 +306,8 @@ power           pdu2                          * units: Watts
                                               * value: int(metrics)
                                               * hostname: ip:hostname (ex: 192.168.1.1:griffon-54.nancy.grid5000.fr)
                                               * spoof: True
+                                              
 network_in      None
 network_out     None
-
+============    ==========================    ======================================================================
 
