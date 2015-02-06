@@ -20,7 +20,7 @@ Areas to Contribute
 Drivers
 =======
 
-Kwapi aims at supporting various wattmeters. If you have a non-supported
+Kwapi aims at supporting various drivers. If you have a non-supported
 wattmeter, you can easily contribute by writing a new one.
 
 
@@ -34,6 +34,4 @@ Testing
 =======
 
 The first version of Kwapi has not yet unit tests and has not seen much
-run-time in real environments. Setting up a copy of Kwapi to monitor a real
-OpenStack installation or to perform some load testing would be especially
-helpful.
+run-time in real environments.

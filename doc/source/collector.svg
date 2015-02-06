@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="1736.2935"
+   height="188.68828"
+   id="svg2"
+   version="1.1"
+   inkscape:version="0.48.5 r10040"
+   sodipodi:docname="collector.svg"
+   inkscape:export-filename="/home/clement/Loria/Kwapi/kwapi-g5k/doc/source/collector.png"
+   inkscape:export-xdpi="90"
+   inkscape:export-ydpi="90">
+  <defs
+     id="defs4" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.7"
+     inkscape:cx="933.20312"
+     inkscape:cy="283.39274"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     units="cm"
+     fit-margin-top="1"
+     fit-margin-left="1"
+     fit-margin-bottom="1"
+     fit-margin-right="1"
+     inkscape:window-width="1920"
+     inkscape:window-height="1134"
+     inkscape:window-x="0"
+     inkscape:window-y="27"
+     inkscape:window-maximized="1" />
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Calque 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-8.1934515,-83.723912)">
+    <rect
+       style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1.64038026;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       id="rect3823"
+       width="1663.787"
+       height="116.18176"
+       x="44.446712"
+       y="119.97717" />
+    <rect
+       style="fill:#ee8d8e;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1.70292056px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       id="rect2985"
+       width="216.84299"
+       height="91.703651"
+       x="58.352913"
+       y="131.595" />
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="85.862968"
+       y="177.9415"
+       id="text3763"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan3765"
+         x="85.862968"
+         y="177.9415">Probe id</tspan></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text3767"
+       y="209.03462"
+       x="144.45181"
+       style="font-size:20px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans"
+       xml:space="preserve"><tspan
+         y="209.03462"
+         x="144.45181"
+         id="tspan3769"
+         sodipodi:role="line">Key</tspan></text>
+    <rect
+       y="131.68797"
+       x="606.1167"
+       height="91.703651"
+       width="266.78314"
+       id="rect3771"
+       style="fill:#eecaa6;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1.88886487px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+    <text
+       sodipodi:linespacing="125%"
+       id="text3773"
+       y="177.9415"
+       x="638.99695"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       xml:space="preserve"><tspan
+         y="177.9415"
+         x="638.99695"
+         id="tspan3775"
+         sodipodi:role="line">Integrated</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:20px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans"
+       x="688.67468"
+       y="209.64986"
+       id="text3777"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan3779"
+         x="688.67468"
+         y="209.64986">Power only</tspan></text>
+    <rect
+       style="fill:#eecaa6;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:2.04669356px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       id="rect3781"
+       width="313.22922"
+       height="91.703651"
+       x="283.99521"
+       y="131.76689" />
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="327.40695"
+       y="177.9415"
+       id="text3783"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan3785"
+         x="327.40695"
+         y="177.9415">Timestamp</tspan></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text3787"
+       y="209.64986"
+       x="333.27118"
+       style="font-size:20px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans"
+       xml:space="preserve"><tspan
+         y="209.64986"
+         x="333.27118"
+         id="tspan3789"
+         sodipodi:role="line">Seconds since epoch</tspan></text>
+    <rect
+       y="131.76689"
+       x="881.79211"
+       height="91.703651"
+       width="313.22922"
+       id="rect3791"
+       style="fill:#eecaa6;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:2.04669356px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+    <text
+       sodipodi:linespacing="125%"
+       id="text3793"
+       y="177.9415"
+       x="988.71661"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       xml:space="preserve"><tspan
+         y="177.9415"
+         x="988.71661"
+         id="tspan3795"
+         sodipodi:role="line">Value</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:20px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans"
+       x="903.48706"
+       y="209.64986"
+       id="text3797"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan3799"
+         x="903.48706"
+         y="209.64986">Instantaneous consumption</tspan></text>
+    <rect
+       style="fill:#eecaa6;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1.49508107px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       id="rect3801"
+       width="167.1422"
+       height="91.703651"
+       x="1203.7168"
+       y="131.49109" />
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="1247.6201"
+       y="177.9415"
+       id="text3803"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan3805"
+         x="1247.6201"
+         y="177.9415">Unit</tspan></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text3807"
+       y="209.64986"
+       x="1235.1836"
+       style="font-size:20px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans"
+       xml:space="preserve"><tspan
+         y="209.64986"
+         x="1235.1836"
+         id="tspan3809"
+         sodipodi:role="line">Metric unit</tspan></text>
+    <flowRoot
+       xml:space="preserve"
+       id="flowRoot3811"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"><flowRegion
+         id="flowRegion3813"><rect
+           id="rect3815"
+           width="11088.571"
+           height="265.71429"
+           x="-122.85714"
+           y="46.647896" /></flowRegion><flowPara
+         id="flowPara3817"></flowPara></flowRoot>    <rect
+       y="131.76689"
+       x="1379.5546"
+       height="91.703651"
+       width="313.22922"
+       id="rect3946"
+       style="fill:#eecaa6;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:2.04669356px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+    <text
+       sodipodi:linespacing="125%"
+       id="text3948"
+       y="176.71103"
+       x="1491.3547"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       xml:space="preserve"><tspan
+         y="176.71103"
+         x="1491.3547"
+         id="tspan3950"
+         sodipodi:role="line">Type</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:20px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans"
+       x="1395.4172"
+       y="209.64986"
+       id="text3952"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan3954"
+         x="1395.4172"
+         y="209.64986">Gauge or cumulative values</tspan></text>
+  </g>
+</svg>
