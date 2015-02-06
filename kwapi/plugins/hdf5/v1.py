@@ -41,16 +41,16 @@ site = hostname[1] if len(hostname) >= 2 else hostname[0]
 
 @blueprint.route('/')
 def welcome():
-    return flask.redirect(flask.url_for('v1.welcome_type',
-                                        metric='power'))
-
-@blueprint.route('/<metric>/')
-def welcome_type(metric):
-    """Returns detailed information about this specific version of the API."""
-    # Needs probe list
-    if not metric in metrics:
-        return flask.abort(404)
+    message = {"items":[]}
     headers = flask.request.headers
+    for metric in metrics:
+        message["items"].append(get_type(metric,headers))
+    response = flask.jsonify(message)
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    return response
+
+def get_type(metric,headers):
+    probe_list = []
     try:
         if metric == 'power':
             probe_list = flask.request.storePower.get_probes_list()
@@ -60,18 +60,18 @@ def welcome_type(metric):
             probe_list = flask.request.storeNetworkOut.get_probes_list()
     except:
         LOG.error("fail to retrieve probe list")
-        flask.abort(404)
-    message = {'step': 1, 'available_on': probe_list, "type": metric,
+        return {}
+    message = {'step': 1, 'available_on': probe_list, "type": "metric", "uid": metric,
                "links": [
             {
               "rel": "self",
               "type": "application/vnd.fr.grid5000.api.Metric+json;level=1",
-              "href": _get_api_path(headers) + "/sites/" + site
+              "href": _get_api_path(headers) + "sites/" + site
               + "/" + metric
            },
            {
               "title": "timeseries",
-              "href": _get_api_path(headers) + "/sites/" + site
+              "href": _get_api_path(headers) + "sites/" + site
               + "/" + metric + "/timeseries",
               "type": "application/vnd.fr.grid5000.api.Collection+json;level=1",
               "rel": "collection"
@@ -79,16 +79,25 @@ def welcome_type(metric):
            {
               "rel": "parent",
               "type": "application/vnd.fr.grid5000.api.Site+json;level=1",
-              "href": _get_api_path(headers) + "/sites/" + site
+              "href": _get_api_path(headers) + "sites/" + site
            }
         ],
         "timeseries": [
            {
-              "rows": 244,
-              "xff": 0.5,
+              "xff": 0,
               "pdp_per_row": 1,
-              "cf": "AVERAGE"
+              "cf": "LAST"
            }]}
+    return message
+
+@blueprint.route('/<metric>/')
+def welcome_type(metric):
+    """Returns detailed information about this specific version of the API."""
+    # Needs probe list
+    if not metric in metrics:
+        return flask.abort(404)
+    headers = flask.request.headers
+    message = get_type(metric,headers)
     response = flask.jsonify(message)
     response.headers.add('Access-Control-Allow-Origin', '*')
     return response
@@ -143,7 +152,7 @@ def retrieve_measurements(metric):
               },
               {
                  "rel": "parent",
-                 "href": _get_api_path(headers) + "/sites/" + site ,
+                 "href": _get_api_path(headers) + "sites/" + site ,
                  "type": "application/vnd.fr.grid5000.api.Metric+json;level=1"
               }
            ],
@@ -174,13 +183,13 @@ def retrieve_measurements(metric):
                                       {
                                           "rel": "self",
                                           "href": _get_api_path(headers) +
-                                          "/sites/" + site + "/timeseries/" + item["uid"],
+                                          "sites/" + site + "/timeseries/" + item["uid"],
                                           "type": "application/vnd.fr.grid5000.api.Timeseries+json;level=1"
                                       },
                                       {
                                           "rel": "parent",
                                           "href": _get_api_path(headers) +
-                                          "/sites/" + site,
+                                          "sites/" + site,
                                           "type": "application/vnd.fr.grid5000.api.Metric+json;level=1"
                                       }
                                   ]})

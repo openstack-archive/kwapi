@@ -21,11 +21,11 @@ import setuptools
 setuptools.setup(
 
     name='kwapi-g5k',
-    version='0.2-0',
+    version='0.3-0',
 
-    description='Grid5000 Energy Framework',
+    description='Grid5000 Monitoring Framework',
 
-    author='François Rossigneux, Laurent Pouilloux',
+    author='François Rossigneux, Laurent Pouilloux, Clement Parisot',
     author_email='francois.rossigneux@inria.fr',
 
     url='https://github.com/lpouillo/kwapi-g5k',
@@ -55,7 +55,8 @@ setuptools.setup(
                                 'etc/kwapi/forwarder.conf',
                                 'etc/kwapi/daemon.conf',
                                 'etc/kwapi/hdf5.conf',
-                                'etc/kwapi/live.conf']),
+                                'etc/kwapi/live.conf',
+                                'etc/kwapi/ganglia.conf']),
                 ('/etc/init.d', ['etc/init/kwapi'])],
 
     install_requires=['flask',
@@ -68,7 +69,8 @@ setuptools.setup(
                       'tables',
                       'numexpr',
                       'httplib2',
-                      'pysnmp'],
+                      'pysnmp',
+                      'ganglia'],
     entry_points={
         'console_scripts': [
             'kwapi-api = kwapi.plugins.api.app:start',
@@ -76,7 +78,8 @@ setuptools.setup(
             'kwapi-forwarder = kwapi.forwarder:start',
             'kwapi-rrd = kwapi.plugins.rrd.app:start',
             'kwapi-hdf5 = kwapi.plugins.hdf5.app:start',
-            'kwapi-live = kwapi.plugins.live.app:start']
+            'kwapi-live = kwapi.plugins.live.app:start',
+            'kwapi-ganglia = kwapi.plugins.ganglia.app:start']
     }
     
 )
