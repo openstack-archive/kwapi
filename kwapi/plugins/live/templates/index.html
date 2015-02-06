@@ -225,7 +225,7 @@
                 $(document.body).on('select2-selecting', 'select', function(e) {
                   $('.activable').addClass('active');
                     var on_error_file = "{{ url_for("v1.static", filename="not_found.gif") }}"
-                    var probe = '<a href="{{ url_for("v1.welcome") }}{{ metric }}/probe/' + e.val + '/' + '"><img class="graph" id="' + e.val + '" src="{{ url_for("v1.welcome") }}{{ metric }}/graph/' + e.val + '/{{ start }}/{{ end }}/" alt="Graph ' + e.val + '" onerror="this.src=\'' + on_error_file.val + '\'" width="694" height="261" /></a>';
+                    var probe = '<a href="{{ url_for("v1.welcome") }}{{ metric }}/probe/' + e.val + '/' + '"><img class="graph" id="' + e.val + '" src="{{ url_for("v1.welcome") }}{{ metric }}/graph/' + e.val + '/{{ start }}/{{ end }}/" alt="Graph ' + e.val + '" onerror="this.src=\'' + on_error_file.val + '\'" width="497" height="187" /></a>';
                     $('#probes').append(probe);
                     var probes = $('select').select2('val');
                     if(jQuery.inArray(e.val, $('select').select2('val')) == -1) {
