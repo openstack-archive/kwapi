@@ -2,5 +2,4 @@ Kwapi
 =====
 
 Documentation for the project can be found at:
-   https://github.com/lpouillo/kwapi-g5k
-
+http://kwapi-g5k.readthedocs.org/en/latest/

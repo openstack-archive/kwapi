@@ -21,14 +21,14 @@ import setuptools
 setuptools.setup(
 
     name='kwapi-g5k',
-    version='0.3-2',
+    version='0.3-3',
 
     description='Grid5000 Monitoring Framework',
 
     author='François Rossigneux, Laurent Pouilloux, Clement Parisot',
     author_email='laurent.pouilloux@inria.fr',
 
-    url='https://github.com/lpouillo/kwapi-g5k',
+    url='http://kwapi-g5k.readthedocs.org/en/latest/',
 
     classifiers=[
         'Development Status :: 4 - Beta',

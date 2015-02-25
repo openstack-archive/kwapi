@@ -45,7 +45,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'ikwapi-g5k'
+project = u'kwapi-g5k'
 copyright = u'2015, Clement Parisot'
 
 # The version info for the project you're documenting, acts as replacement for
