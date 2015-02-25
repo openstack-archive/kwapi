@@ -29,6 +29,7 @@ optinout.add_argument("-j", "--job-name",
                 default="Kwapi-check",
                 help="Name of the job to be used for the check.")
 optinout.add_argument("-m", "--kwapi-machine",
+		default='kwapi',
                 help="name of the kwapi instance")
 
 optio = optinout.add_mutually_exclusive_group()
@@ -54,8 +55,6 @@ else:
     logger.setLevel('INFO')
 
 copy_outputs('kwapi_check.log', 'kwapi_check.log')
-
-machine = 'energy' if not args.kwapi_machine else args.kwapi_machine
 
 # Configuration
 stress_time = 30
