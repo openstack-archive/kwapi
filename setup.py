@@ -21,18 +21,18 @@ import setuptools
 setuptools.setup(
 
     name='kwapi-g5k',
-    version='0.3-0',
+    version='0.3-1',
 
     description='Grid5000 Monitoring Framework',
 
     author='François Rossigneux, Laurent Pouilloux, Clement Parisot',
-    author_email='francois.rossigneux@inria.fr',
+    author_email='laurent.pouilloux@inria.fr',
 
     url='https://github.com/lpouillo/kwapi-g5k',
 
     classifiers=[
-        'Development Status :: 3 - Alpha',
-        'Environment :: Grid5000',
+        'Development Status :: 5 - Production/Stable',
+	'Environment :: No Input/Output (Daemon)',
         'Intended Audience :: Information Technology',
         'Intended Audience :: System Administrators',
         'License :: OSI Approved :: Apache Software License',
@@ -47,7 +47,7 @@ setuptools.setup(
     package_data={'kwapi.plugins.live': ['templates/*', 'static/*.css', 'static/*.png', 'static/*.jpg', 'static/*.gif', 'static/*.js', 'static/select2/*'],
                   'kwapi.plugins.rrd':  ['templates/*', 'static/*.css', 'static/*.png', 'static/*.jpg', 'static/*.js', 'static/select2/*']},
 
-    scripts=['bin/kwapi-g5k-conf'],
+    scripts=['bin/kwapi-g5k-conf', 'bin/kwapi-g5k-check'],
 
     data_files=[('/etc/kwapi', ['etc/kwapi/api.conf',
                                 'etc/kwapi/drivers.conf',
