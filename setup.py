@@ -21,7 +21,7 @@ import setuptools
 setuptools.setup(
 
     name='kwapi-g5k',
-    version='0.3-3',
+    version='0.3-4',
 
     description='Grid5000 Monitoring Framework',
 

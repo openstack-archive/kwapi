@@ -24,8 +24,11 @@ Installing Kwapi from source
 
    $ git clone https://github.com/lpouillo/kwapi-g5k.git
 
-2. As a user with ``root`` permissions or ``sudo`` privileges, run the
-   Kwapi installer and copy the configuration files::
+2. Data management use numpy. On Debian/Ubuntu, use:
+   
+   $ apt-get install python-numpy
+
+3. Run the Kwapi installer and copy the configuration files::
 
    $ pip install kwapi-g5k
    $ cp -r kwapi-g5k/etc/kwapi /etc/
