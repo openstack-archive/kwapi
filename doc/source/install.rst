@@ -24,7 +24,7 @@ Installing Kwapi from source
 
    $ git clone https://github.com/lpouillo/kwapi-g5k.git
 
-2. Data management use numpy. On Debian/Ubuntu, use:
+2. Data management use numpy, which cannot be installed vi pip. On Debian/Ubuntu, use:
    
    $ apt-get install python-numpy
 

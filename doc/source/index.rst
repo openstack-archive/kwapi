@@ -53,6 +53,7 @@ Table of contents
    install
    architecture
    configuration
+   usage
 
    contributing/index
    glossary
