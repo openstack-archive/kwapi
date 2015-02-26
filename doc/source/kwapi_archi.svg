@@ -84,12 +84,6 @@
        inkscape:export-xdpi="300"
        inkscape:export-ydpi="300" />
     <path
-       style="fill:none;stroke:#000000;stroke-width:1.03877556px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 516.52357,305.22019 341.40075,225.97888"
-       id="path3935"
-       inkscape:connector-type="polyline"
-       inkscape:connector-curvature="3" />
-    <path
        style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        d="m 4.575544,8.9521902 0,0"
        id="path3931"
@@ -192,6 +186,260 @@
            sodipodi:role="line"
            id="tspan3350-2" /></text>
     </g>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 306.52395,335.6521 0,47.9891"
+       id="path7182"
+       inkscape:connector-type="polyline"
+       inkscape:connector-curvature="0"
+       inkscape:connection-start="#g4699"
+       inkscape:connection-start-point="d4"
+       inkscape:connection-end="#g4423"
+       inkscape:connection-end-point="d4"
+       inkscape:export-filename="/home/lolo/Bureau/kwapi-archi.png"
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300" />
+    <g
+       inkscape:export-ydpi="300"
+       inkscape:export-xdpi="300"
+       inkscape:export-filename="/home/lolo/Bureau/kwapi-archi.png"
+       transform="translate(61.700371,1.4285583)"
+       id="g3054">
+      <rect
+         style="fill:#aaccff;fill-opacity:1"
+         id="rect3056"
+         width="124.10878"
+         height="31.31473"
+         x="416.81921"
+         y="382.21265" />
+      <text
+         xml:space="preserve"
+         style="font-size:10px;font-style:normal;font-weight:bold;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans Bold"
+         x="431.46954"
+         y="401.51016"
+         id="text3058"
+         sodipodi:linespacing="125%"><tspan
+           id="tspan3060"
+           sodipodi:role="line"
+           x="431.46954"
+           y="401.51016">LIVE MONITORING</tspan><tspan
+           id="tspan3063"
+           sodipodi:role="line"
+           x="431.46954"
+           y="414.01016" /></text>
+    </g>
+    <g
+       id="g3077"
+       transform="translate(-392.69383,0)"
+       inkscape:export-filename="/home/lolo/Bureau/kwapi-archi.png"
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300">
+      <rect
+         y="383.6412"
+         x="441.81921"
+         height="31.31473"
+         width="72.680206"
+         id="rect3079"
+         style="fill:#aaccff;fill-opacity:1" />
+      <text
+         sodipodi:linespacing="125%"
+         id="text3081"
+         y="402.93872"
+         x="447.8981"
+         style="font-size:10px;font-style:normal;font-weight:bold;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans Bold"
+         xml:space="preserve"><tspan
+           y="402.93872"
+           x="447.8981"
+           sodipodi:role="line"
+           id="tspan3083">Kwapi API</tspan><tspan
+           y="415.43872"
+           x="447.8981"
+           sodipodi:role="line"
+           id="tspan3085" /></text>
+    </g>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 540.57398,334.68417 -10e-6,48.95703"
+       id="path3933"
+       inkscape:connector-type="polyline"
+       inkscape:connector-curvature="3"
+       inkscape:connection-start="#g3065"
+       inkscape:connection-start-point="d4"
+       inkscape:connection-end="#g3054"
+       inkscape:connection-end-point="d4" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 0,0 0,0"
+       id="path3085"
+       inkscape:connector-type="polyline"
+       inkscape:connector-curvature="0"
+       inkscape:connection-start="#g4390"
+       inkscape:connection-start-point="d4"
+       inkscape:connection-end="#g3087"
+       inkscape:connection-end-point="d4"
+       transform="translate(4.575544,8.9521902)" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 418.97342,326.09986 0,48.58915"
+       id="path3094"
+       inkscape:connector-type="polyline"
+       inkscape:connector-curvature="0"
+       inkscape:connection-start="#g4411"
+       inkscape:connection-start-point="d4"
+       inkscape:connection-end="#g4417"
+       inkscape:connection-end-point="d4"
+       transform="translate(4.575544,8.9521902)" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 191.41918,325.99954 0,48.68947"
+       id="path3096"
+       inkscape:connector-type="polyline"
+       inkscape:connector-curvature="0"
+       inkscape:connection-start="#g4397"
+       inkscape:connection-start-point="d4"
+       inkscape:connection-end="#g4429"
+       inkscape:connection-end-point="d4"
+       transform="translate(4.575544,8.9521902)" />
+    <rect
+       y="288.63214"
+       x="254.61732"
+       height="136.27869"
+       width="367.95245"
+       id="rect3102"
+       style="fill:none;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:1, 2;stroke-dashoffset:0" />
+    <text
+       xml:space="preserve"
+       style="font-size:10px;font-style:normal;font-weight:bold;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans Bold"
+       x="-391.97681"
+       y="618.18335"
+       id="text4010"
+       sodipodi:linespacing="125%"
+       transform="matrix(0,-1,1,0,0,0)"><tspan
+         sodipodi:role="line"
+         id="tspan4012"
+         x="-391.97681"
+         y="618.18335">Grid'5000 plugins</tspan></text>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 80.889942,374.68901 -7e-6,-67.68644"
+       id="path3106"
+       inkscape:connector-type="polyline"
+       inkscape:connector-curvature="0"
+       inkscape:connection-start="#g3077"
+       inkscape:connection-start-point="d4"
+       inkscape:connection-end="#g3087"
+       inkscape:connection-end-point="d4"
+       transform="translate(4.575544,8.9521902)" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 80.889935,307.00257 273.12209,216.25082"
+       id="path3108"
+       inkscape:connector-type="polyline"
+       inkscape:connector-curvature="0"
+       inkscape:connection-start="#g3087"
+       inkscape:connection-start-point="d4"
+       inkscape:connection-end="#g4390"
+       inkscape:connection-end-point="d4"
+       transform="translate(4.575544,8.9521902)" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 211.86448,287.69834 284.35487,219.2537"
+       id="path3110"
+       inkscape:connector-type="polyline"
+       inkscape:connector-curvature="0"
+       inkscape:connection-start="#g4397"
+       inkscape:connection-start-point="d4"
+       inkscape:connection-end="#g4390"
+       inkscape:connection-end-point="d4"
+       transform="translate(4.575544,8.9521902)" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 301.94841,287.30523 0,-65.57251"
+       id="path3112"
+       inkscape:connector-type="polyline"
+       inkscape:connector-curvature="0"
+       inkscape:connection-start="#g4699"
+       inkscape:connection-start-point="d4"
+       inkscape:connection-end="#g4390"
+       inkscape:connection-end-point="d4"
+       transform="translate(4.575544,8.9521902)" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 397.45798,287.81554 323.89309,222.21188"
+       id="path3114"
+       inkscape:connector-type="polyline"
+       inkscape:connector-curvature="0"
+       inkscape:connection-start="#g4411"
+       inkscape:connection-start-point="d4"
+       inkscape:connection-end="#g4390"
+       inkscape:connection-end-point="d4"
+       transform="translate(4.575544,8.9521902)" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 511.96741,296.28739 342.13846,220.5624"
+       id="path3116"
+       inkscape:connector-type="polyline"
+       inkscape:connector-curvature="0"
+       inkscape:connection-start="#g3065"
+       inkscape:connection-start-point="d4"
+       inkscape:connection-end="#g4390"
+       inkscape:connection-end-point="d4"
+       transform="translate(4.575544,8.9521902)" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 267.02739,113.89179 149.72648,64.093869"
+       id="path3118"
+       inkscape:connector-type="polyline"
+       inkscape:connector-curvature="0"
+       inkscape:connection-start="#g3926"
+       inkscape:connection-start-point="d4"
+       inkscape:connection-end="#g4361"
+       inkscape:connection-end-point="d4"
+       transform="translate(4.575544,8.9521902)" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 281.22971,110.5788 230.00868,65.737648"
+       id="path3120"
+       inkscape:connector-type="polyline"
+       inkscape:connector-curvature="0"
+       inkscape:connection-start="#g3926"
+       inkscape:connection-start-point="d4"
+       inkscape:connection-end="#g4369"
+       inkscape:connection-end-point="d4"
+       transform="translate(4.575544,8.9521902)" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 303.34616,109.0256 3.07272,-43.287952"
+       id="path3122"
+       inkscape:connector-type="polyline"
+       inkscape:connector-curvature="0"
+       inkscape:connection-start="#g3926"
+       inkscape:connection-start-point="d4"
+       inkscape:connection-end="#g4377"
+       inkscape:connection-end-point="d4"
+       transform="translate(4.575544,8.9521902)" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 324.78616,110.93383 382.82909,65.737648"
+       id="path3124"
+       inkscape:connector-type="polyline"
+       inkscape:connector-curvature="0"
+       inkscape:connection-start="#g3926"
+       inkscape:connection-start-point="d4"
+       inkscape:connection-end="#g3113"
+       inkscape:connection-end-point="d4"
+       transform="translate(4.575544,8.9521902)" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 338.01558,114.27558 476.35447,58.884741"
+       id="path3126"
+       inkscape:connector-type="polyline"
+       inkscape:connector-curvature="0"
+       inkscape:connection-start="#g3926"
+       inkscape:connection-start-point="d4"
+       inkscape:connection-end="#g3913"
+       inkscape:connection-end-point="d4"
+       transform="translate(4.575544,8.9521902)" />
     <g
        id="g4397"
        transform="translate(66.372859,-1.0975961)"
@@ -302,48 +550,6 @@
            x="443.94376"
            sodipodi:role="line">kwapi-hdf5</tspan></text>
     </g>
-    <path
-       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="m 306.52395,335.6521 0,47.9891"
-       id="path7182"
-       inkscape:connector-type="polyline"
-       inkscape:connector-curvature="0"
-       inkscape:connection-start="#g4699"
-       inkscape:connection-start-point="d4"
-       inkscape:connection-end="#g4423"
-       inkscape:connection-end-point="d4"
-       inkscape:export-filename="/home/lolo/Bureau/kwapi-archi.png"
-       inkscape:export-xdpi="300"
-       inkscape:export-ydpi="300" />
-    <g
-       inkscape:export-ydpi="300"
-       inkscape:export-xdpi="300"
-       inkscape:export-filename="/home/lolo/Bureau/kwapi-archi.png"
-       transform="translate(61.700371,1.4285583)"
-       id="g3054">
-      <rect
-         style="fill:#aaccff;fill-opacity:1"
-         id="rect3056"
-         width="124.10878"
-         height="31.31473"
-         x="416.81921"
-         y="382.21265" />
-      <text
-         xml:space="preserve"
-         style="font-size:10px;font-style:normal;font-weight:bold;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans Bold"
-         x="431.46954"
-         y="401.51016"
-         id="text3058"
-         sodipodi:linespacing="125%"><tspan
-           id="tspan3060"
-           sodipodi:role="line"
-           x="431.46954"
-           y="401.51016">LIVE MONITORING</tspan><tspan
-           id="tspan3063"
-           sodipodi:role="line"
-           x="431.46954"
-           y="414.01016" /></text>
-    </g>
     <g
        inkscape:export-ydpi="300"
        inkscape:export-xdpi="300"
@@ -379,122 +585,6 @@
            id="tspan3071">kwapi-live</tspan></text>
     </g>
     <g
-       id="g3077"
-       transform="translate(-392.69383,0)"
-       inkscape:export-filename="/home/lolo/Bureau/kwapi-archi.png"
-       inkscape:export-xdpi="300"
-       inkscape:export-ydpi="300">
-      <rect
-         y="383.6412"
-         x="441.81921"
-         height="31.31473"
-         width="72.680206"
-         id="rect3079"
-         style="fill:#aaccff;fill-opacity:1" />
-      <text
-         sodipodi:linespacing="125%"
-         id="text3081"
-         y="402.93872"
-         x="447.8981"
-         style="font-size:10px;font-style:normal;font-weight:bold;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans Bold"
-         xml:space="preserve"><tspan
-           y="402.93872"
-           x="447.8981"
-           sodipodi:role="line"
-           id="tspan3083">Kwapi API</tspan><tspan
-           y="415.43872"
-           x="447.8981"
-           sodipodi:role="line"
-           id="tspan3085" /></text>
-    </g>
-    <path
-       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="m 540.57398,334.68417 -10e-6,48.95703"
-       id="path3933"
-       inkscape:connector-type="polyline"
-       inkscape:connector-curvature="3"
-       inkscape:connection-start="#g3065"
-       inkscape:connection-start-point="d4"
-       inkscape:connection-end="#g3054"
-       inkscape:connection-end-point="d4" />
-    <path
-       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 273.12209,216.25082 80.889935,307.00257"
-       id="path3085"
-       inkscape:connector-type="polyline"
-       inkscape:connector-curvature="0"
-       inkscape:connection-start="#g4390"
-       inkscape:connection-start-point="d4"
-       inkscape:connection-end="#g3087"
-       inkscape:connection-end-point="d4"
-       transform="translate(4.575544,8.9521902)" />
-    <path
-       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="m 284.35487,219.2537 -72.49039,68.44464"
-       id="path3087"
-       inkscape:connector-type="polyline"
-       inkscape:connector-curvature="0"
-       inkscape:connection-start="#g4390"
-       inkscape:connection-start-point="d4"
-       inkscape:connection-end="#g4397"
-       inkscape:connection-end-point="d4"
-       transform="translate(4.575544,8.9521902)" />
-    <path
-       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="m 301.94841,221.73272 0,65.57251"
-       id="path3090"
-       inkscape:connector-type="polyline"
-       inkscape:connector-curvature="0"
-       inkscape:connection-start="#g4390"
-       inkscape:connection-start-point="d4"
-       inkscape:connection-end="#g4699"
-       inkscape:connection-end-point="d4"
-       transform="translate(4.575544,8.9521902)" />
-    <path
-       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 397.45798,287.81554 323.89309,222.21188"
-       id="path3092"
-       inkscape:connector-type="polyline"
-       inkscape:connector-curvature="0"
-       inkscape:connection-start="#g4411"
-       inkscape:connection-start-point="d4"
-       inkscape:connection-end="#g4390"
-       inkscape:connection-end-point="d4"
-       transform="translate(4.575544,8.9521902)" />
-    <path
-       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="m 418.97342,326.09986 0,48.58915"
-       id="path3094"
-       inkscape:connector-type="polyline"
-       inkscape:connector-curvature="0"
-       inkscape:connection-start="#g4411"
-       inkscape:connection-start-point="d4"
-       inkscape:connection-end="#g4417"
-       inkscape:connection-end-point="d4"
-       transform="translate(4.575544,8.9521902)" />
-    <path
-       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="m 191.41918,325.99954 0,48.68947"
-       id="path3096"
-       inkscape:connector-type="polyline"
-       inkscape:connector-curvature="0"
-       inkscape:connection-start="#g4397"
-       inkscape:connection-start-point="d4"
-       inkscape:connection-end="#g4429"
-       inkscape:connection-end-point="d4"
-       transform="translate(4.575544,8.9521902)" />
-    <path
-       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="m 80.889935,307.00257 7e-6,67.68644"
-       id="path3098"
-       inkscape:connector-type="polyline"
-       inkscape:connector-curvature="0"
-       inkscape:connection-start="#g3087"
-       inkscape:connection-start-point="d4"
-       inkscape:connection-end="#g3077"
-       inkscape:connection-end-point="d4"
-       transform="translate(4.575544,8.9521902)" />
-    <g
        id="g3087"
        transform="translate(-389.81129,-1.0975961)"
        inkscape:export-filename="/home/lolo/Bureau/kwapi-archi.png"
@@ -528,58 +618,6 @@
            x="443.94376"
            sodipodi:role="line">kwapi-api</tspan></text>
     </g>
-    <rect
-       y="288.63214"
-       x="254.61732"
-       height="136.27869"
-       width="367.95245"
-       id="rect3102"
-       style="fill:none;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:1, 2;stroke-dashoffset:0" />
-    <g
-       id="g4390"
-       transform="translate(24.119079,-12.442837)"
-       inkscape:export-filename="/home/lolo/Bureau/kwapi-archi.png"
-       inkscape:export-xdpi="300"
-       inkscape:export-ydpi="300">
-      <path
-         transform="matrix(1.6216216,0,0,1,-59.954938,61.114228)"
-         d="m 248.49753,162.92287 c 0,10.87889 -16.73364,19.69797 -37.37564,19.69797 -20.642,0 -37.37565,-8.81908 -37.37565,-19.69797 0,-10.87889 16.73365,-19.69798 37.37565,-19.69798 20.642,0 37.37564,8.81909 37.37564,19.69798 z"
-         sodipodi:ry="19.697975"
-         sodipodi:rx="37.375645"
-         sodipodi:cy="162.92287"
-         sodipodi:cx="211.12189"
-         id="path3076-0"
-         style="fill:#fff9b2;fill-opacity:1"
-         sodipodi:type="arc" />
-      <text
-         sodipodi:linespacing="125%"
-         id="text3078-3"
-         y="226.79588"
-         x="235.2955"
-         style="font-size:10px;font-style:normal;font-weight:bold;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans Bold"
-         xml:space="preserve"><tspan
-           id="tspan3194"
-           y="226.79588"
-           x="235.2955"
-           sodipodi:role="line">kwapi-forwarder</tspan><tspan
-           id="tspan3198"
-           y="239.29588"
-           x="235.2955"
-           sodipodi:role="line" /><tspan
-           id="tspan3082-2"
-           y="251.79588"
-           x="235.2955"
-           sodipodi:role="line" /></text>
-    </g>
-    <path
-       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="m 301.94841,128.71686 0,54.83455"
-       id="path3100"
-       inkscape:connector-type="polyline"
-       inkscape:connector-curvature="0"
-       inkscape:connection-end="#g4390"
-       inkscape:connection-end-point="d4"
-       transform="translate(4.575544,8.9521902)" />
     <g
        id="g4377"
        transform="translate(-170.41233,-2.8751416)"
@@ -753,59 +791,49 @@
            y="101.07816"
            id="tspan3123-7" /></text>
     </g>
+    <g
+       id="g4390"
+       transform="translate(24.119079,-12.442837)"
+       inkscape:export-filename="/home/lolo/Bureau/kwapi-archi.png"
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300">
+      <path
+         transform="matrix(1.6216216,0,0,1,-59.954938,61.114228)"
+         d="m 248.49753,162.92287 c 0,10.87889 -16.73364,19.69797 -37.37564,19.69797 -20.642,0 -37.37565,-8.81908 -37.37565,-19.69797 0,-10.87889 16.73365,-19.69798 37.37565,-19.69798 20.642,0 37.37564,8.81909 37.37564,19.69798 z"
+         sodipodi:ry="19.697975"
+         sodipodi:rx="37.375645"
+         sodipodi:cy="162.92287"
+         sodipodi:cx="211.12189"
+         id="path3076-0"
+         style="fill:#fff9b2;fill-opacity:1"
+         sodipodi:type="arc" />
+      <text
+         sodipodi:linespacing="125%"
+         id="text3078-3"
+         y="226.79588"
+         x="235.2955"
+         style="font-size:10px;font-style:normal;font-weight:bold;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans Bold"
+         xml:space="preserve"><tspan
+           id="tspan3194"
+           y="226.79588"
+           x="235.2955"
+           sodipodi:role="line">kwapi-forwarder</tspan><tspan
+           id="tspan3198"
+           y="239.29588"
+           x="235.2955"
+           sodipodi:role="line" /><tspan
+           id="tspan3082-2"
+           y="251.79588"
+           x="235.2955"
+           sodipodi:role="line" /></text>
+    </g>
     <path
        style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 267.02739,113.89179 149.72648,64.093869"
-       id="path4000"
+       d="m 301.94841,128.71686 0,54.83455"
+       id="path3100"
        inkscape:connector-type="polyline"
        inkscape:connector-curvature="0"
-       inkscape:connection-start="#g3926"
-       inkscape:connection-start-point="d4"
-       inkscape:connection-end="#g4361"
-       inkscape:connection-end-point="d4"
-       transform="translate(4.575544,8.9521902)" />
-    <path
-       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 281.22971,110.5788 230.00868,65.737648"
-       id="path4002"
-       inkscape:connector-type="polyline"
-       inkscape:connector-curvature="0"
-       inkscape:connection-start="#g3926"
-       inkscape:connection-start-point="d4"
-       inkscape:connection-end="#g4369"
-       inkscape:connection-end-point="d4"
-       transform="translate(4.575544,8.9521902)" />
-    <path
-       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="m 303.34616,109.0256 3.07272,-43.287952"
-       id="path4004"
-       inkscape:connector-type="polyline"
-       inkscape:connector-curvature="0"
-       inkscape:connection-start="#g3926"
-       inkscape:connection-start-point="d4"
-       inkscape:connection-end="#g4377"
-       inkscape:connection-end-point="d4"
-       transform="translate(4.575544,8.9521902)" />
-    <path
-       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 324.78616,110.93383 382.82909,65.737648"
-       id="path4006"
-       inkscape:connector-type="polyline"
-       inkscape:connector-curvature="0"
-       inkscape:connection-start="#g3926"
-       inkscape:connection-start-point="d4"
-       inkscape:connection-end="#g3113"
-       inkscape:connection-end-point="d4"
-       transform="translate(4.575544,8.9521902)" />
-    <path
-       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 338.01558,114.27558 476.35447,58.884741"
-       id="path4008"
-       inkscape:connector-type="polyline"
-       inkscape:connector-curvature="0"
-       inkscape:connection-start="#g3926"
-       inkscape:connection-start-point="d4"
-       inkscape:connection-end="#g3913"
+       inkscape:connection-end="#g4390"
        inkscape:connection-end-point="d4"
        transform="translate(4.575544,8.9521902)" />
     <g
@@ -836,17 +864,5 @@
            x="267.75931"
            sodipodi:role="line" /></text>
     </g>
-    <text
-       xml:space="preserve"
-       style="font-size:10px;font-style:normal;font-weight:bold;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans Bold"
-       x="-391.97681"
-       y="618.18335"
-       id="text4010"
-       sodipodi:linespacing="125%"
-       transform="matrix(0,-1,1,0,0,0)"><tspan
-         sodipodi:role="line"
-         id="tspan4012"
-         x="-391.97681"
-         y="618.18335">Grid'5000 plugins</tspan></text>
   </g>
 </svg>
