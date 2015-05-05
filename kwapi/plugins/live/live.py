@@ -26,6 +26,7 @@ import time
 import uuid
 import ast
 import re
+import socket
 
 import rrdtool
 
@@ -97,7 +98,8 @@ probes_uid_set_power = nx.Graph()
 # Loads topology from config file.
 parser = cfg.ConfigParser('/etc/kwapi/live.conf', {})
 parser.parse()
-site = getfqdn().split('.')[1]
+hostname = socket.getfqdn().split('.')
+site = hostname[1] if len(hostname) >= 2 else hostname[0]
 
 for section, entries in parser.sections.iteritems():
     if section == 'TOPO':
