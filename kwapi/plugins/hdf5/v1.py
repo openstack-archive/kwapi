@@ -66,13 +66,11 @@ def get_type(metric,headers):
             {
               "rel": "self",
               "type": "application/vnd.fr.grid5000.api.Metric+json;level=1",
-              "href": _get_api_path(headers) + "sites/" + site
-              + "/" + metric
+              "href": _get_api_path(headers) + "sites/" + site + "/metric/" + metric
            },
            {
               "title": "timeseries",
-              "href": _get_api_path(headers) + "sites/" + site
-              + "/" + metric + "/timeseries",
+              "href": _get_api_path(headers) + "sites/" + site + "/metric/" + metric + "/timeseries",
               "type": "application/vnd.fr.grid5000.api.Collection+json;level=1",
               "rel": "collection"
            },
