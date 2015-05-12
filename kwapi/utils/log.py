@@ -3,6 +3,7 @@
 """Kwapi logging."""
 
 import logging
+import sys
 
 getLogger = logging.getLogger
 
@@ -16,7 +17,7 @@ def setup(file_name):
     file_handler = logging.FileHandler(file_name, mode='w')
     file_handler.setLevel(logging.INFO)
     # Create console handler
-    console_handler = logging.StreamHandler()
+    console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setLevel(logging.INFO)
     # Create formatter and add it to the handlers
     formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(module)s - %(message)s', "%Y-%m-%d %H:%M:%S")
