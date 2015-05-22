@@ -24,7 +24,7 @@ from driver import Driver
 class DummyNet(Driver):
     """Dummy driver derived from Driver class. Usefull for tests."""
 
-    def __init__(self, probe_ids, probe_data_type, **kwargs):
+    def __init__(self, probe_ids, probe_names, probe_data_type, **kwargs):
         """Initializes the dummy driver.
 
         Keyword arguments:
@@ -34,7 +34,7 @@ class DummyNet(Driver):
                   defining the random value interval
 
         """
-        Driver.__init__(self, probe_ids, probe_data_type, kwargs)
+        Driver.__init__(self, probe_ids, probe_names, probe_data_type, kwargs)
         self.min_value = int(kwargs.get('min', 75))
         self.max_value = int(kwargs.get('max', 100))
 

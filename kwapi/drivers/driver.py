@@ -40,12 +40,13 @@ cfg.CONF.register_opts(driver_opts)
 class Driver(Thread):
     """Generic driver class, derived from Thread."""
 
-    def __init__(self, probe_ids, probe_data_type, kwargs):
+    def __init__(self, probe_ids, probes_names, probe_data_type, kwargs):
         """Initializes driver."""
         LOG.info('Loading driver %s(probe_ids=%s, kwargs=%s)'
                  % (self.__class__.__name__, probe_ids, kwargs))
         Thread.__init__(self)
         self.probe_ids = probe_ids
+        self.probes_names = probes_names
         self.probe_data_type = probe_data_type
         self.kwargs = kwargs
         self.probe_observers = []
@@ -84,7 +85,7 @@ class Driver(Thread):
             ]
         )
 
-    def create_measurements(self, probe_id, time, metrics):
+    def create_measurements(self, probe_id, time, metrics, params={}):
         """Return the measure with specific fields associated"""
 	measurements = {}
 	# Add default fields
@@ -92,6 +93,13 @@ class Driver(Thread):
 	measurements['timestamp'] = time
         measurements['measure'] = metrics
         measurements['data_type'] = self.probe_data_type
+        probe_index = self.probe_ids.index(probe_id)
+        probe_name = self.probes_names[probe_index]
+        if not type(probe_name) == list:
+            probe_name = [probe_name]
+        measurements['probes_names'] = str(probe_name).encode('utf-8')
+        for key in params:
+            measurements[key] = params[key]
 	return measurements
 
     def subscribe(self, observer):

@@ -124,25 +124,30 @@ def send_zip():
         probes = flask.request.probes
     tmp_file = tempfile.NamedTemporaryFile()
     zip_file = zipfile.ZipFile(tmp_file.name, 'w')
-    probes = [probe.encode('utf-8') for probe in probes
-              if os.path.exists(rrd.get_rrd_filename(probe))]
-    if len(probes) == 1:
-        probe = probes[0]
-        rrd_file = rrd.get_rrd_filename(probe)
-        zip_file.write(rrd_file, '/rrd/' + probe + '.rrd')
-        for scale in ['minute', 'hour', 'day', 'week', 'month', 'year']:
-            png_file = rrd.build_graph(int(time.time()) - flask.request.scales[scale][0]['interval'], int(time.time()), probe, False)
-            zip_file.write(png_file, '/png/' + probe + '-' + scale + '.png')
-    elif len(probes) > 1:
+    probes_selected = []
+    for metric in ['power', 'network_in', 'network_out']:
         for probe in probes:
-            rrd_file = rrd.get_rrd_filename(probe)
+            if os.path.exists(rrd.get_rrd_filename(probe, metric)):
+                probes_selected.append(probe.encode('utf8'))
+    probes = probes_selected
+    for metric in ['power', 'network_in', 'network_out']:
+        if len(probes) == 1:
+            probe = probes[0]
+            rrd_file = rrd.get_rrd_filename(probe,metric)
             zip_file.write(rrd_file, '/rrd/' + probe + '.rrd')
             for scale in ['minute', 'hour', 'day', 'week', 'month', 'year']:
                 png_file = rrd.build_graph(int(time.time()) - flask.request.scales[scale][0]['interval'], int(time.time()), probe, False)
-                zip_file.write(png_file, '/png/' + probe + '/' + scale + '.png')
-        for scale in ['minute', 'hour', 'day', 'week', 'month', 'year']:
-            png_file = rrd.build_graph(int(time.time()) - flask.request.scales[scale][0]['interval'], int(time.time()), probes, True)
-            zip_file.write(png_file, '/png/summary-' + scale + '.png')
+                zip_file.write(png_file, '/png/' + probe + '-' + scale + '.png')
+        elif len(probes) > 1:
+            for probe in probes:
+                rrd_file = rrd.get_rrd_filename(probe, metric)
+                zip_file.write(rrd_file, '/rrd/' + probe + '.rrd')
+                for scale in ['minute', 'hour', 'day', 'week', 'month', 'year']:
+                    png_file = rrd.build_graph(int(time.time()) - flask.request.scales[scale][0]['interval'], int(time.time()), probe, False)
+                    zip_file.write(png_file, '/png/' + probe + '/' + scale + '.png')
+            for scale in ['minute', 'hour', 'day', 'week', 'month', 'year']:
+                png_file = rrd.build_graph(int(time.time()) - flask.request.scales[scale][0]['interval'], int(time.time()), probes, True)
+                zip_file.write(png_file, '/png/summary-' + scale + '.png')
     else:
         flask.abort(404)
     return flask.send_file(tmp_file,

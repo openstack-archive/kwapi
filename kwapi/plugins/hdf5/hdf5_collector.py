@@ -9,6 +9,7 @@ from dateutil.relativedelta import relativedelta
 from Queue import Queue
 from tables import *
 from pandas import HDFStore
+import networkx as nx
 
 
 LOG = log.getLogger(__name__)
@@ -52,6 +53,10 @@ hdf5_opts = [
 cfg.CONF.register_opts(hdf5_opts)
 hostname = socket.getfqdn().split('.')
 site = hostname[1] if len(hostname) >= 2 else hostname[0]
+# probe list
+probes_sets = {}
+# Mapping between name and probes
+probes_names_map = nx.Graph()
 # One queue per metric
 buffered_values = {
     "power": Queue(),
@@ -59,16 +64,24 @@ buffered_values = {
     "network_out": Queue(),
 }
 
-def update_hdf5(probe, data_type, timestamp, metrics, params):
+def update_hdf5(probe, probes_names, data_type, timestamp, metrics, params):
     """Updates HDF5 file associated with this probe."""
     if not data_type in buffered_values:
         return
+    if not type(probes_names) == list:
+        probes_names = list(probes_names)
+    for probe_name in probes_names:
+        probes_names_map.add_edge(probe_name,probe)
     buffered_values[data_type].put((probe, timestamp, metrics))
-
+    if probes_sets.get(data_type, None):
+        probes_sets[data_type].add(probe)
+    else:
+        probes_sets[data_type] = set([probe])
 
 def get_probe_path(probe):
-    host = probe.split(".")[1]
-    return "/%s/%s" % (site, host.replace('_', "__").replace('-', '_'))
+    site = probe.split(".")[0]
+    host = ".".join(probe.split(".")[1:])
+    return "/%s/%s" % (site, host.replace('.', "__").replace('-', '_'))
 
 
 class ProbeMeasures(IsDescription):
@@ -154,19 +167,24 @@ class HDF5_Collector:
         f = openFile(self.get_hdf5_file(), mode = "a")
         try:
             path = get_probe_path(probe)
+            _, cluster, probe_name = path.split('/')
+            if not cluster in f.root:
+                group = f.createGroup("/", cluster, "cluster")
+            group = f.getNode("/"+cluster)
             if not path in f:
-                _, cluster, probe = path.split('/')
-                if not cluster in f.root:
-                    group = f.createGroup("/", cluster, "cluster")
-                group = f.getNode("/"+cluster)
-                if not path in f:
-                    table = f.createTable(group, probe, ProbeMeasures, "probe")
+                table = f.createTable(group, probe_name, ProbeMeasures, "probe")
             table = f.getNode(path)
             for x in range(len(timestamps)):
                 table.row['timestamp'] = timestamps[x]
                 table.row['measure'] = measures[x]
                 table.row.append()
             table.flush()
+            probes_neighbors = probes_names_map.neighbors(probe)
+            for probe_neighbor in probes_neighbors:
+                neighbor_path = get_probe_path(probe_neighbor)
+                if not neighbor_path in f:
+                    _, cluster,neighbor_probe_name = neighbor_path.split('/')
+                    f.create_hard_link(group, neighbor_probe_name, table)
         except Exception as e:
             LOG.error("Fail to add %s datas" % probe)
             LOG.error("%s" % e)
@@ -177,23 +195,12 @@ class HDF5_Collector:
 
     def get_probes_list(self):
         probes = []
-        self.lock.acquire()
-        try:
-            store = HDFStore(self.get_hdf5_file())
-            for k in store.keys():
-                try:
-                    # /site/host
-                    _, site, host = k.split("/")
-                    for probe in host.split('__'):
-                        # /site/power/cluster/host => host.site.grid5000.fr
-                        probes.append("%s.%s.grid5000.fr" % (probe.replace('_','-'), site))
-                except:
-                    LOG.error("Can't parse %s" % k)
-            store.close()
-        except:
-            probes = []
-        finally:
-            self.lock.release()
+        for probe in list(probes_sets[self.data_type]):
+            try:
+                site, host, port = probe.split(".")
+                probes.append("%s.%s.%s.grid5000.fr" % (port, host, site))
+            except:
+                LOG.error("Can't parse %s" % probe)
         return probes
 
     def get_hdf5_files(self, start_time, end_time):
@@ -232,7 +239,7 @@ class HDF5_Collector:
                     if not probe in message:
                         # Init message for probe
                         message[probe] = dict()
-                        message[probe]["uid"] = probe.split('.')[1]
+                        message[probe]["uid"] = ".".join(probe.split('.')[1:])
                         message[probe]["to"] =  int(end_time)
                         message[probe]["from"] = int(start_time)
                         message[probe]['values'] = []

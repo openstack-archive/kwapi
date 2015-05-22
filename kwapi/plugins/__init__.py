@@ -17,6 +17,7 @@
 import json
 
 import zmq
+import ast
 
 from kwapi import security
 from kwapi.utils import cfg, log
@@ -52,15 +53,24 @@ def listen(function):
             LOG.error('Bad message signature')
         else:
             try:
+                """
+                Measurement format:
+                  * probe_id
+                  * timestamp: time of the measure
+                  * measure: data retrieved by probes
+                  * data_type: type of measure (power, network...)
+                  * params: additional informations
+                """
                 probe = measurements['probe_id'].encode('utf-8')
-                # params = {'name':'switch.port.receive.bytes',
-                #           'type':'Cummulative',
-                #           'unit':'B'}
-                params = measurements['data_type']
-                name = params['name']
                 timestamp = measurements['timestamp']
                 measure = measurements['measure']
-                function(probe, name, timestamp, measure, params)
+                params = measurements['data_type']
+                data_type = params['name']
+                probe_names = ast.literal_eval(measurements['probes_names'])
+                for key in measurements.keys():
+                    if not key in ['probe_id', 'timestamp', 'measure', 'data_type', 'message_signature']:
+                        params[key] = measurements[key]
+                function(probe, probe_names, data_type, timestamp, measure, params)
             except (TypeError, ValueError):
                 raise
                 LOG.error('Malformed data: %s' % measurements)

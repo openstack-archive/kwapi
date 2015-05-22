@@ -11,7 +11,7 @@
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
-# License for the specific language governing permissions and limitations
+# License for the speci0.fic language governing permissions and limitations
 # under the License.
 
 """Defines functions to visualize rrd graphs."""
@@ -29,6 +29,7 @@ import re
 import socket
 
 import rrdtool
+from kwapi.plugins.rrd.rrd import get_rrd_filename, get_png_filename
 
 from kwapi.utils import cfg, log
 from socket import getfqdn
@@ -51,7 +52,7 @@ live_opts = [
     cfg.IntOpt('hue',
                required=True,
                ),
-    cfg.IntOpt('max_watts',
+    cfg.IntOpt('max_metrics',
                required=True,
                ),
     cfg.MultiStrOpt('probes_endpoint',
@@ -90,10 +91,7 @@ scales['year'] = {'interval': 31622400, 'resolution': 604800, 'label': 'year'},
 # One probe set per metric (displayed on web interface)
 probes_set_network = set()
 probes_set_power = set()
-
-# Probe set uid
-probes_uid_set_network = nx.Graph()
-probes_uid_set_power = nx.Graph()
+all_uid_power = set()
 
 # Loads topology from config file.
 parser = cfg.ConfigParser('/etc/kwapi/live.conf', {})
@@ -101,53 +99,48 @@ parser.parse()
 hostname = socket.getfqdn().split('.')
 site = hostname[1] if len(hostname) >= 2 else hostname[0]
 
-for section, entries in parser.sections.iteritems():
-    if section == 'TOPO':
-        powerProbes = set(ast.literal_eval(entries['powerProbes'][0]))
-        for powerProbe in powerProbes:
-            site, probe = powerProbe.split('.')
-            cluster = probe.split('-')[0]
-            for number in probe.split('-')[1:]:
-                probes_uid_set_power.add_node(powerProbe, rrd=True)
-                probes_uid_set_power.add_edge(site + '.' + cluster + '-' + number, powerProbe)
+# Mapping between name and probes
+probes_names_map = nx.Graph()
 
-all_uid_power = [n[0] for n in probes_uid_set_power.nodes(True) \
-             if n[1].get('rrd', False)]
+def find_multi_probe(probe_name):
+    """Return probe_uid attached to probe name if any.
 
-node_to_remove = set()
+    If no probe is attached to probe_name, return None.
 
-probe_colors = {}
-lock = Lock()
-
-def find_multi_probe(probe):
-    """Input: nancy.griffon-1"""
-    """Output: nancy.giffon-1-2-3...-x"""
+    >>> find_multi_probe("nancy.griffon-1")
+    nancy.griffon-1-2-3-...-x #corresponding pdu ID
+    """
     try:
-        return probes_uid_set_power.neighbors(probe)[0]
+        return probes_names_map.neighbors(probe_name)
     except:
-        return None
-
+        return []
 
 def find_probe_uid(metric, probe_name):
+    """Return probe_uid corresponding to given name and metric
+
+    Power
+    >>> find_probe_uid("power", "nancy.griffon-1")
+    ['nancy.griffon-1-2-3-...-x']
+
+    Network
+    >>> find_probe_uid("network", "nancy.griffon-1")
+    ['nancy.sgriffon1.1-1',]
+
+    >>> find_probe_uid("network", "nancy.sgriffon-1")
+    ['nancy.gw-nancy.1-1', 'nancy.sgriffon-2.1-1']
+    """
     if metric == 'power':
-        #if not probe_name in probes_uid_set_power:
-        #    return None
         probe_uid = find_multi_probe(probe_name)
         return probe_uid
     if metric == 'network':
-        #if not probe_name in probes_set_network:
-        #    return None
-        # Return (probe_uid in, probe_uid out)
-        switch_or_probes = []
         try:
-            res = probes_uid_set_network.neighbors(probe_name)
+            res = probes_names_map.neighbors(probe_name)
         except:
             res = []
-        res2 = []
-        for p in res:
-            res2.append((probe_name + '_' + str(p).split('.')[1],\
-                    str(p) + '_' + probe_name.split('.')[1]))
-        return res2
+        return res
+
+probe_colors = {}
+lock = Lock()
 
 def create_dirs():
     """Creates all required directories."""
@@ -174,42 +167,21 @@ def create_color_gen():
     for probe in sorted(all_uid_power, reverse=True):
         probe_colors[probe] = color_seq.next()
 
-
-def get_png_filename(scale, probe):
-    """Returns the png filename."""
-
-    return cfg.CONF.png_dir + '/' + scale + '/' + \
-        str(uuid.uuid5(uuid.NAMESPACE_DNS, str(probe))) + '.png'
-
-
-def get_rrd_filename(probe):
-    """Returns the rrd filename."""
-    # Include params in the path
-    filename = cfg.CONF.rrd_dir + '/' + str(uuid.uuid5(uuid.NAMESPACE_DNS,
-                                        str(probe))) + '.rrd'
-    if os.path.exists(filename):
-        return filename
-    else:
-        LOG.error("No file for %s." % probe)
-        return None
-
-def update_probe(probe, data_type, timestamp, metrics, params):
+def update_probe(probe, probes_names, data_type, timestamp, metrics, params):
+    probe_short_uid = ".".join(probe.split(".")[:2]) # without ports
+    probes_names_map.add_edge(probe_short_uid, probe)
     if data_type == 'power':
-        site, probeP = probe.split('.')
-        cluster = probeP.split('-')[0]
-        for number in probeP.split('-')[1:]:
-            probes_uid_set_power.add_edge('.'.join([site, cluster, number]),\
-                    probeP)
-            probes_set_power.add('.'.join([site, cluster]) + "-" +number)
-    if 'network' in data_type:
-        site, probeP = probe.split('.')
-        src, dest = probeP.split('_')
-        probes_uid_set_network.add_edge('.'.join([site, src]), '.'.join([site, dest]))
-        new_node = site + '.' + src
-        probes_set_network.add(new_node)
-        new_node = site + '.' + dest
-        probes_set_network.add(new_node)
-
+        probes_set_power.add(probe_short_uid)
+    else:
+        probes_set_network.add(probe_short_uid)
+    if not type(probes_names) == list:
+        probes_names = list(probes_names)
+    for probe_name in probes_names:
+        probes_names_map.add_edge(probe_name,probe)
+        if data_type == 'power':
+            probes_set_power.add(probe_name)
+        else:
+            probes_set_network.add(probe_name)
 
 def build_graph(metric, start, end, probes, summary=True):
     """Builds the graph for the probes, or a summary graph."""
@@ -249,7 +221,7 @@ def contains_multiprobes(probes):
         if(not find_multi_probe(probe) == probe):
             LOG.info("Contain multiprobe")
             return True
-    LOG.info("Contain no multiprobe") 
+    LOG.info("Contain no multiprobe")
     return False
 
 def build_graph_energy_init(start, end, probes, summary):
@@ -271,24 +243,26 @@ def build_graph_energy_init(start, end, probes, summary):
     # Retrieve probes (and multi-probes)
     if not isinstance(probes, list):
         probes = [probes]
+    probes = filter(lambda p: p in probes_set_power, probes)
     multi_probes_selected = set()
     for probe in probes:
-        multi_probes_selected.add(find_multi_probe(probe))
-    probes = list(multi_probes_selected)
-    probes = [probe for probe in probes if get_rrd_filename(probe)]
+        multi_probes_selected = multi_probes_selected.union(find_multi_probe(probe))
+    probes_uid = list(multi_probes_selected)
+    probes_uid = [probe for probe in probes_uid if get_rrd_filename(probe, "power")]
     # Only one probe
     if len(probes) == 1 and not summary and cachable:
-        png_file = get_png_filename(scale, probes[0])
+        png_file = get_png_filename(probes[0], "power", scale)
     # All probes
-    elif not probes or len(probes) == len(all_uid_power) and cachable:
+    elif not probes_uid or summary or (len(probes) == len(probes_set_power) and cachable):
         png_file = cfg.CONF.png_dir + '/' + scale + '/summary-energy.png'
-        probes = all_uid_power
+        probes = list(probes_set_power)
     # Specific combinaison of probes
     else:
         png_file = '/tmp/' + str(uuid.uuid4()) + '.png'
-    return build_graph_energy(start, end, probes, summary, cachable, png_file, scale)
-    
-def build_graph_energy(start, end, probes, summary, cachable, png_file, scale):
+    return build_graph_energy(start, end, probes_uid, probes, summary, cachable, png_file, scale)
+
+def build_graph_energy(start, end, probes, probes_name, summary, cachable, png_file, scale):
+    LOG.debug("probes = %r" % probes)
     # Get the file from cache
     if cachable and os.path.exists(png_file) and os.path.getmtime(png_file) > \
             time.time() - scales[scale][0]['resolution']:
@@ -308,10 +282,10 @@ def build_graph_energy(start, end, probes, summary, cachable, png_file, scale):
     else:
         # Specific arguments for probe graph
         args = [png_file,
-                '--title', str(probes[0]) + scale_label,
+                '--title', str(",".join(probes_name)) + scale_label,
                 '--width', '497',
                 '--height', '187',
-                '--upper-limit', str(cfg.CONF.max_watts),
+                '--upper-limit', str(cfg.CONF.max_metrics),
                 ]
     # Common arguments
     args += ['--start', str(start),
@@ -330,9 +304,14 @@ def build_graph_energy(start, end, probes, summary, cachable, png_file, scale):
     graph_lines = []
     stack = False
     probe_list = sorted(probes, reverse=True)
+    # Generate colors
+    color_seq_green = color_generator(len(probe_list)+1)
+    for probe in probe_list:
+        probe_colors[probe] = color_seq_green.next()
+
     for probe in probe_list:
         probe_uuid = uuid.uuid5(uuid.NAMESPACE_DNS, str(probe))
-        rrd_file = get_rrd_filename(probe)
+        rrd_file = get_rrd_filename(probe, "power")
         # Data source
         args.append('DEF:watt_with_unknown_%s=%s:w:AVERAGE'
                     % (probe_uuid, rrd_file))
@@ -405,35 +384,33 @@ def build_graph_network_init(start, end, probes, summary):
             cachable = True
     if not isinstance(probes, list):
         probes = [probes]
-    probes = [probe for probe in probes if probe in probes_set_network]
-    probes_in = set() 
+    probes = filter(lambda p: p in probes_set_network, probes)
+    probes_in = set()
     probes_out = set()
     for probe in probes:
-        for probe_in, probe_out in find_probe_uid('network', probe):
-           if get_rrd_filename(probe_in) and get_rrd_filename(probe_out):
-                probes_in.add(probe_in)
-                probes_out.add(probe_out)
+        for probe in find_probe_uid('network', probe):
+           if get_rrd_filename(probe, "network_in") and get_rrd_filename(probe, "network_out"):
+                probes_in.add(probe)
+                probes_out.add(probe)
     probes_in = list(probes_in)
     probes_out = list(probes_out)
     # Only one probe
     if len(probes_in) == 1 and not summary and cachable:
-        png_file = get_png_filename(scale, probes_in[0])
-        if not png_file:
-            return None
+        png_file = get_png_filename(probes_in[0], "network_in", scale)
     # All probes
-    elif not probes_in or len(probes_in) == len(probes_set_network) and cachable:
+    elif not probes_in or summary or (len(probes_in) == len(probes_set_network) and cachable):
         png_file = cfg.CONF.png_dir + '/' + scale + '/summary-network.png'
         probes = list(probes_set_network)
     # Specific combinaison of probes
     else:
         png_file = '/tmp/' + str(uuid.uuid4()) + '.png'
     return build_graph_network(start, end, probes, probes_in, probes_out, summary, cachable, png_file, scale)
-    
+
 def build_graph_network(start, end, probes, probes_in, probes_out, summary, cachable, png_file, scale):
     # Get the file from cache
     if cachable and os.path.exists(png_file) and os.path.getmtime(png_file) > \
             time.time() - scales[scale][0]['resolution']:
-        LOG.info('Retrieve PNG graph from cache')
+        LOG.info('Retrieve PNG graph from cache %s' % png_file)
         return png_file
     # Build required (PNG file not found or outdated)
     scale_label = ''
@@ -484,7 +461,7 @@ def build_graph_network(start, end, probes, probes_in, probes_out, summary, cach
     #IN
     for probe in sorted(probe_list, reverse=True):
         probe_uuid = uuid.uuid5(uuid.NAMESPACE_DNS, str(probe))
-        rrd_file_in = get_rrd_filename(probe)
+        rrd_file_in = get_rrd_filename(probe, "network_in")
         # Data source
         args.append('DEF:metric_with_unknown_%s_in=%s:o:AVERAGE'
             % (probe_uuid, rrd_file_in))
@@ -518,7 +495,7 @@ def build_graph_network(start, end, probes, probes_in, probes_out, summary, cach
     probe_list = list(probes_out)
     for probe in sorted(probe_list, reverse=True):
         probe_uuid = uuid.uuid5(uuid.NAMESPACE_DNS, str(probe))
-        rrd_file_out = get_rrd_filename(probe)
+        rrd_file_out = get_rrd_filename(probe, "network_out")
         if not rrd_file_out:
             break
         # Data source

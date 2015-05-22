@@ -88,22 +88,25 @@ class Collector:
         self.database = {}
         self.lock = threading.Lock()
 
-    def add(self, probe, data_type, timestamp, measure, params):
+    def add(self, probe, probes_names, data_type, timestamp, measure, params):
         """Creates (or updates) consumption data for this probe."""
         self.lock.acquire()
-        try:
+        if not type(probes_names) == list:
+            probes_names = list(probes_names)
+        if True: #try:
             if data_type not in self.database.keys():
                 self.database[data_type] = {}
-            if probe in self.database[data_type].keys():
-                self.database[data_type][probe].add(timestamp, measure, params)
-            else:
-                record = Record(timestamp=timestamp, measure=measure, \
-                         data_type=data_type, params=params, integrated=0.0)
-                self.database[data_type][probe] = record
-        except:
+            for probe_name in probes_names:
+                if probe_name in self.database[data_type].keys():
+                    self.database[data_type][probe_name].add(timestamp, measure, params)
+                else:
+                    record = Record(timestamp=timestamp, measure=measure, \
+                             data_type=data_type, params=params, integrated=0.0)
+                    self.database[data_type][probe_name] = record
+        else: #except:
             LOG.error("Fail to add %s datas" % probe)
-        finally:
-            self.lock.release()
+        #finally:
+        self.lock.release()
 
     def remove(self, probe):
         """Removes this probe from database."""

@@ -35,21 +35,24 @@ ganglia_opts = [
                ),
     cfg.MultiStrOpt('watch_probe',
         required=False,
-        ),   
+        ),
     cfg.StrOpt('driver_metering_secret',
                required=True,
                ),
 ]
 cfg.CONF.register_opts(ganglia_opts)
-site = socket.getfqdn().split('.')[1]
+hostname = socket.getfqdn().split('.')
+site = hostname[1] if len(hostname) >= 2 else hostname[0]
+
 ganglia = GMetric(cfg.CONF.ganglia_server[0])
 ip_probe = {}
 
-def update_rrd(probe, data_type, timestamp, metrics, params):
+def update_rrd(probe, probe_names, data_type, timestamp, metrics, params):
     """Retrieve hostname and address"""
     if not data_type == 'power':
         return
-    probe_site, probe_id = probe.split(".")
+    probe_site = probe.split('.')[0]
+    probe_id = str(".".join(probe.split('.')[1:])) 
     if not probe_id in ip_probe:
         # Hack to know if it is multi-probe
         if probe_id.count('-') > 1:
@@ -67,4 +70,3 @@ def update_rrd(probe, data_type, timestamp, metrics, params):
         spoof=True
     )
     return
-

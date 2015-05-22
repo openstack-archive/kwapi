@@ -130,17 +130,25 @@ def create_dirs():
                 raise
 
 
-def get_png_filename(scale, probe):
-    """Returns the png filename."""
+def get_png_filename(probe_uid, metric, scale):
+    """Returns the png filename corresponding to the probe_uid.
+    
+    >>> get_png_filename('nancy.sw1.1-1', 'network_in', 'day')
+    "/var/lib/kwapi/kwapi-png/day/0f28a458-8abd-5471-a235-054407180482.png"
+    """
     return cfg.CONF.png_dir + '/' + scale + '/' + \
-        str(uuid.uuid5(uuid.NAMESPACE_DNS, str(probe))) + '.png'
+        str(uuid.uuid5(uuid.NAMESPACE_DNS, "%s.%s" % (str(probe_uid),str(metric)))) + '.png'
 
 
-def get_rrd_filename(probe):
-    """Returns the rrd filename."""
-    # Include params in the path
-    return cfg.CONF.rrd_dir + '/' + str(uuid.uuid5(uuid.NAMESPACE_DNS,
-                                        str(probe))) + '.rrd'
+def get_rrd_filename(probe_uid, metric):
+    """Returns the rrd filename corresponding to probe_uid.
+    
+    >>> get_rrd_filename('nancy.sw1.1-1', 'network_in')
+    "/var/lib/kwapi/kwapi-rrd/0f28a458-8abd-5471-a235-054407234445.rrd"
+    """
+    filename = cfg.CONF.rrd_dir + '/' + str(uuid.uuid5(uuid.NAMESPACE_DNS,
+                                        "%s.%s" % (str(probe_uid),str(metric)))) + '.rrd'
+    return filename
 
 def create_rrd_file(filename, params):
     """Creates a RRD file."""
@@ -166,7 +174,7 @@ def create_rrd_file(filename, params):
                            scales[scale][0]['resolution']))
         rrdtool.create(args)
 
-def update_rrd(probe, data_type, timestamp, metrics, params):
+def update_rrd(probe, probe_names, data_type, timestamp, metrics, params):
     """Updates RRD file associated with this probe."""
     if not probe in probes_set:
         color_seq = color_generator(len(probes_set)+1)
@@ -176,8 +184,8 @@ def update_rrd(probe, data_type, timestamp, metrics, params):
             probe_colors[probe] = color_seq.next()
         lock.release()
     # Depends on data_type
-    filename = get_rrd_filename(probe)
-    if not os.path.isfile(filename):
+    filename = get_rrd_filename(probe, data_type)
+    if not os.path.exists(filename):
         create_rrd_file(filename, params)
     try:
         rrdtool.update(filename, '%d:%d' % (round(timestamp,0), metrics))
@@ -205,7 +213,11 @@ def build_graph(start, end, probes, summary=True):
         return
     # Only one probe
     if len(probes) == 1 and not summary and cachable:
-        png_file = get_png_filename(scale, probes[0])
+        png_file = None
+        for metric in ['power', 'network_in', 'network_out']:
+            png_file = get_png_filename(probes[0], metric, scale)
+            if png_file:
+                break
     # All probes
     elif not probes or set(probes) == probes_set and cachable:
         png_file = cfg.CONF.png_dir + '/' + scale + '/summary.png'
@@ -256,7 +268,13 @@ def build_graph(start, end, probes, summary=True):
     probe_list = sorted(probes, reverse=True)
     for probe in probe_list:
         probe_uuid = uuid.uuid5(uuid.NAMESPACE_DNS, probe)
-        rrd_file = get_rrd_filename(probe)
+        rrd_file = None
+        for metric in ['power', 'network_in', 'network_out']:
+            rrd_file = get_rrd_filename(probe)
+            if rrd_file:
+                break
+        if not rrd_file:
+            continue
         # Data source
         args.append('DEF:watt_with_unknown_%s=%s:w:AVERAGE'
                     % (probe_uuid, rrd_file))
@@ -311,5 +329,3 @@ def build_graph(start, end, probes, summary=True):
     LOG.info('Build PNG graph')
     rrdtool.graph(args)
     return png_file
-
-
