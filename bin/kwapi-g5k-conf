@@ -343,11 +343,6 @@ for switch, probes in network_probes.iteritems():
                 sec += ", "
             sec += "]"
         sec += ", "
-        if probe:
-            sec += "%s" % probe
-        else:
-            sec += str(None)
-        sec += ", "
     sec += "]\n"
     sec += "driver = Snmp\n"
     sec += "data_type = {'name':'network_in', 'type':'Cumulative', 'unit':'B'}\n"
