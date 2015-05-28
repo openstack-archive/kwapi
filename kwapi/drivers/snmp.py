@@ -26,7 +26,7 @@ LOG = log.getLogger(__name__)
 class Snmp(Driver):
     """Driver for SNMP based PDUs."""
 
-    def __init__(self, probe_ids, probe_data_type, **kwargs):
+    def __init__(self, probe_ids, probes_names, probe_data_type, **kwargs):
         """Initializes the SNMP driver.
 
         Keyword arguments:
@@ -38,7 +38,7 @@ class Snmp(Driver):
                   Raritan OID is 1.3.6.1.4.1.13742.4.1.2.2.1.7
 
         """
-        Driver.__init__(self, probe_ids, probe_data_type, kwargs)
+        Driver.__init__(self, probe_ids, probes_names, probe_data_type, kwargs)
         self.cmd_gen = cmdgen.CommandGenerator()
 
     def run(self):
