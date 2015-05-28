@@ -100,9 +100,9 @@ hostname = socket.getfqdn().split('.')
 site = hostname[1] if len(hostname) >= 2 else hostname[0]
 
 # Mapping between name and probes
-probes_names_map = nx.Graph()
+probes_names_maps = {}
 
-def find_multi_probe(probe_name):
+def find_multi_probe(probe_name, data_type):
     """Return probe_uid attached to probe name if any.
 
     If no probe is attached to probe_name, return None.
@@ -111,7 +111,7 @@ def find_multi_probe(probe_name):
     nancy.griffon-1-2-3-...-x #corresponding pdu ID
     """
     try:
-        return probes_names_map.neighbors(probe_name)
+        return probes_names_maps[data_type].neighbors(probe_name)
     except:
         return []
 
@@ -130,11 +130,11 @@ def find_probe_uid(metric, probe_name):
     ['nancy.gw-nancy.1-1', 'nancy.sgriffon-2.1-1']
     """
     if metric == 'power':
-        probe_uid = find_multi_probe(probe_name)
+        probe_uid = find_multi_probe(probe_name, 'power')
         return probe_uid
     if metric == 'network':
         try:
-            res = probes_names_map.neighbors(probe_name)
+            res = probes_names_maps['network_in'].neighbors(probe_name)
         except:
             res = []
         return res
@@ -169,15 +169,20 @@ def create_color_gen():
 
 def update_probe(probe, probes_names, data_type, timestamp, metrics, params):
     probe_short_uid = ".".join(probe.split(".")[:2]) # without ports
-    probes_names_map.add_edge(probe_short_uid, probe)
+    if data_type in probes_names_maps:
+        probes_names_maps[data_type].add_edge(probe_short_uid, probe)
+    else:
+        probes_names_maps[data_type] = nx.Graph()
+        probes_names_maps[data_type].add_edge(probe_short_uid, probe)
     if data_type == 'power':
         probes_set_power.add(probe_short_uid)
+        all_uid_power.add(probe_short_uid)
     else:
         probes_set_network.add(probe_short_uid)
     if not type(probes_names) == list:
         probes_names = list(probes_names)
     for probe_name in probes_names:
-        probes_names_map.add_edge(probe_name,probe)
+        probes_names_maps[data_type].add_edge(probe_name,probe)
         if data_type == 'power':
             probes_set_power.add(probe_name)
         else:
@@ -216,9 +221,9 @@ def color_generator(nb_colors, hue=None):
         if step == 0:
             break
 
-def contains_multiprobes(probes):
+def contains_multiprobes(probes, data_type='power'):
     for probe in probes:
-        if(not find_multi_probe(probe) == probe):
+        if(not find_multi_probe(probe, data_type) == probe):
             LOG.info("Contain multiprobe")
             return True
     LOG.info("Contain no multiprobe")
@@ -246,7 +251,7 @@ def build_graph_energy_init(start, end, probes, summary):
     probes = filter(lambda p: p in probes_set_power, probes)
     multi_probes_selected = set()
     for probe in probes:
-        multi_probes_selected = multi_probes_selected.union(find_multi_probe(probe))
+        multi_probes_selected = multi_probes_selected.union(find_multi_probe(probe, 'power'))
     probes_uid = list(multi_probes_selected)
     probes_uid = [probe for probe in probes_uid if get_rrd_filename(probe, "power")]
     # Only one probe
@@ -364,7 +369,12 @@ def build_graph_energy(start, end, probes, probes_name, summary, cachable, png_f
     args.append('GPRINT:kwh:LAST:Total\: %lf kWh')
     args.append('GPRINT:cost:LAST:Cost\: %lf ' + cfg.CONF.currency)
     LOG.info('Build PNG graph %s' % png_file)
-    rrdtool.graph(args)
+    try:
+        rrdtool.graph(args)
+    except:
+        LOG.error("Fail to generate graph")
+        LOG.error("start %s, end %s, probes %s, probes_name %s, summary %s, cachable %s, png_file %s, scale %s" \
+                  % (start, end, probes, probes_name, summary, cachable, png_file, scale))
     return png_file
 
 
@@ -563,5 +573,11 @@ def build_graph_network(start, end, probes, probes_in, probes_out, summary, cach
     LOG.info('Build PNG graph')
     if len(probes_in) == 0 or len(probes_out) == 0:
         return None
-    rrdtool.graph(args)
+    try:
+        rrdtool.graph(args)
+    except:
+        LOG.error("Fail to generate graph")
+        LOG.error("start %s, end %s, probes %s, probes_name %s, summary %s, cachable %s, png_file %s, scale %s" \
+                  % (start, end, probes, probes_name, summary, cachable, png_file, scale))
+        LOG.error("%s", e)
     return png_file
