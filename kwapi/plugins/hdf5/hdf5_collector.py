@@ -56,7 +56,7 @@ site = hostname[1] if len(hostname) >= 2 else hostname[0]
 # probe list
 probes_sets = {}
 # Mapping between name and probes
-probes_names_map = nx.Graph()
+probes_names_maps = {}
 # One queue per metric
 buffered_values = {
     "power": Queue(),
@@ -71,7 +71,11 @@ def update_hdf5(probe, probes_names, data_type, timestamp, metrics, params):
     if not type(probes_names) == list:
         probes_names = list(probes_names)
     for probe_name in probes_names:
-        probes_names_map.add_edge(probe_name,probe)
+        if data_type in probes_names_maps:
+            probes_names_maps[data_type].add_edge(probe_name,probe)
+        else:
+            probes_names_maps[data_type] = nx.Graph()
+            probes_names_maps[data_type].add_edge(probe_name,probe)
     buffered_values[data_type].put((probe, timestamp, metrics))
     if probes_sets.get(data_type, None):
         probes_sets[data_type].add(probe)
@@ -179,7 +183,7 @@ class HDF5_Collector:
                 table.row['measure'] = measures[x]
                 table.row.append()
             table.flush()
-            probes_neighbors = probes_names_map.neighbors(probe)
+            probes_neighbors = probes_names_maps[self.data_type].neighbors(probe)
             for probe_neighbor in probes_neighbors:
                 neighbor_path = get_probe_path(probe_neighbor)
                 if not neighbor_path in f:
@@ -199,6 +203,7 @@ class HDF5_Collector:
             try:
                 site, host, port = probe.split(".")
                 probes.append("%s.%s.%s.grid5000.fr" % (port, host, site))
+                probes = sorted(probes, key = lambda x: "%s" % x.split(".")[1])
             except:
                 LOG.error("Can't parse %s" % probe)
         return probes
