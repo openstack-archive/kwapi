@@ -60,11 +60,15 @@ def format_host_name(host):
 def format_host_port(port):
     return '-' + port.replace("/", "").replace(":", "")
 
-def format_probes(probes_list, switch, site, outgoing):
-    if outgoing:
-        return [("%s.%s_%s" % (site, switch, x) if x else None) for x in probes_list]
+def format_probes(probes_list, switch, site, is_probe_name):
+    """Format probes:
+    Take probe list and format it for config file
+    """
+    probes_list = map(lambda x: x if x else (None, None), probes_list)
+    if not is_probe_name:
+        return [("%s.%s.%s" % (site, switch, y) if x else None) for x, y in probes_list]
     else:
-        return [("%s.%s_%s" % (site, x, switch) if x else None) for x in probes_list]
+        return [("%s.%s" % (site, x) if x else None) for x, y in probes_list]
 
 logger.info('Generating configuration of kwapi-drivers for %s',
             site)
@@ -84,11 +88,11 @@ try:
                         equips[pdu['uid']] = {'driver': 'Snmp', 'parameters':
                             {'community': _community, 'protocol': _protocol_power,
                              'ip': pdu['uid'] + '.' + site + '.grid5000.fr',
-                             'oid': oid }, 'mapping': [], 'probes': []}
+                             'oid': oid }, 'mapping': [], 'probes': [], 'probes_names': []}
                     if 'wattmetre' in sensor['power']:
                         equips[pdu['uid']] = {'driver': 'Json_url', 'parameters':
                             {'url': sensor['power']['wattmetre']['www']['url']},
-                                            'probes': []}
+                            'probes': [], 'probes_names': []}
 except:
     logger.error('Fail to retrieve power equipments')
 
@@ -126,16 +130,17 @@ try:
                                 host_uid = None
                         try:
                             device = host_uid + device_port if host_uid else None
-                            port = snmp_pattern.replace('%LINECARD%', str(l)).replace('%PORT%', str(p))
+                            port_name = snmp_pattern.replace('%LINECARD%', str(l)).replace('%PORT%', str(p))
+                            port_uid = "%d-%d" % (l, p)
                             if host_uid:
                                 if switchs.has_key(switch):
-                                    if switchs.has_key(port):
+                                    if switchs.has_key(port_name):
                                         logger.error('Collision on switch %s port %s host %s'
-                                                     % (switch, port, host_uid))
-                                    switchs[switch][port] = device
+                                                     % (switch, port_name, host_uid))
+                                    switchs[switch][port_name] = (device, port_uid)
                                 else:
                                     switchs[switch] = {}
-                                    switchs[switch][port] = device
+                                    switchs[switch][port_name] = (device, port_uid)
                         except:
                             logger.error("Can't write %s:%s:%d:%d:%s" % (switch, snmp_pattern, l, p, host_uid))
 
@@ -186,17 +191,27 @@ except:
 #pprint(equips)
 logger.info('Generating probe list for Snmp drivers')
 try:
-    for equip in equips.itervalues():
+    for pdu in equips:
+        equip =equips[pdu]
         if 'mapping' in equip and len(equip['mapping']) > 0:
             if len(filter(lambda x: x[1] != 0, equip['mapping'])) > 0:
                 equip['mapping'] = sorted(equip['mapping'], key=lambda x: x[1])
                 equip['probes'] = [None] * equip['mapping'][-1][1]
+                equip['probes_names'] = [None] * equip['mapping'][-1][1]
                 for probe, outlet in equip['mapping']:
-                    equip['probes'][outlet-1] = probe
-            else:  
-                cluster = equip['mapping'][0][0].split('-')[0]
-                radicals = map(lambda x: int(x[0].split('-')[1]), equip['mapping'])
-                equip['probes'].append(cluster + '-' + '-'.join(map(str, sorted(radicals))))
+                    equip['probes'][outlet-1] = "%s.%s" % (pdu, outlet)
+                    if equip['probes_names'][outlet-1]:
+                        equip['probes_names'][outlet-1].append("%s.%s"% (site, probe))
+                    else:
+                        equip['probes_names'][outlet-1] = ["%s.%s" % (site, probe)]
+            else:
+                equip['probes'] = ["%s.%s" % (pdu, 0)]
+                equip['probes_names'] = [None]
+                for probe, outlet in equip['mapping']:
+                    if equip['probes_names'][0]:
+                        equip['probes_names'][0].append("%s.%s" % (site, probe))
+                    else:
+                        equip['probes_names'][0] = ["%s.%s" % (site, probe)]
 except:
     logger.error('Failed to generate probe list') 
 
@@ -206,11 +221,11 @@ try:
     for switch in switchs:
         ifDescr_list = retrieve_switch_if(switch)
         probes = [None] * len(ifDescr_list)
-        for port in switchs[switch]:
-            if not port in ifDescr_list:
-                logger.error("Port %s not found in %s" % (port, switch))
+        for port_name in switchs[switch]:
+            if not port_name in ifDescr_list:
+                logger.error("Port %s not found in %s" % (port_name, switch))
             else:
-                probes[ifDescr_list.index(port)+1] = switchs[switch][port]
+                probes[ifDescr_list.index(port_name)+1] = switchs[switch][port_name]
         while not probes[-1]:
             probes.pop()
             if len(probes) == 0:
@@ -220,10 +235,10 @@ except:
     logger.error('Failed to generate probe list')
 try:
     for switch in switchs:
-        probesIN = format_probes(switch_probes[switch], switch, site, False)
-        probesOUT = format_probes(switch_probes[switch], switch, site, True)
-	network_probes[switch] = {'in':probesIN[1:],
-				  'out':probesOUT[1:],}
+        probes_uid = format_probes(switch_probes[switch], switch, site, False)
+        probes_names = format_probes(switch_probes[switch], switch, site, True)
+	network_probes[switch] = {'uid':probes_uid[1:],
+				  'names':probes_names[1:],}
 except:
     logger.error('Failed to generate topology and network mapping')
 # pprint(topo)
@@ -238,10 +253,28 @@ for equip, data in equips.iteritems():
         sec += "probes = ["
         for probe in data['probes']:
             if probe:
-                sec += "'" + site + '.' + probe +"'"
+                sec += "'%s.%s'" % (site, probe)
                 powerProbes.append(site + '.' + probe)
             else:
                 sec += str(None)
+            sec += ", "
+        sec += "]\n"
+        sec += "probes_names = ["
+        for probe in data['probes_names']:
+            if not type(probe) == list:
+                if probe:
+                    sec += "'%s'" % probe
+                else:
+                    sec += str(None)
+            else:
+                sec += "["
+                for p in probe:
+                    if p:
+                        sec += "'%s'" % p
+                    else:
+                        sec += str(None)
+                    sec += ", "
+                sec += "]"
             sec += ", "
         sec += "]\n"
         sec += "driver = "+data['driver']+"\n"
@@ -255,11 +288,29 @@ OID_OUT = "1.3.6.1.2.1.31.1.1.1.10"
 for switch, probes in network_probes.iteritems():
     sec = "\n[%s-IN]\n" % switch
     sec += "probes = ["
-    for probe in probes['in']:
+    for probe in probes['uid']:
         if probe:
             sec += "'" + probe + "'"
         else:
             sec += str(None)
+        sec += ", "
+    sec += "]\n"
+    sec += "probes_names = ["
+    for probe in probes['names']:
+        if not type(probe) == list:
+            if probe:
+                sec += "'%s'" % probe
+            else:
+                sec += str(None)
+        else:
+            sec += "["
+            for p in probe:
+                if p:                             
+                    sec += "'%s'" % p
+                else:
+                    sec += str(None)
+                sec += ", "
+            sec += "]"
         sec += ", "
     sec += "]\n"
     sec += "driver = Snmp\n"
@@ -268,9 +319,32 @@ for switch, probes in network_probes.iteritems():
     f.write(sec)
     sec = "\n[%s-OUT]\n" % switch
     sec += "probes = ["
-    for probe in probes['out']:
+    for probe in probes['uid']:
         if probe:
             sec += "'" + probe + "'"
+        else:
+            sec += str(None)
+        sec += ", "
+    sec += "]\n"
+    sec += "probes_names = ["
+    for probe in probes['names']:
+        if not type(probe) == list:
+            if probe:
+                sec += "'%s'" % probe
+            else:
+                sec += str(None)
+        else:
+            sec += "["
+            for p in probe:
+                if p:                             
+                    sec += "'%s'" % p
+                else:
+                    sec += str(None)
+                sec += ", "
+            sec += "]"
+        sec += ", "
+        if probe:
+            sec += "%s" % probe
         else:
             sec += str(None)
         sec += ", "
