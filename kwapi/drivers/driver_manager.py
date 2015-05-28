@@ -83,7 +83,7 @@ def load_driver(class_name, probe_ids, probes_names, probe_data_type, kwargs):
     try:
         probe_object = probe_class(probe_ids, probes_names, probe_data_type, **kwargs)
     except Exception as exception:
-        LOG.error('Exception occurred while initializing %s(%s, %s, %s): %s'
+        LOG.error('Exception occurred while initializing %s(%s, %s, %s, %s): %s'
                   % (class_name, probe_ids, probes_names, probe_data_type, kwargs, exception))
     else:
         probe_object.start()

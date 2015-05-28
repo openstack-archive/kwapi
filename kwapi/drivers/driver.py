@@ -42,8 +42,8 @@ class Driver(Thread):
 
     def __init__(self, probe_ids, probes_names, probe_data_type, kwargs):
         """Initializes driver."""
-        LOG.info('Loading driver %s(probe_ids=%s, kwargs=%s)'
-                 % (self.__class__.__name__, probe_ids, kwargs))
+        LOG.info('Loading driver %s(probe_ids=%s, probes_names=%s, kwargs=%s)'
+                 % (self.__class__.__name__, probe_ids, probes_names, kwargs))
         Thread.__init__(self)
         self.probe_ids = probe_ids
         self.probes_names = probes_names
