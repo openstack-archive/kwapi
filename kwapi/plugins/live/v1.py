@@ -31,12 +31,16 @@ from jinja2 import TemplateNotFound
 
 from kwapi.utils import cfg
 import live
+sites = []
 
 web_opts = [
     cfg.IntOpt('refresh_interval',
                required=True,
                ),
     cfg.StrOpt('png_dir',
+               required=True,
+               ),
+    cfg.StrOpt('g5k_sites',
                required=True,
                ),
 ]
@@ -73,6 +77,7 @@ def welcome_scale(metric, scale):
                                      #  int(x.split('.')[1].split('-')[1]))),
                                      refresh=cfg.CONF.refresh_interval,
                                      scales=flask.request.scales,
+                                     sites=sites,
                                      scale=scale,
                                      start=int(time.time()) - flask.request.scales[scale][0]['interval'],
                                      end=int(time.time()),
@@ -107,6 +112,7 @@ def welcome_probe(metric, probe):
                                      probe=probe,
                                      refresh=cfg.CONF.refresh_interval,
                                      scales=scales,
+                                     sites=sites,
                                      view='probe')
     except TemplateNotFound:
         flask.abort(404)
