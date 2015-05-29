@@ -328,6 +328,13 @@
                 {% endfor %}
                 </ul>
                 </li>
+                <li class="has-sub"><a class="activable" href="#"><span>Other sites</span></a>
+                <ul>
+                {% for site in sites %}
+                    <li><a class="activable" href="https://intranet.grid5000.fr/supervision/{{ site }}/monitoring/network/last/minute/"><span>{{ site.capitalize() }}</span></a></li>
+                {% endfor %}
+                </ul>
+                </li>
             </ul>
         </div>
        <div id="inner">
