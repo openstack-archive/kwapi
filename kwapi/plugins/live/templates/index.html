@@ -331,7 +331,11 @@
                 <li class="has-sub"><a class="activable" href="#"><span>Other sites</span></a>
                 <ul>
                 {% for site in sites %}
-                    <li><a class="activable" href="https://intranet.grid5000.fr/supervision/{{ site }}/monitoring/network/last/minute/"><span>{{ site.capitalize() }}</span></a></li>
+                    {% if site == hostname %}
+                    <li class="active"><a class="active activable" href="https://intranet.grid5000.fr/supervision/{{ site }}/monitoring/"><span>{{ site.capitalize() }}</span></a></li>
+                    {% else %}
+                        <li><a class="activable" href="https://intranet.grid5000.fr/supervision/{{ site }}/monitoring/"><span>{{ site.capitalize() }}</span></a></li>
+                    {% endif %}
                 {% endfor %}
                 </ul>
                 </li>
