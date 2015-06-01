@@ -136,6 +136,8 @@
             }
 
             function selectAll() {
+                $('#loading-div-background').show();
+                $('#loading-div-background').css({opacity: 0.75});
                 $('.activable').addClass('active');
                 startRefreshing();
                 deselectAll();
@@ -151,6 +153,7 @@
                 $('#summary').attr('src', "{{ url_for('v1.send_summary_graph', start=start, end=end, metric=metric) }}");
                 reloadAllImages('last');
                 $('#zip').text('Download all probes RRD');
+                $('#loading-div-background').hide();
             }
 
             function deselectAll() {
@@ -197,8 +200,10 @@
 
             $(function() {
                 $('#zip').click(function(){
-                    //$(this).attr('href', "{{ url_for('v1.send_zip') }}?probes=" + $('select').select2('val'));
-                    alert("Service not available.");
+                    $('#loading-div-background').show();
+                    $('#loading-div-background').css({opacity: 0.75});
+                    $(this).attr('href', "{{ url_for('v1.send_zip') }}?probes=" + $('select').select2('val'));
+                    $('#loading-div-background').hide();
                 });
             });
 
@@ -224,8 +229,7 @@
                 // Event handler for adding a probe
                 $(document.body).on('select2-selecting', 'select', function(e) {
                   $('.activable').addClass('active');
-                    var on_error_file = "{{ url_for("v1.static", filename="not_found.gif") }}"
-                    var probe = '<a href="{{ url_for("v1.welcome") }}{{ metric }}/probe/' + e.val + '/' + '"><img class="graph" id="' + e.val + '" src="{{ url_for("v1.welcome") }}{{ metric }}/graph/' + e.val + '/{{ start }}/{{ end }}/" alt="Graph ' + e.val + '" onerror="this.src=\'' + on_error_file.val + '\'" width="497" height="187" /></a>';
+                  var probe = '<a href="{{ url_for("v1.welcome") }}{{ metric }}/probe/' + e.val + '/' + '"><img class="graph" id="' + e.val + '" src="{{ url_for("v1.welcome") }}{{ metric }}/graph/' + e.val + '/{{ start }}/{{ end }}/" alt="Graph ' + e.val + '" onerror="this.src=\' {{ url_for('v1.static', filename="not_found.gif") }}\'" width="497" height="187" /></a>';
                     $('#probes').append(probe);
                     var probes = $('select').select2('val');
                     if(jQuery.inArray(e.val, $('select').select2('val')) == -1) {
@@ -358,7 +362,7 @@
                     <input type="text" id="job-field"/><button type="button" id="job-button">Job</button>
                     <button type="button" id="select-all">All</button>
                     <button type="button" id="deselect-all">Clear</button>
-                    <!-- <a style="float:right; margin-top:10px" id="zip" href="{{ url_for('v1.send_zip') }}">Download all probes RRD</a> -->
+                    <a style="float:right; margin-top:10px" id="zip" href="{{ url_for('v1.send_zip') }}">Download all probes RRD</a>
                     <div id="probes"></div>
                     <div id="probes-not-found" style="display:none">Probes not found:
                         <ul id="not-found"></ul>
@@ -369,7 +373,7 @@
 
             <!-- Probe view (all scales for one probe) -->
             {% elif view == 'probe' %}
-                <h2>{{ probe }} <!-- <a style="float:right" href="{{ url_for('v1.send_zip') }}?probes={{ probe }}">Download RRD</a> --></h2>
+                <h2>{{ probe }} <a style="float:right" href="{{ url_for('v1.send_zip') }}?probes={{ probe }}">Download RRD</a></h2>
                 {% for scale in scales %}
                     <img class="graph" src="{{ url_for('v1.send_probe_graph', metric=metric, probe=probe, start=scales[scale]['start'], end=scales[scale]['end'])}}" alt="Graph {{ probe }}" onerror="this.src='{{ url_for('v1.static', filename='not_found.gif') }}'" width="497" height="187" />
                 {% endfor %}

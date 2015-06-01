@@ -143,57 +143,76 @@ def get_nodes(job):
 @blueprint.route('/zip/')
 def send_zip():
     """Sends zip file."""
-    probes = flask.request.args.get('probes')
-    if probes:
-        probes = probes.split(',')
-    else:
-        probes = flask.request.probes_power
-    tmp_file = tempfile.NamedTemporaryFile()
+    probes = flask.request.args.get('probes') 
+    try:
+        if probes:
+            probes = probes.split(',')
+        else:
+            probes = []
+        probes = [probe.encode('utf-8') for probe in probes]
+    except:
+        probes = []
+    tmp_file = tempfile.NamedTemporaryFile(prefix="kwapi", suffix=".zip")
     zip_file = zipfile.ZipFile(tmp_file.name, 'w')
-    probes = [probe.encode('utf-8') for probe in probes
-              if os.path.exists(live.get_rrd_filename(probe))]
-    metrics = ['energy','network']
-    print 'Zip', probes
-    if len(probes) == 1:
-        probe = probes[0]
-        rrd_file = live.get_rrd_filename(probe)
-        zip_file.write(rrd_file, '/rrd/' + probe + '.rrd')
-        for scale in ['minute', 'hour', 'day', 'week', 'month', 'year']:
-            for metric in metrics:
-                png_file = live.build_graph(metric,
-                                        int(time.time()) - flask.request.scales[scale][0]['interval'],
-                                        int(time.time()),
-                                        probe,
-                                        False)
-                zip_file.write(png_file, '/png/'+ metric + '/' + probe + '-' + scale + '.png')
-    elif len(probes) > 1:
+    metrics = ['power','network_in', 'network_out']
+    scales = ['minute', 'hour', 'day', 'week', 'month', 'year']
+    if len(probes) == 0:
+        probes = flask.request.probes_network
+    for metric in metrics:
         for probe in probes:
-            rrd_file = live.get_rrd_filename(probe)
-            zip_file.write(rrd_file, '/rrd/' + probe + '.rrd')
-            for scale in ['minute', 'hour', 'day', 'week', 'month', 'year']:
-                for metric in metrics:
-                    png_file = live.build_graph(metric,
+            try:
+                rrd_files = live.get_rrds_from_name(probe, metric)
+                for i in range(len(rrd_files)):
+                    zip_file.write(rrd_files[i], '/rrd/%s_%s_%d.rrd' %(metric, probe.replace(".","-"), i))
+                for scale in scales:
+                    # FIXME: Hack to chose metric
+                    if metric == "power":
+                        png_file = live.build_graph("energy",
                                             int(time.time()) - flask.request.scales[scale][0]['interval'],
                                             int(time.time()),
                                             probe,
-                                            False)
-                    zip_file.write(png_file, '/png/'+metric + '/' + probe + '/' + scale + '.png')
-        # Separate energy and network
-        for scale in ['minute', 'hour', 'day', 'week', 'month', 'year']:
+                                            summary=False,
+                                            zip_file=True)
+                        zip_file.write(png_file, '/png/%s_%s_%s.png' % (metric, probe, scale))
+                        os.unlink(png_file)
+                    elif metric == "network_in":
+                        png_file = live.build_graph("network",
+                                            int(time.time()) - flask.request.scales[scale][0]['interval'],
+                                            int(time.time()),
+                                            probe,
+                                            summary=False,
+                                            zip_file=True)
+                        zip_file.write(png_file, '/png/%s_%s_%s.png' % ("network", probe, scale))
+                        os.unlink(png_file)
+                    else:
+                        continue
+            except:
+                continue
+    # Generate summary
+    for scale in scales:
+        try:
             png_file_energy = live.build_graph('energy',
                                                int(time.time()) - flask.request.scales[scale][0]['interval'],
                                                int(time.time()),
                                                probes,
-                                               True)
+                                               summary=True,
+                                               zip_file=True)
             zip_file.write(png_file_energy, '/png/summary-energy-' + scale + '.png')
+            os.unlink(png_file_energy)
+        except:
+            continue
+    for scale in scales:
+        try:
             png_file_network = live.build_graph('network',
                                                 int(time.time()) - flask.request.scales[scale][0]['interval'],
                                                 int(time.time()),
                                                 probes,
-                                                True)
+                                                summary=True,
+                                                zip_file=True)
             zip_file.write(png_file_network, '/png/summary-network-' + scale + '.png')
-    else:
-        flask.abort(404)
+            os.unlink(png_file_network)
+        except:
+            continue
     return flask.send_file(tmp_file,
                            as_attachment=True,
                            attachment_filename='rrd.zip',
@@ -247,7 +266,10 @@ def send_probe_graph(metric, probe, start, end):
     png_file = live.build_graph(metric, int(start), int(end), probe, False)
     if not png_file:
         flask.abort(404)
+    tmp_file = tempfile.NamedTemporaryFile()
+    shutil.copy2(png_file, tmp_file.name)
+    os.unlink(png_file)
     try:
-        return flask.send_file(png_file, cache_timeout=0, conditional=True)
+        return flask.send_file(tmp_file, cache_timeout=0, conditional=True)
     except:
         flask.abort(404)

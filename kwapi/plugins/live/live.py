@@ -27,6 +27,7 @@ import uuid
 import ast
 import re
 import socket
+from tempfile import NamedTemporaryFile
 
 import rrdtool
 from kwapi.plugins.rrd.rrd import get_rrd_filename, get_png_filename
@@ -139,6 +140,12 @@ def find_probe_uid(metric, probe_name):
             res = []
         return res
 
+def get_rrds_from_name(probe_name, data_type):
+    multi_probes_selected = find_multi_probe(probe_name, data_type)
+    probes_uid = list(multi_probes_selected)
+    probes_uid = map(get_rrd_filename, probes_uid, [data_type]*len(probes_uid))
+    return probes_uid
+
 probe_colors = {}
 lock = Lock()
 
@@ -188,12 +195,12 @@ def update_probe(probe, probes_names, data_type, timestamp, metrics, params):
         else:
             probes_set_network.add(probe_name)
 
-def build_graph(metric, start, end, probes, summary=True):
+def build_graph(metric, start, end, probes, summary=True, zip_file=False):
     """Builds the graph for the probes, or a summary graph."""
     if metric == 'energy':
-        return build_graph_energy_init(start, end, probes, summary)
+        return build_graph_energy_init(start, end, probes, summary, zip_file)
     else:
-        return build_graph_network_init(start, end, probes, summary)
+        return build_graph_network_init(start, end, probes, summary, zip_file)
 
 def color_generator(nb_colors, hue=None):
     """Generates colors."""
@@ -229,7 +236,7 @@ def contains_multiprobes(probes, data_type='power'):
     LOG.info("Contain no multiprobe")
     return False
 
-def build_graph_energy_init(start, end, probes, summary):
+def build_graph_energy_init(start, end, probes, summary, zip_file=False):
     """Builds the graph for the probes, or a summary graph."""
     # Graph is cachable ?
     cachable = False
@@ -258,16 +265,18 @@ def build_graph_energy_init(start, end, probes, summary):
     if len(probes) == 1 and not summary and cachable:
         png_file = get_png_filename(probes[0], "power", scale)
     # All probes
-    elif not probes_uid or summary or (len(probes) == len(probes_set_power) and cachable):
+    elif not probes_uid or summary or (len(probes) == len(probes_set_power) and cachable) or len(probes) == 0:
         png_file = cfg.CONF.png_dir + '/' + scale + '/summary-energy.png'
         probes = list(probes_set_power)
     # Specific combinaison of probes
     else:
-        png_file = '/tmp/' + str(uuid.uuid4()) + '.png'
+        png_file = NamedTemporaryFile(prefix="kwapi", suffix=".png").name
+    if zip_file:
+        #Force temporary name
+        png_file = NamedTemporaryFile(prefix="kwapi", suffix=".png").name
     return build_graph_energy(start, end, probes_uid, probes, summary, cachable, png_file, scale)
 
 def build_graph_energy(start, end, probes, probes_name, summary, cachable, png_file, scale):
-    LOG.debug("probes = %r" % probes)
     # Get the file from cache
     if cachable and os.path.exists(png_file) and os.path.getmtime(png_file) > \
             time.time() - scales[scale][0]['resolution']:
@@ -378,7 +387,7 @@ def build_graph_energy(start, end, probes, probes_name, summary, cachable, png_f
     return png_file
 
 
-def build_graph_network_init(start, end, probes, summary):
+def build_graph_network_init(start, end, probes, summary, zip_file=False):
     """Builds the graph for the probes, or a summary graph."""
     cachable = False
     intervals = {}
@@ -408,12 +417,15 @@ def build_graph_network_init(start, end, probes, summary):
     if len(probes_in) == 1 and not summary and cachable:
         png_file = get_png_filename(probes_in[0], "network_in", scale)
     # All probes
-    elif not probes_in or summary or (len(probes_in) == len(probes_set_network) and cachable):
+    elif not probes_in or summary or (len(probes_in) == len(probes_set_network) and cachable) or len(probes) == 0:
         png_file = cfg.CONF.png_dir + '/' + scale + '/summary-network.png'
         probes = list(probes_set_network)
     # Specific combinaison of probes
     else:
-        png_file = '/tmp/' + str(uuid.uuid4()) + '.png'
+        png_file = NamedTemporaryFile(prefix="kwapi", suffix=".png").name
+    if zip_file:
+        #Force temporary name
+        png_file = NamedTemporaryFile(prefix="kwapi", suffix=".png").name
     return build_graph_network(start, end, probes, probes_in, probes_out, summary, cachable, png_file, scale)
 
 def build_graph_network(start, end, probes, probes_in, probes_out, summary, cachable, png_file, scale):
@@ -575,9 +587,9 @@ def build_graph_network(start, end, probes, probes_in, probes_out, summary, cach
         return None
     try:
         rrdtool.graph(args)
-    except:
+    except Exception as e:
         LOG.error("Fail to generate graph")
-        LOG.error("start %s, end %s, probes %s, probes_name %s, summary %s, cachable %s, png_file %s, scale %s" \
-                  % (start, end, probes, probes_name, summary, cachable, png_file, scale))
+        LOG.error("start %s, end %s, probes %s, probes_in %s, probes_out %s, summary %s, cachable %s, png_file %s, scale %s" \
+                  % (start, end, probes, probes_in, probes_out, summary, cachable, png_file, scale))
         LOG.error("%s", e)
     return png_file
