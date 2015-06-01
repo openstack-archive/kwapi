@@ -314,7 +314,7 @@ for switch, probes in network_probes.iteritems():
         sec += ", "
     sec += "]\n"
     sec += "driver = Snmp\n"
-    sec += "data_type = {'name':'network_in', 'type':'Cumulative', 'unit':'B'}\n"
+    sec += "data_type = {'name':'network_out', 'type':'Cumulative', 'unit':'B'}\n"
     sec += "parameters = {'protocol': '"+_protocol_network+"', 'community': 'public', 'ip': '"+switch+"."+site+".grid5000.fr', 'oid': '"+OID_IN+"'}\n"
     f.write(sec)
     sec = "\n[%s-OUT]\n" % switch
@@ -345,7 +345,7 @@ for switch, probes in network_probes.iteritems():
         sec += ", "
     sec += "]\n"
     sec += "driver = Snmp\n"
-    sec += "data_type = {'name':'network_out', 'type':'Cumulative', 'unit':'B'}\n"
+    sec += "data_type = {'name':'network_in', 'type':'Cumulative', 'unit':'B'}\n"
     sec += "parameters = {'protocol': '"+_protocol_network+"', 'community': 'public', 'ip': '"+switch+"."+site+".grid5000.fr', 'oid': '"+OID_OUT+"'}\n"
     f.write(sec)
 f.close()
