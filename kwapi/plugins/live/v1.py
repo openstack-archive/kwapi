@@ -268,7 +268,8 @@ def send_probe_graph(metric, probe, start, end):
         flask.abort(404)
     tmp_file = tempfile.NamedTemporaryFile()
     shutil.copy2(png_file, tmp_file.name)
-    os.unlink(png_file)
+    #os.unlink(png_file)
+    #os.close(png_file)
     try:
         return flask.send_file(tmp_file, cache_timeout=0, conditional=True)
     except:

@@ -252,7 +252,11 @@ def build_graph_energy_init(start, end, probes, summary, zip_file=False):
         if end >= int(time.time()) - scales[scale][0]['resolution']:
             cachable = True
 
+    if not isinstance(probes, list):
+        probes = [probes]
     # Retrieve probes (and multi-probes)
+    if len(probes) == 0:
+        probes = list(probes_set_power)
     if not isinstance(probes, list):
         probes = [probes]
     probes = filter(lambda p: p in probes_set_power, probes)
@@ -260,28 +264,32 @@ def build_graph_energy_init(start, end, probes, summary, zip_file=False):
     for probe in probes:
         multi_probes_selected = multi_probes_selected.union(find_multi_probe(probe, 'power'))
     probes_uid = list(multi_probes_selected)
-    probes_uid = [probe for probe in probes_uid if get_rrd_filename(probe, "power")]
-    # Only one probe
-    if len(probes) == 1 and not summary and cachable:
+
+    # Single probe and no summary
+    if len(probes) == 1 and not summary:
+        LOG.info("Single probe")
         png_file = get_png_filename(probes[0], "power", scale)
-    # All probes
-    elif not probes_uid or summary or (len(probes) == len(probes_set_power) and cachable) or len(probes) == 0:
+    # All probes summary
+    elif len(probes) == len(probes_set_power) and summary:
+        LOG.info("Summary")
         png_file = cfg.CONF.png_dir + '/' + scale + '/summary-energy.png'
-        probes = list(probes_set_power)
-    # Specific combinaison of probes
+    # Other combinaison
     else:
+        LOG.info("Other")
         png_file = NamedTemporaryFile(prefix="kwapi", suffix=".png").name
     if zip_file:
-        #Force temporary name
-        png_file = NamedTemporaryFile(prefix="kwapi", suffix=".png").name
-    return build_graph_energy(start, end, probes_uid, probes, summary, cachable, png_file, scale)
+         #Force temporary name
+         png_file = NamedTemporaryFile(prefix="kwapi", suffix=".png").name
 
-def build_graph_energy(start, end, probes, probes_name, summary, cachable, png_file, scale):
     # Get the file from cache
     if cachable and os.path.exists(png_file) and os.path.getmtime(png_file) > \
             time.time() - scales[scale][0]['resolution']:
         LOG.info('Retrieve PNG graph from cache %s' % png_file)
         return png_file
+    else:
+        return build_graph_energy(start, end, probes_uid, probes, summary, cachable, png_file, scale)
+
+def build_graph_energy(start, end, probes, probes_name, summary, cachable, png_file, scale):
     # Build required (PNG file not found or outdated)
     scale_label = ''
     if scale:
@@ -389,6 +397,7 @@ def build_graph_energy(start, end, probes, probes_name, summary, cachable, png_f
 
 def build_graph_network_init(start, end, probes, summary, zip_file=False):
     """Builds the graph for the probes, or a summary graph."""
+    # Graph is cachable ?
     cachable = False
     intervals = {}
     for scale in scales:
@@ -401,6 +410,12 @@ def build_graph_network_init(start, end, probes, summary, zip_file=False):
         scale = intervals[end - start]['name']
         if end >= int(time.time()) - scales[scale][0]['resolution']:
             cachable = True
+
+    # Retrieve probes (and multi-probes)
+    if not isinstance(probes, list):
+        probes = [probes]
+    if len(probes) == 0:
+        probes = list(probes_set_network)
     if not isinstance(probes, list):
         probes = [probes]
     probes = filter(lambda p: p in probes_set_network, probes)
@@ -413,27 +428,32 @@ def build_graph_network_init(start, end, probes, summary, zip_file=False):
                 probes_out.add(probe)
     probes_in = list(probes_in)
     probes_out = list(probes_out)
-    # Only one probe
-    if len(probes_in) == 1 and not summary and cachable:
-        png_file = get_png_filename(probes_in[0], "network_in", scale)
-    # All probes
-    elif not probes_in or summary or (len(probes_in) == len(probes_set_network) and cachable) or len(probes) == 0:
+
+    # Single probe and no summary
+    if len(probes) == 1 and not summary:
+        LOG.info("Single probe")
+        png_file = get_png_filename(probes[0], "network_in", scale)
+    # All probes summary
+    elif len(probes) == len(probes_set_network) and summary:
+        LOG.info("Summary")
         png_file = cfg.CONF.png_dir + '/' + scale + '/summary-network.png'
-        probes = list(probes_set_network)
-    # Specific combinaison of probes
+    # Other combinaison
     else:
+        LOG.info("Other")
         png_file = NamedTemporaryFile(prefix="kwapi", suffix=".png").name
     if zip_file:
-        #Force temporary name
-        png_file = NamedTemporaryFile(prefix="kwapi", suffix=".png").name
-    return build_graph_network(start, end, probes, probes_in, probes_out, summary, cachable, png_file, scale)
+         #Force temporary name
+         png_file = NamedTemporaryFile(prefix="kwapi", suffix=".png").name
 
-def build_graph_network(start, end, probes, probes_in, probes_out, summary, cachable, png_file, scale):
     # Get the file from cache
     if cachable and os.path.exists(png_file) and os.path.getmtime(png_file) > \
             time.time() - scales[scale][0]['resolution']:
         LOG.info('Retrieve PNG graph from cache %s' % png_file)
         return png_file
+    else:
+        return build_graph_network(start, end, probes, probes_in, probes_out, summary, cachable, png_file, scale)
+
+def build_graph_network(start, end, probes, probes_in, probes_out, summary, cachable, png_file, scale):
     # Build required (PNG file not found or outdated)
     scale_label = ''
     if scale:
