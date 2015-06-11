@@ -47,6 +47,10 @@ def welcome():
         message["items"].append(get_type(metric,headers))
     response = flask.jsonify(message)
     response.headers.add('Access-Control-Allow-Origin', '*')
+    if flask.request.headers.get("Accept") == "application/vnd.fr.grid5000.api.Collection+json;level=1":
+        response.headers.add('Content-Type', 'application/vnd.fr.grid5000.api.Collection+json;level=1')
+    else:
+        response.headers.add('Content-Type', 'application/json')
     return response
 
 def get_type(metric,headers):
