@@ -88,7 +88,7 @@ def get_type(metric,headers):
            }]}
     return message
 
-@blueprint.route('/<metric>/')
+@blueprint.route('/<metric>')
 def welcome_type(metric):
     """Returns detailed information about this specific version of the API."""
     # Needs probe list
@@ -99,6 +99,7 @@ def welcome_type(metric):
     response = flask.jsonify(message)
     response.headers.add('Access-Control-Allow-Origin', '*')
     return response
+blueprint.add_url_rule('/<metric>/', view_func=welcome_type)
 
 
 def _get_api_path(headers):
@@ -106,8 +107,7 @@ def _get_api_path(headers):
     return "/" + headers.get('HTTP_X_API_VERSION', 'sid') + \
         headers.get('HTTP_X_API_PREFIX', '') + '/'
 
-
-@blueprint.route('/<metric>/timeseries/')
+@blueprint.route('/<metric>/timeseries')
 def retrieve_measurements(metric):
     """Returns measurements."""
     if not metric in metrics:
@@ -185,3 +185,4 @@ def retrieve_measurements(metric):
     response = flask.jsonify(message)
     response.headers.add('Access-Control-Allow-Origin', '*')
     return response
+blueprint.add_url_rule('/<metric>/timeseries/', view_func=retrieve_measurements)
