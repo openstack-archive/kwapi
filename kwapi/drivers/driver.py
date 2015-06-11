@@ -93,8 +93,15 @@ class Driver(Thread):
 	measurements['timestamp'] = time
         measurements['measure'] = metrics
         measurements['data_type'] = self.probe_data_type
-        probe_index = self.probe_ids.index(probe_id)
-        probe_name = self.probes_names[probe_index]
+        probe_index = -1
+	try:
+	    probe_index = self.probe_ids.index(probe_id)
+	except:
+ 	    probe_index = -1
+        if not probe_index < len(self.probes_names) or probe_index == -1:
+            probe_name = probe_id
+        else:
+            probe_name = self.probes_names[probe_index]
         if not type(probe_name) == list:
             probe_name = [probe_name]
         measurements['probes_names'] = str(probe_name).encode('utf-8')
