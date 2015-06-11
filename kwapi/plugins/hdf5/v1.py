@@ -98,6 +98,10 @@ def welcome_type(metric):
     message = get_type(metric,headers)
     response = flask.jsonify(message)
     response.headers.add('Access-Control-Allow-Origin', '*')
+    if flask.request.headers.get("Accept") == "application/vnd.fr.grid5000.api.Metric+json;level=1":
+        response.headers.add('Content-Type', 'application/vnd.fr.grid5000.api.Metric+json;level=1')
+    else:
+        response.headers.add('Content-Type', 'application/json')
     return response
 blueprint.add_url_rule('/<metric>/', view_func=welcome_type)
 
@@ -110,6 +114,7 @@ def _get_api_path(headers):
 @blueprint.route('/<metric>/timeseries')
 def retrieve_measurements(metric):
     """Returns measurements."""
+    LOG.info(flask.request.headers)
     if not metric in metrics:
         flask.abort(404)
     headers = flask.request.headers
@@ -124,13 +129,19 @@ def retrieve_measurements(metric):
         end_time = start_time + job_info['walltime']
         nodes = list(set(job_info['resources_by_type']['cores']))
         probes = [site + '.' + node.split('.')[0] for node in nodes]
-    elif 'probes' in args:
-        probes = [site + '.' + node for node in args['probes'].split(',')]
-        start_time = args['start_time'] if 'start_time' in args else time.time() - 24 * 3600
-        end_time = args['end_time'] if 'end_time' in args else time.time()
+    elif 'only' in args:
+        probes = [site + '.' + node for node in args['only'].split(',')]
+        start_time = args['from'] if 'from' in args else time.time() - 24 * 3600
+        end_time = args['to'] if 'to' in args else time.time()
     else:
-        LOG.info('No probes or job_id given')
-        return 'No probes or job_id given, use \n '
+        if metric == 'power':
+            probes = flask.request.storePower.get_probes_names()
+        elif metric == 'network_in':
+            probes = flask.request.storeNetworkIn.get_probes_names()
+        else :
+            probes = flask.request.storeNetworkOut.get_probes_names()
+        start_time = time.time()
+        end_time = time.time()
 
     if probes:
         message = {'total': len(probes), 'offset': 0, 'links': [
@@ -182,7 +193,14 @@ def retrieve_measurements(metric):
                                           "type": "application/vnd.fr.grid5000.api.Metric+json;level=1"
                                       }
                                   ]})
-    response = flask.jsonify(message)
-    response.headers.add('Access-Control-Allow-Origin', '*')
-    return response
+        response = flask.jsonify(message)
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        if flask.request.headers.get("Accept") == "application/vnd.fr.grid5000.api.Collection+json;level=1":
+            response.headers.add('Content-Type', 'application/vnd.fr.grid5000.api.Collection+json;level=1')
+        else:
+            response.headers.add('Content-Type', 'application/json')
+        return response
+    else:
+        LOG.error("Empty probe list")
+        flask.abort(404)
 blueprint.add_url_rule('/<metric>/timeseries/', view_func=retrieve_measurements)

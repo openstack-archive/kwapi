@@ -208,6 +208,17 @@ class HDF5_Collector:
                 LOG.error("Can't parse %s" % probe)
         return probes
 
+    def get_probes_names(self):
+        probes_names = set()
+        for probe_id in list(probes_sets[self.data_type]):
+            for probe in probes_names_maps[self.data_type].neighbors(probe_id):
+                try:
+                    probes_names.add(probe)
+                except:
+                    LOG.error("Can't parse %s" % probe)
+                    continue
+        return list(probes_names)
+
     def get_hdf5_files(self, start_time, end_time):
         list_files = []
         if end_time < start_time:
@@ -262,12 +273,12 @@ class HDF5_Collector:
                             message[probe]['values'] += list(values)
                             message[probe]['timestamps'] += list(timestamps)
                         except Exception as e:
-                            message[probe]['values'] = ['Unknown probe']
+                            #message[probe]['values'] = []
                             LOG.error("%s" % e)
                         finally:
                             f.close()
         except Exception as e:
-            message[probe]['values'] = ['Unknown probe']
+            #message[probe]['values'] = []
             LOG.error("%s" % e)
         finally:
             self.lock.release()
