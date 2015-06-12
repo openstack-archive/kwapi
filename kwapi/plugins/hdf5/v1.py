@@ -48,9 +48,9 @@ def welcome():
     response = flask.jsonify(message)
     response.headers.add('Access-Control-Allow-Origin', '*')
     if flask.request.headers.get("Accept") == "application/vnd.fr.grid5000.api.Collection+json;level=1":
-        response.headers.add('Content-Type', 'application/vnd.fr.grid5000.api.Collection+json;level=1')
+        response.headers['Content-Type'] = 'application/vnd.fr.grid5000.api.Collection+json;level=1'
     else:
-        response.headers.add('Content-Type', 'application/json')
+        response.headers['Content-Type'] = 'application/json'
     return response
 
 def get_type(metric,headers):
@@ -103,9 +103,9 @@ def welcome_type(metric):
     response = flask.jsonify(message)
     response.headers.add('Access-Control-Allow-Origin', '*')
     if flask.request.headers.get("Accept") == "application/vnd.fr.grid5000.api.Metric+json;level=1":
-        response.headers.add('Content-Type', 'application/vnd.fr.grid5000.api.Metric+json;level=1')
+        response.headers['Content-Type'] = 'application/vnd.fr.grid5000.api.Metric+json;level=1'
     else:
-        response.headers.add('Content-Type', 'application/json')
+        response.headers['Content-Type'] = 'application/json'
     return response
 blueprint.add_url_rule('/<metric>/', view_func=welcome_type)
 
@@ -200,9 +200,9 @@ def retrieve_measurements(metric):
         response = flask.jsonify(message)
         response.headers.add('Access-Control-Allow-Origin', '*')
         if flask.request.headers.get("Accept") == "application/vnd.fr.grid5000.api.Collection+json;level=1":
-            response.headers.add('Content-Type', 'application/vnd.fr.grid5000.api.Collection+json;level=1')
+            response.headers['Content-Type'] = 'application/vnd.fr.grid5000.api.Collection+json;level=1'
         else:
-            response.headers.add('Content-Type', 'application/json')
+            response.headers['Content-Type'] = 'application/json'
         return response
     else:
         LOG.error("Empty probe list")
