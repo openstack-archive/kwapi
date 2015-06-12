@@ -47,7 +47,7 @@ def welcome():
         message["items"].append(get_type(metric,headers))
     response = flask.jsonify(message)
     response.headers.add('Access-Control-Allow-Origin', '*')
-    if flask.request.headers.get("Accept") == "application/vnd.fr.grid5000.api.Collection+json;level=1":
+    if flask.request.headers.get("Accept").lower() == "application/vnd.fr.grid5000.api.collection+json;level=1":
         response.headers['Content-Type'] = 'application/vnd.fr.grid5000.api.Collection+json;level=1'
     else:
         response.headers['Content-Type'] = 'application/json'
@@ -102,7 +102,7 @@ def welcome_type(metric):
     message = get_type(metric,headers)
     response = flask.jsonify(message)
     response.headers.add('Access-Control-Allow-Origin', '*')
-    if flask.request.headers.get("Accept") == "application/vnd.fr.grid5000.api.Metric+json;level=1":
+    if flask.request.headers.get("Accept").lower() == "application/vnd.fr.grid5000.api.metric+json;level=1":
         response.headers['Content-Type'] = 'application/vnd.fr.grid5000.api.Metric+json;level=1'
     else:
         response.headers['Content-Type'] = 'application/json'
@@ -199,7 +199,7 @@ def retrieve_measurements(metric):
                                   ]})
         response = flask.jsonify(message)
         response.headers.add('Access-Control-Allow-Origin', '*')
-        if flask.request.headers.get("Accept") == "application/vnd.fr.grid5000.api.Collection+json;level=1":
+        if flask.request.headers.get("Accept").lower() == "application/vnd.fr.grid5000.api.collection+json;level=1":
             response.headers['Content-Type'] = 'application/vnd.fr.grid5000.api.Collection+json;level=1'
         else:
             response.headers['Content-Type'] = 'application/json'
