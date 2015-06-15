@@ -47,7 +47,7 @@ def welcome():
         message["items"].append(get_type(metric,headers))
     response = flask.jsonify(message)
     response.headers.add('Access-Control-Allow-Origin', '*')
-    if flask.request.headers.get("Accept").lower() == "application/vnd.fr.grid5000.api.collection+json;level=1":
+    if "grid5000" in flask.request.headers.get("Accept").lower():
         response.headers['Content-Type'] = 'application/vnd.fr.grid5000.api.Collection+json;level=1'
     else:
         response.headers['Content-Type'] = 'application/json'
@@ -102,7 +102,7 @@ def welcome_type(metric):
     message = get_type(metric,headers)
     response = flask.jsonify(message)
     response.headers.add('Access-Control-Allow-Origin', '*')
-    if flask.request.headers.get("Accept").lower() == "application/vnd.fr.grid5000.api.metric+json;level=1":
+    if "grid5000" in flask.request.headers.get("Accept").lower():
         response.headers['Content-Type'] = 'application/vnd.fr.grid5000.api.Metric+json;level=1'
     else:
         response.headers['Content-Type'] = 'application/json'
@@ -118,7 +118,6 @@ def _get_api_path(headers):
 @blueprint.route('/<metric>/timeseries')
 def retrieve_measurements(metric):
     """Returns measurements."""
-    LOG.info(flask.request.headers)
     if not metric in metrics:
         flask.abort(404)
     headers = flask.request.headers
@@ -146,6 +145,53 @@ def retrieve_measurements(metric):
             probes = flask.request.storeNetworkOut.get_probes_names()
         start_time = time.time()
         end_time = time.time()
+        message = {'total': len(probes), 'offset': 0, 'links': [
+              {
+                 "rel": "self",
+                 "href": _get_api_path(headers) + site,
+                 "type": "application/vnd.fr.grid5000.api.Collection+json;level=1"
+              },
+              {
+                 "rel": "parent",
+                 "href": _get_api_path(headers) + "sites/" + site ,
+                 "type": "application/vnd.fr.grid5000.api.Metric+json;level=1"
+              }
+           ],
+                "items": [],
+                }
+        for probe in probes:
+            try:
+                site, probe = probe.split(".")
+            except:
+                LOG.error("Fail to parse %s" % probe)
+            message['items'].append({"uid": probe,
+                                  "to": end_time,
+                                  "from": start_time,
+                                  "resolution": 1,
+                                  "type": "timeseries",
+                                  "values": [],
+                                  "timestamps": [],
+                                  "links": [
+                                      {
+                                          "rel": "self",
+                                          "href": _get_api_path(headers) +
+                                          "sites/" + site + "/metrics/" + metric + "/timeseries/" + probe,
+                                          "type": "application/vnd.fr.grid5000.api.Timeseries+json;level=1"
+                                      },
+                                      {
+                                          "rel": "parent",
+                                          "href": _get_api_path(headers) +
+                                          "sites/" + site + "/metrics/" + metric,
+                                          "type": "application/vnd.fr.grid5000.api.Metric+json;level=1"
+                                      }
+                                  ]})
+        response = flask.jsonify(message)
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        if "grid5000" in flask.request.headers.get("Accept").lower():
+            response.headers['Content-Type'] = 'application/vnd.fr.grid5000.api.Collection+json;level=1'
+        else:
+            response.headers['Content-Type'] = 'application/json'
+        return response
 
     if probes:
         message = {'total': len(probes), 'offset': 0, 'links': [
@@ -199,7 +245,7 @@ def retrieve_measurements(metric):
                                   ]})
         response = flask.jsonify(message)
         response.headers.add('Access-Control-Allow-Origin', '*')
-        if flask.request.headers.get("Accept").lower() == "application/vnd.fr.grid5000.api.collection+json;level=1":
+        if "grid5000" in flask.request.headers.get("Accept").lower():
             response.headers['Content-Type'] = 'application/vnd.fr.grid5000.api.Collection+json;level=1'
         else:
             response.headers['Content-Type'] = 'application/json'
