@@ -67,7 +67,6 @@ class ReverseProxied(object):
 
     def __call__(self, environ, start_response):
         script_name = environ.get('HTTP_X_SCRIPT_NAME', '')
-        LOG.info(script_name)
         if script_name:
             environ['SCRIPT_NAME'] = script_name
             path_info = environ['PATH_INFO']
@@ -75,7 +74,6 @@ class ReverseProxied(object):
                 environ['PATH_INFO'] = path_info[len(script_name):]
 
         scheme = environ.get('HTTP_X_SCHEME', '')
-        LOG.info(scheme)
         if scheme:
             environ['wsgi.url_scheme'] = scheme
 

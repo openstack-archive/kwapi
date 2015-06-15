@@ -231,9 +231,7 @@ def color_generator(nb_colors, hue=None):
 def contains_multiprobes(probes, data_type='power'):
     for probe in probes:
         if(not find_multi_probe(probe, data_type) == probe):
-            LOG.info("Contain multiprobe")
             return True
-    LOG.info("Contain no multiprobe")
     return False
 
 def build_graph_energy_init(start, end, probes, summary, zip_file=False):
@@ -267,15 +265,12 @@ def build_graph_energy_init(start, end, probes, summary, zip_file=False):
 
     # Single probe and no summary
     if len(probes) == 1 and not summary:
-        LOG.info("Single probe")
         png_file = get_png_filename(probes[0], "power", scale)
     # All probes summary
     elif len(probes) == len(probes_set_power) and summary:
-        LOG.info("Summary")
         png_file = cfg.CONF.png_dir + '/' + scale + '/summary-energy.png'
     # Other combinaison
     else:
-        LOG.info("Other")
         png_file = NamedTemporaryFile(prefix="kwapi", suffix=".png").name
     if zip_file:
          #Force temporary name
@@ -284,7 +279,6 @@ def build_graph_energy_init(start, end, probes, summary, zip_file=False):
     # Get the file from cache
     if cachable and os.path.exists(png_file) and os.path.getmtime(png_file) > \
             time.time() - scales[scale][0]['resolution']:
-        LOG.info('Retrieve PNG graph from cache %s' % png_file)
         return png_file
     else:
         return build_graph_energy(start, end, probes_uid, probes, summary, cachable, png_file, scale)
@@ -385,13 +379,12 @@ def build_graph_energy(start, end, probes, probes_name, summary, cachable, png_f
     args.append('TEXTALIGN:center')
     args.append('GPRINT:kwh:LAST:Total\: %lf kWh')
     args.append('GPRINT:cost:LAST:Cost\: %lf ' + cfg.CONF.currency)
-    LOG.info('Build PNG graph %s' % png_file)
     try:
         rrdtool.graph(args)
-    except:
-        LOG.error("Fail to generate graph")
+    except Exception as e:
         LOG.error("start %s, end %s, probes %s, probes_name %s, summary %s, cachable %s, png_file %s, scale %s" \
                   % (start, end, probes, probes_name, summary, cachable, png_file, scale))
+        LOG.error("%s", e)
     return png_file
 
 
@@ -431,15 +424,12 @@ def build_graph_network_init(start, end, probes, summary, zip_file=False):
 
     # Single probe and no summary
     if len(probes) == 1 and not summary:
-        LOG.info("Single probe")
         png_file = get_png_filename(probes[0], "network_in", scale)
     # All probes summary
     elif len(probes) == len(probes_set_network) and summary:
-        LOG.info("Summary")
         png_file = cfg.CONF.png_dir + '/' + scale + '/summary-network.png'
     # Other combinaison
     else:
-        LOG.info("Other")
         png_file = NamedTemporaryFile(prefix="kwapi", suffix=".png").name
     if zip_file:
          #Force temporary name
@@ -448,7 +438,6 @@ def build_graph_network_init(start, end, probes, summary, zip_file=False):
     # Get the file from cache
     if cachable and os.path.exists(png_file) and os.path.getmtime(png_file) > \
             time.time() - scales[scale][0]['resolution']:
-        LOG.info('Retrieve PNG graph from cache %s' % png_file)
         return png_file
     else:
         return build_graph_network(start, end, probes, probes_in, probes_out, summary, cachable, png_file, scale)
@@ -602,13 +591,11 @@ def build_graph_network(start, end, probes, probes_in, probes_out, summary, cach
     args.append('GPRINT:metricmax_out:MaxOUT\: %3.1lf%sb/s')
     args.append('GPRINT:metric_with_unknown_out:LAST:LastOUT\: %3.1lf%sb/s\j')
     args.append('TEXTALIGN:center')
-    LOG.info('Build PNG graph')
     if len(probes_in) == 0 or len(probes_out) == 0:
         return None
     try:
         rrdtool.graph(args)
     except Exception as e:
-        LOG.error("Fail to generate graph")
         LOG.error("start %s, end %s, probes %s, probes_in %s, probes_out %s, summary %s, cachable %s, png_file %s, scale %s" \
                   % (start, end, probes, probes_in, probes_out, summary, cachable, png_file, scale))
         LOG.error("%s", e)
