@@ -39,12 +39,24 @@ ganglia_opts = [
     cfg.StrOpt('driver_metering_secret',
                required=True,
                ),
+    cfg.StrOpt('metric_name',
+               required=True,
+               ),
+    cfg.StrOpt('metric_units',
+               required=True,
+               ),
+    cfg.StrOpt('metric_type',
+               required=True,
+               ),
 ]
 cfg.CONF.register_opts(ganglia_opts)
 hostname = socket.getfqdn().split('.')
 site = hostname[1] if len(hostname) >= 2 else hostname[0]
 
 ganglia = GMetric(cfg.CONF.ganglia_server[0])
+metric_name = cfg.CONF.metric_name[0]
+metric_units = cfg.CONF.metric_units[0]
+metric_type = cfg.CONF.metric_type[0]
 ip_probe = {}
 
 def update_rrd(probe_uid, probes_names, data_type, timestamp, metrics, params):
@@ -71,9 +83,9 @@ def update_rrd(probe_uid, probes_names, data_type, timestamp, metrics, params):
         if not ip_probe[probe_id]:
             continue
         ganglia.send(
-            name='pdu2',
-            units='Watts',
-            type='uint16',
+            name=metric_name,
+            units=metric_units,
+            type=metric_type,
             value=int(metrics),
             hostname='%s:%s' % (ip_probe[probe_id][0], ip_probe[probe_id][1]),
             spoof=True
