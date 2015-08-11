@@ -22,6 +22,7 @@ import thread
 
 import flask
 import ast
+from execo_g5k import get_g5k_sites
 
 from kwapi.plugins import listen
 from kwapi.utils import cfg, log
@@ -92,7 +93,13 @@ def make_app():
     app.wsgi_app = ReverseProxied(app.wsgi_app)
     app.register_blueprint(v1.blueprint)
     app.secret_key = 'kwapi-secret'
-    v1.sites = ast.literal_eval(cfg.CONF.g5k_sites)
+    try:
+        v1.sites = get_g5k_sites()
+    except:
+        try:
+            v1.sites = ast.literal_eval(cfg.CONF.g5k_sites)
+        except:
+            v1.sites = []
 
     thread.start_new_thread(listen, (live.update_probe,))
     live.create_dirs()
