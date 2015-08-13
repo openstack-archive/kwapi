@@ -54,9 +54,9 @@ hostname = socket.getfqdn().split('.')
 site = hostname[1] if len(hostname) >= 2 else hostname[0]
 
 ganglia = GMetric(cfg.CONF.ganglia_server[0])
-metric_name = cfg.CONF.metric_name[0]
-metric_units = cfg.CONF.metric_units[0]
-metric_type = cfg.CONF.metric_type[0]
+metric_name = cfg.CONF.metric_name
+metric_units = cfg.CONF.metric_units
+metric_type = cfg.CONF.metric_type
 ip_probe = {}
 
 def update_rrd(probe_uid, probes_names, data_type, timestamp, metrics, params):
