@@ -152,6 +152,7 @@ logger.info('Retrieving hosts plug mapping')
 switch_probes = {}
 logger.info('Map port to hostname')
 try:
+    global_outlet = 0
     for cluster in get_site_clusters(site):
         nodes = get_resource_attributes('/sites/' + site + '/clusters/' + cluster + \
                                         '/nodes')['items']
@@ -184,7 +185,10 @@ try:
                             equips[pdu['uid'].split('.')[0]]['mapping'].append((node['uid'], 0))
                 if 'www' in power['via']:
                     if not 'per_outlets' in power or power['per_outlets']:
-                        equips[pdu['uid']]['probes'].append(node['uid'])
+                        equips[pdu['uid']]['probes'].append("%s.%s" % (pdu['uid'], global_outlet))
+                        equips[pdu['uid']]['probes_names'].append("%s.%s" % (site, node['uid']))
+                        global_outlet += 1
+
 except:
     logger.error('Failed to map power pdus')
 
