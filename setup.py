@@ -23,7 +23,7 @@ setuptools.setup(
     name='kwapi-g5k',
     version='1.1',
 
-    description='Grid5000 Monitoring Framework',
+    description='Monitoring Framework',
 
     author='François Rossigneux, Laurent Pouilloux, Clement Parisot',
     author_email='laurent.pouilloux@inria.fr',
@@ -44,9 +44,6 @@ setuptools.setup(
     ],
 
     packages=setuptools.find_packages(),
-    package_data={'kwapi.plugins.live': ['templates/*', 'static/*.css', 'static/*.png', 'static/*.jpg', 'static/*.gif', 'static/*.js', 'static/select2/*']},
-
-    scripts=['bin/kwapi-g5k-conf', 'bin/kwapi-g5k-check'],
 
     data_files=[('/etc/kwapi', ['etc/kwapi/api.conf',
                                 'etc/kwapi/drivers.conf',
@@ -54,7 +51,6 @@ setuptools.setup(
                                 'etc/kwapi/forwarder.conf',
                                 'etc/kwapi/daemon.conf',
                                 'etc/kwapi/hdf5.conf',
-                                'etc/kwapi/live.conf',
                                 'etc/kwapi/ganglia.conf']),
                 ('/etc/init.d', ['etc/init/kwapi'])],
 
@@ -77,8 +73,6 @@ setuptools.setup(
             'kwapi-forwarder = kwapi.forwarder:start',
             'kwapi-rrd = kwapi.plugins.rrd.app:start',
             'kwapi-hdf5 = kwapi.plugins.hdf5.app:start',
-            'kwapi-hdf5-api = kwapi.plugins.hdf5_api.app:start',
-            'kwapi-live = kwapi.plugins.live.app:start',
             'kwapi-ganglia = kwapi.plugins.ganglia.app:start']
     }
     
