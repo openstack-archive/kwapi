@@ -93,7 +93,7 @@ class Collector:
         self.lock.acquire()
         if not type(probes_names) == list:
             probes_names = list(probes_names)
-        if True: #try:
+        try:
             if data_type not in self.database.keys():
                 self.database[data_type] = {}
             for probe_name in probes_names:
@@ -103,10 +103,10 @@ class Collector:
                     record = Record(timestamp=timestamp, measure=measure, \
                              data_type=data_type, params=params, integrated=0.0)
                     self.database[data_type][probe_name] = record
-        else: #except:
+        except:
             LOG.error("Fail to add %s datas" % probe)
-        #finally:
-        self.lock.release()
+        finally:
+            self.lock.release()
 
     def remove(self, probe):
         """Removes this probe from database."""
