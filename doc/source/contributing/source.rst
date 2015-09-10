@@ -20,48 +20,36 @@ Working with the Source
 Setting up a Development Sandbox
 ================================
 
-1. Set up a server or virtual machine.
+1. Set up a server or virtual machine to run OpenStack using
+   devstack_.
+
+.. _devstack: http://www.devstack.org/
 
 2. Clone the kwapi project to the machine::
 
-    $ git clone https://github.com/lpouillo/kwapi-g5k.git
-    $ cd ./kwapi-g5k
+    $ cd /opt/stack
+    $ git clone https://github.com/stackforge/kwapi.git
+    $ cd ./kwapi
 
-3. Once this is done, use develop option of `setup.py` file to install kwapi locally::
+3. Once this is done, you need to setup the review process::
 
-    $ python setup.py develop
+    $ git remote add gerrit ssh://<username>@review.openstack.org:29418/stackforge/kwapi.git
 
-4. If some dependant packages are missing, fix them with `pip install`::
-
-    $ pip install -r requirments.txt
-
-4. You can start to hack kwapi. If you are preparing a patch, create a topic branch and switch to
+4. If you are preparing a patch, create a topic branch and switch to
    it before making any changes::
 
     $ git checkout -b TOPIC-BRANCH
 
-5. Use git to push your changes and ask for a pull request.
-
-6. Package your solution for Debian installation::
-
-    $ python setup.py --command-packages=stdeb.command bdist_deb
-    $ cd deb_dist/
-    
-   All the deb archives are exported in this directory.
-
-7. Import the new generated packages of kwapi-g5k on the remote apt repository.
-
-8. Execute Puppet on the VM to install the latest version of Kwapi or simply run::
-
-    $ apt-get update && apt-get install python-kwapi-g5k
-
 Code Reviews
 ============
 
-Kwapi uses the GitHub to hos all code and developer documentation contributions. 
-You can report an issue or a feature request on this repository.
+Kwapi uses the OpenStack review process for all code and
+developer documentation contributions. Code reviews are managed
+through gerrit.
 
-Bugzilla can also be used for API related bugs or device configuration problems.
+.. seealso::
 
-.. _Kwapi on GitHub: http://github.com/lpouillo/kwapi-g5k/issues
-.. _Bugzilla on Grid'5000: https://intranet.grid5000.fr/bugzilla/
+   * http://wiki.openstack.org/GerritWorkflow
+   * `OpenStack Gerrit instance`_.
+
+.. _OpenStack Gerrit instance: https://review.openstack.org/#/q/status:open+project:openstack/kwapi,n,z

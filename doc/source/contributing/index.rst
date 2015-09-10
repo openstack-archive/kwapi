@@ -13,12 +13,13 @@
       License for the specific language governing permissions and limitations
       under the License.
 
-====================
- Kwapi Development
-====================
+============================
+ Contributing to Kwapi
+============================
 
 .. toctree::
 
+   user
    resources
    areas
    source

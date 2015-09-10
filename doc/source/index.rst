@@ -1,5 +1,5 @@
 ..
-      Copyright 2015 François Rossigneux (Inria)
+      Copyright 2013 François Rossigneux (Inria)
 
       Licensed under the Apache License, Version 2.0 (the "License"); you may
       not use this file except in compliance with the License. You may obtain
@@ -17,17 +17,17 @@
 Welcome to Kwapi's developer documentation!
 ===========================================
 
-Kwapi is a framework designed for acquiring energy consumption and network metrics. It
-allows to import metrics from various sources and expose them in different ways.
+Kwapi is a framework designed for acquiring energy consumption metrics. It
+allows to upload metrics from various wattmeters to Ceilometer.
 
 Its architecture is based on a layer of drivers, which retrieve measurements
-from wattmeters or network switches, and a layer of plugins that collect and process them. The
+from wattmeters, and a layer of plugins that collect and process them. The
 communication between these two layers goes through a bus. In the case of a
 distributed architecture, a plugin can listen to several drivers at remote
 locations.
 
-Drivers and plugins are easily extensible to support other types of sources,
-and provide other services and metrics.
+Drivers and plugins are easily extensible to support other types of wattmeters,
+and provide other services.
 
 What is the purpose of the project and vision for it?
 =====================================================
@@ -36,10 +36,8 @@ Kwapi could be used to do:
   * Energy monitoring of data centers
   * Usage-based billing
   * Efficient scheduling
-  * Network traffic visualisation
-  * Long-term storage of measurements
 
-It aims at supporting various wattmeters and switches, being scalable and easily extensible.
+It aims at supporting various wattmeters, being scalable and easily extensible.
 
 This documentation offers information on how Kwapi works and how to contribute
 to the project.
@@ -53,7 +51,6 @@ Table of contents
    install
    architecture
    configuration
-   usage
 
    contributing/index
    glossary

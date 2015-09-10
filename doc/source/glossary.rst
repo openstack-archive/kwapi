@@ -20,8 +20,8 @@ Glossary
 .. glossary::
 
    driver
-     Software thread running querying a wattmeter or switch and sending 
-     the results to the plugins.
+     Software thread running querying a wattmeter and sending the results to
+     the plugins.
 
    forwarder
      Component that forwards plugins subscriptions and metrics.
@@ -32,9 +32,5 @@ Glossary
      An action triggered whenever a meter reaches a certain threshold.
 
    probe
-     A wattmeter sensor or network device. 
-     A wattmeter can have only one probe (usually the IPMI cards), or 
-     multiple probes (usually the PDUs).
-     A network device usually have multiples probes that correspond to
-     his network interfaces. One probe is defined for incoming traffic
-     and one for outgoing traffic.
+     A wattmeter sensor. A wattmeter can have only one probe (usually the IPMI
+     cards), or multiple probes (usually the PDUs).

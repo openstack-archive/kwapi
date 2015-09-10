@@ -13,27 +13,33 @@
       License for the specific language governing permissions and limitations
       under the License.
 
+.. _user:
+
 ===================
-Areas to Contribute
+Joining the Project
 ===================
 
-Drivers
-=======
+Contributor License Agreement
+=============================
 
-Kwapi aims at supporting various wattmeters. If you have a non-supported
-wattmeter, you can easily contribute by writing a new one.
+In order to contribute to the Kwapi project, you need to have
+signed OpenStack's contributor's agreement.
 
+.. seealso::
 
-Plugins
-=======
+   * http://wiki.openstack.org/HowToContribute
+   * http://wiki.openstack.org/CLA
 
-Kwapi plugins process the metrics. You can contribute by writing new plugins to
-bring new functionnalities.
+LaunchPad Project
+=================
 
-Testing
-=======
+Most of the tools used for OpenStack depend on a launchpad.net ID for
+authentication. After signing up for a launchpad account, join the
+"openstack" team to have access to the mailing list and receive
+notifications of important events.
 
-The first version of Kwapi has not yet unit tests and has not seen much
-run-time in real environments. Setting up a copy of Kwapi to monitor a real
-OpenStack installation or to perform some load testing would be especially
-helpful.
+.. seealso::
+
+   * http://launchpad.net
+   * http://launchpad.net/kwapi
+   * http://launchpad.net/~openstack
