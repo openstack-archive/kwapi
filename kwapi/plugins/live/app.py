@@ -123,5 +123,6 @@ def start():
              project='kwapi',
              default_config_files=['/etc/kwapi/live.conf'])
     log.setup(cfg.CONF.log_file)
+    live.create_dirs()
     root = make_app()
     root.run(host='0.0.0.0', port=cfg.CONF.rrd_port)

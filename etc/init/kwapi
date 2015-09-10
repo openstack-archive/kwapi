@@ -5,15 +5,15 @@
 # Required-Stop:     $network
 # Default-Start:     2 3 5
 # Default-Stop:      0 6
-# short-description: configure kwapi to monitor energy on sites
-# Description: energy monitoring, RRD, live visualization, long-term storage, ganglia
+# short-description: configure kwapi to monitor network and energy metrics on sites
+# Description: network, energy monitoring, RRD, live visualization, long-term storage, ganglia
 ### END INIT INFO
 #set -e
 
 # Author: Laurent Pouilloux, François Rossigneux
 #
-PREFIX=/usr/bin/
-DESC="Energy monitoring service"
+PREFIX=/usr/local/bin/
+DESC="Monitoring service"
 NAME=kwapi
 SCRIPTNAME=/etc/init.d/kwapi
 USER=kwapi

@@ -48,6 +48,9 @@ ganglia_opts = [
     cfg.StrOpt('metric_type',
                required=True,
                ),
+    cfg.StrOpt('domain',
+               required=True,
+               ),
 ]
 cfg.CONF.register_opts(ganglia_opts)
 hostname = socket.getfqdn().split('.')
@@ -72,7 +75,7 @@ def update_rrd(probe_uid, probes_names, data_type, timestamp, metrics, params):
         probe_site = probe.split('.')[0]
         probe_id = str(".".join(probe.split('.')[1:])) 
         if not probe_id in ip_probe:
-            hostname = "%s.%s.grid5000.fr" % (probe_id, probe_site)
+            hostname = ("%s.%s."+ cfg.CONF.domain) % (probe_id, probe_site)
             try:
                 ip = socket.gethostbyname(hostname)
                 ip_probe[probe_id] = (ip, hostname)

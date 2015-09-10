@@ -21,12 +21,13 @@ import socket
 import numpy as np
 
 from kwapi.utils import cfg, log
-from threading import Lock
+from threading import Lock, Timer
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
 from Queue import Queue
 from tables import *
+from pandas import HDFStore
 
 import networkx as nx
 
@@ -68,6 +69,8 @@ hdf5_opts = [
 cfg.CONF.register_opts(hdf5_opts)
 hostname = socket.getfqdn().split('.')
 site = hostname[1] if len(hostname) >= 2 else hostname[0]
+# probe list
+probes_sets = {}
 # Mapping between name and probes
 probes_names_maps = {}
 # One queue per metric
@@ -89,7 +92,10 @@ def update_hdf5(probe, probes_names, data_type, timestamp, metrics, params):
         else:
             probes_names_maps[data_type] = nx.Graph()
             probes_names_maps[data_type].add_edge(probe_name,probe)
-    buffered_values[data_type].put((probe, timestamp, metrics))
+    if probes_sets.get(data_type, None):
+        probes_sets[data_type].add(probe)
+    else:
+        probes_sets[data_type] = set([probe])
 
 def get_probe_path(probe):
     site = probe.split(".")[0]
@@ -206,3 +212,88 @@ class HDF5_Collector:
             f.close()
             self.lock.release()
 
+    #OK
+    def get_probes_list(self):
+        probes = []
+        for probe in list(probes_sets[self.data_type]):
+            try:
+                site, host, port = probe.split(".")
+                probes.append("%s.%s.%s.grid5000.fr" % (port, host, site))
+                probes = sorted(probes, key = lambda x: "%s" % x.split(".")[1])
+            except:
+                LOG.error("Can't parse %s" % probe)
+        return probes
+
+    def get_probes_names(self):
+        probes_names = set()
+        for probe_id in list(probes_sets[self.data_type]):
+            for probe in probes_names_maps[self.data_type].neighbors(probe_id):
+                try:
+                    probes_names.add(probe)
+                except:
+                    LOG.error("Can't parse %s" % probe)
+                    continue
+        return list(probes_names)
+
+    def get_hdf5_files(self, start_time, end_time):
+        list_files = []
+        if end_time < start_time:
+            return list_files
+        else:
+            try:
+                file_date = datetime.fromtimestamp(float(start_time))
+                end_date  = datetime.fromtimestamp(float(end_time))
+                if file_date < self.start_date:
+                    file_date = self.start_date
+                if end_date > datetime.now():
+                    end_date = datetime.now()
+                start_date = self.start_date
+                while start_date < file_date:
+                    start_date += self.delta
+                file_date = start_date - self.delta
+                while file_date < end_date:
+                    s = cfg.CONF.hdf5_dir + '/%s_%s_%s' % (file_date.strftime("%Y_%m_%d"), self.data_type, 'store.h5')
+                    if os.path.isfile(s):
+                        list_files.append(s)
+                    file_date += self.delta
+                return list_files
+            except Exception as e:
+                LOG.error("Get file list: %s" % e)
+                return []
+
+    def select_probes_datas(self, probes, start_time, end_time):
+        message = dict()
+        self.lock.acquire()
+        list_files = self.get_hdf5_files(start_time, end_time)
+        try:
+            for filename in list_files:
+                for probe in probes:
+                    if not probe in message:
+                        # Init message for probe
+                        message[probe] = dict()
+                        message[probe]["uid"] = ".".join(probe.split('.')[1:])
+                        message[probe]["to"] =  int(end_time)
+                        message[probe]["from"] = int(start_time)
+                        message[probe]['values'] = []
+                        message[probe]['timestamps'] = []
+                    path = get_probe_path(probe)
+                    if path:
+                        f = openFile(filename, mode = "r")
+                        try:
+                            ts = []
+                            table = f.getNode(path)
+                            ts = [(x["timestamp"], x["measure"]) \
+                                  for x in table.where("(timestamp >= %s) & (timestamp <= %s)" \
+                                                       % (start_time, end_time))]
+                            timestamps, values = zip(*ts)
+                            message[probe]['values'] += list(values)
+                            message[probe]['timestamps'] += list(timestamps)
+                        except Exception as e:
+                            LOG.error("%s" % e)
+                        finally:
+                            f.close()
+        except Exception as e:
+            LOG.error("%s" % e)
+        finally:
+            self.lock.release()
+        return message

@@ -22,7 +22,7 @@ import socket
 from execo_g5k import get_resource_attributes
 from kwapi.utils import cfg, log
 from pandas import read_hdf
-from hdf5_collector import *
+#from hdf5_collector import *
 
 LOG = log.getLogger(__name__)
 metrics = ['power', 'network_in', 'network_out']

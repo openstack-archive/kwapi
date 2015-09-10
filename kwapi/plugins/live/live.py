@@ -30,7 +30,7 @@ import socket
 from tempfile import NamedTemporaryFile
 
 import rrdtool
-from kwapi.plugins.rrd.rrd import get_rrd_filename, get_png_filename
+from kwapi.plugins.rrd.rrd import get_rrd_filename
 
 from kwapi.utils import cfg, log
 from socket import getfqdn
@@ -145,6 +145,34 @@ def get_rrds_from_name(probe_name, data_type):
     probes_uid = list(multi_probes_selected)
     probes_uid = map(get_rrd_filename, probes_uid, [data_type]*len(probes_uid))
     return probes_uid
+
+def get_png_filename(probe_uid, metric, scale):
+    """Returns the png filename corresponding to the probe_uid.
+    
+    >>> get_png_filename('nancy.sw1.1-1', 'network_in', 'day')
+    "/var/lib/kwapi/kwapi-png/day/0f28a458-8abd-5471-a235-054407180482.png"
+    """
+    return cfg.CONF.png_dir + '/' + scale + '/' + \
+        str(uuid.uuid5(uuid.NAMESPACE_DNS, "%s.%s" % (str(probe_uid),str(metric)))) + '.png'
+
+def create_dirs():
+    """Creates all required directories."""
+    directories = []
+    directories.append(cfg.CONF.png_dir)
+    # Build a list of directory names
+    # Avoid loop in try block (problem if exception occurs), and avoid multiple
+    # try blocks (too long)
+    for scale in scales.keys():
+        directories.append(cfg.CONF.png_dir + '/' + scale)
+    # Create each directory in a try block, and continue if directory already
+    # exist
+    for directory in directories:
+        try:
+            os.makedirs(directory)
+        except OSError as exception:
+            if exception.errno != errno.EEXIST:
+                raise
+
 
 probe_colors = {}
 lock = Lock()

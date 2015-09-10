@@ -44,8 +44,7 @@ setuptools.setup(
     ],
 
     packages=setuptools.find_packages(),
-    package_data={'kwapi.plugins.live': ['templates/*', 'static/*.css', 'static/*.png', 'static/*.jpg', 'static/*.gif', 'static/*.js', 'static/select2/*'],
-                  'kwapi.plugins.rrd':  ['templates/*', 'static/*.css', 'static/*.png', 'static/*.jpg', 'static/*.js', 'static/select2/*']},
+    package_data={'kwapi.plugins.live': ['templates/*', 'static/*.css', 'static/*.png', 'static/*.jpg', 'static/*.gif', 'static/*.js', 'static/select2/*']},
 
     scripts=['bin/kwapi-g5k-conf', 'bin/kwapi-g5k-check'],
 
@@ -78,6 +77,7 @@ setuptools.setup(
             'kwapi-forwarder = kwapi.forwarder:start',
             'kwapi-rrd = kwapi.plugins.rrd.app:start',
             'kwapi-hdf5 = kwapi.plugins.hdf5.app:start',
+            'kwapi-hdf5-api = kwapi.plugins.hdf5_api.app:start',
             'kwapi-live = kwapi.plugins.live.app:start',
             'kwapi-ganglia = kwapi.plugins.ganglia.app:start']
     }
