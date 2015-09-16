@@ -18,16 +18,21 @@
 import signal
 import sys
 
-from oslo.config import cfg
+from kwapi.utils import cfg
 import zmq
 
-from kwapi.openstack.common import log
+from kwapi.utils import log
+
+LOG = log.getLogger(__name__)
 
 forwarder_opts = [
     cfg.MultiStrOpt('probes_endpoint',
                     required=True,
                     ),
     cfg.StrOpt('forwarder_endpoint',
+               required=True,
+               ),
+    cfg.StrOpt('log_file',
                required=True,
                ),
 ]
@@ -37,7 +42,6 @@ cfg.CONF.register_opts(forwarder_opts)
 
 def forwarder():
     """Listens probes_endpoints and forwards messages to the plugins."""
-    LOG = log.getLogger('kwapi')
     LOG.info('Forwarder listening to %s' % cfg.CONF.probes_endpoint)
     context = zmq.Context.instance()
     frontend = context.socket(zmq.XPUB)
@@ -70,7 +74,7 @@ def start():
              project='kwapi',
              default_config_files=['/etc/kwapi/forwarder.conf']
              )
-    log.setup('kwapi')
+    log.setup(cfg.CONF.log_file)
     signal.signal(signal.SIGTERM, signal_handler)
     try:
         forwarder()

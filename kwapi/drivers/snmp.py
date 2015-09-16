@@ -18,56 +18,76 @@ import time
 
 from pysnmp.entity.rfc3413.oneliner import cmdgen
 
-from kwapi.openstack.common import log
+from kwapi.utils import log
 from driver import Driver
 
 LOG = log.getLogger(__name__)
 
-
 class Snmp(Driver):
     """Driver for SNMP based PDUs."""
 
-    def __init__(self, probe_ids, **kwargs):
+    def __init__(self, probe_ids, probes_names, probe_data_type, **kwargs):
         """Initializes the SNMP driver.
 
         Keyword arguments:
         probe_ids -- list containing the probes IDs
-                     (a wattmeter monitor sometimes several probes)
+                     (a metricmeter monitor sometimes several probes)
         kwargs -- keyword (protocol, user or community, ip, oid) defining the
                   SNMP parameters
                   Eaton OID is 1.3.6.1.4.1.534.6.6.7.6.5.1.3
                   Raritan OID is 1.3.6.1.4.1.13742.4.1.2.2.1.7
 
         """
-        Driver.__init__(self, probe_ids, kwargs)
+        Driver.__init__(self, probe_ids, probes_names, probe_data_type, kwargs)
         self.cmd_gen = cmdgen.CommandGenerator()
 
     def run(self):
         """Starts the driver thread."""
         while not self.stop_request_pending():
-            watts_list = self.get_watts()
-            if watts_list is not None:
-                i = 0
-                for watts in watts_list:
-                    measurements = {}
-                    measurements['w'] = watts
-                    if self.probe_ids[i]:
-                        self.send_measurements(self.probe_ids[i], measurements)
-                    i += 1
-            time.sleep(1)
+            measure_time = time.time()
+            metrics_list = self.get_metrics()
+            #Sum duplicate probes metrics in a specific dictionnary
+            agg_values = {}
 
-    def get_watts(self):
-        """Returns the power consumption."""
+            if metrics_list is not None:
+                i = 0
+                for metrics in metrics_list:
+		    probe = self.probe_ids[i]
+		    i+=1
+                    if not probe:
+		        continue
+                    # probe_data_type =  {'name':'switch.port.receive.bytes',
+                    #                     'type':'Cummulative',
+                    #                     'unit':'B'}
+                    if self.probe_data_type['type'] == 'Gauge':
+		        if not probe in agg_values:
+		            agg_values[probe] = 0
+		        agg_values[probe] += metrics
+		    else:
+		        measurements = self.create_measurements(probe,
+						                measure_time,
+						                metrics)
+                        self.send_measurements(probe, measurements)
+		#Send each sum of probe
+                for probe, agg_value in agg_values.items():
+                     measurements = self.create_measurements(probe,
+							     measure_time,
+							     agg_value)
+		     self.send_measurements(probe, measurements)
+            time.sleep(self.kwargs.get('resolution', 1))
+
+    def get_metrics(self):
+        """Returns the OID field."""
         protocol = self.kwargs.get('protocol')
-        if protocol is '1':
+        if protocol == '1':
             community_or_user = cmdgen.CommunityData(
                 self.kwargs.get('community'),
                 mpModel=0)
-        elif protocol is '2c':
+        elif protocol == '2c':
             community_or_user = cmdgen.CommunityData(
                 self.kwargs.get('community'),
                 mpModel=1)
-        elif protocol is '3':
+        elif protocol == '3':
             community_or_user = cmdgen.UsmUserData(self.kwargs.get('user'))
         errorIndication, errorStatus, errorIndex, varBindTable = \
             self.cmd_gen.bulkCmd(
@@ -77,14 +97,18 @@ class Snmp(Driver):
                 self.kwargs.get('oid'),
                 maxRows=len(self.probe_ids),
             )
+
         if errorIndication:
             LOG.error(errorIndication)
+            LOG.error("Request: %s\t%s\t%s\t%s" 
+                      % (self.kwargs.get('user'), self.kwargs.get('ip'),
+                         self.kwargs.get('oid'), self.probe_ids[0]))
             return None
         else:
             if errorStatus:
                 LOG.error('%s at %s' % (
                     errorStatus.prettyPrint(),
-                    errorIndex and varBindTable[-1][int(errorIndex)-1] or '?'
+                    errorIndex and varBindTable[-1][int(errorIndex) - 1] or '?'
                 ))
                 return None
             else:
@@ -93,3 +117,4 @@ class Snmp(Driver):
                     for name, value in varBindTableRow:
                         outlet_list.append(int(value))
                 return outlet_list
+

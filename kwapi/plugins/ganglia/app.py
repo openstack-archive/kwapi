@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Author: François Rossigneux <francois.rossigneux@inria.fr>
+# Author: Clement Parisot <clement.parisot@inria.fr>
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -17,12 +17,13 @@
 """Set up the RRD server application instance."""
 
 import signal
+import socket
 import sys
 import thread
 
 from kwapi.plugins import listen
 from kwapi.utils import cfg, log
-import rrd
+import ganglia_plugin
 
 LOG = log.getLogger(__name__)
 
@@ -37,15 +38,13 @@ app_opts = [
 
 cfg.CONF.register_opts(app_opts)
 
-
 def start():
-    """Starts Kwapi RRD."""
+    """Starts Kwapi Ganglia."""
     cfg.CONF(sys.argv[1:],
              project='kwapi',
-             default_config_files=['/etc/kwapi/rrd.conf'])
+             default_config_files=['/etc/kwapi/ganglia.conf'])
     log.setup(cfg.CONF.log_file)
-    thread.start_new_thread(listen, (rrd.update_rrd,))
-    rrd.create_dirs()
+    thread.start_new_thread(listen, (ganglia_plugin.update_rrd,))
     signal.signal(signal.SIGINT, signal_handler)
     signal.pause()
 

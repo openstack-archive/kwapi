@@ -3,13 +3,15 @@ François Rossigneux	<francois.rossigneux@inria.fr>
 
 MAIN DEVELOPERS:
 François Rossigneux	<francois.rossigneux@inria.fr>
+Laurent Pouilloux	<laurent.pouilloux@inria.fr>
 
 CONTRIBUTORS:
 Jean-Patrick Gelas  <jpgelas@ens-lyon.fr>
 Laurent Lefèvre     <laurent.lefevre@inria.fr>
+Clément Parisot     <clement.parisot@inria.fr>
 
 PLUGINS MAINTAINERS:
-RRD graph builder	: Jean-Patrick Gelas <jpgelas@ens-lyon.fr>
+RRD graph builder	: François Rossigneux	<francois.rossigneux@inria.fr>
 WTT file logging	: Jean-Patrick Gelas <jpgelas@ens-lyon.fr>
 	
 

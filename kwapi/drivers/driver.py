@@ -17,10 +17,10 @@
 import json
 from threading import Thread, Event
 
-from oslo.config import cfg
+from kwapi.utils import cfg
 import zmq
 
-from kwapi.openstack.common import log
+from kwapi.utils import log
 from kwapi import security
 
 LOG = log.getLogger(__name__)
@@ -40,12 +40,14 @@ cfg.CONF.register_opts(driver_opts)
 class Driver(Thread):
     """Generic driver class, derived from Thread."""
 
-    def __init__(self, probe_ids, kwargs):
+    def __init__(self, probe_ids, probes_names, probe_data_type, kwargs):
         """Initializes driver."""
-        LOG.info('Loading driver %s(probe_ids=%s, kwargs=%s)'
-                 % (self.__class__.__name__, probe_ids, kwargs))
+        LOG.info('Loading driver %s(probe_ids=%s, probes_names=%s, kwargs=%s)'
+                 % (self.__class__.__name__, probe_ids, probes_names, kwargs))
         Thread.__init__(self)
         self.probe_ids = probe_ids
+        self.probes_names = probes_names
+        self.probe_data_type = probe_data_type
         self.kwargs = kwargs
         self.probe_observers = []
         self.stop_request = Event()
@@ -53,8 +55,9 @@ class Driver(Thread):
         self.publisher.connect('inproc://drivers')
 
     def run(self):
-        """Runs the driver thread. Needs to be implemented in a derived
-        class.
+        """
+        Runs the driver thread. 
+        Needs to be implemented in a derived class.
 
         """
         raise NotImplementedError
@@ -82,6 +85,30 @@ class Driver(Thread):
             ]
         )
 
+    def create_measurements(self, probe_id, time, metrics, params={}):
+        """Return the measure with specific fields associated"""
+	measurements = {}
+	# Add default fields
+	measurements['probe_id'] = probe_id
+	measurements['timestamp'] = time
+        measurements['measure'] = metrics
+        measurements['data_type'] = self.probe_data_type
+        probe_index = -1
+	try:
+	    probe_index = self.probe_ids.index(probe_id)
+	except:
+ 	    probe_index = -1
+        if not probe_index < len(self.probes_names) or probe_index == -1:
+            probe_name = probe_id
+        else:
+            probe_name = self.probes_names[probe_index]
+        if not type(probe_name) == list:
+            probe_name = [probe_name]
+        measurements['probes_names'] = str(probe_name).encode('utf-8')
+        for key in params:
+            measurements[key] = params[key]
+	return measurements
+
     def subscribe(self, observer):
         """Appends the observer (callback method) to the observers list."""
         self.probe_observers.append(observer)
@@ -89,3 +116,4 @@ class Driver(Thread):
     def stop(self):
         """Asks the probe to terminate."""
         self.terminate = True
+

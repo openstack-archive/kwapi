@@ -20,21 +20,20 @@ import sys
 import thread
 
 import flask
-from oslo.config import cfg
+from kwapi.utils import cfg
 
-from kwapi.openstack.common import log
 from kwapi.plugins import listen
-import acl
+from kwapi.utils import log
 from collector import Collector
 import v1
 
 LOG = log.getLogger(__name__)
 
 app_opts = [
-    cfg.BoolOpt('acl_enabled',
-                required=True,
-                ),
     cfg.IntOpt('api_port',
+               required=True,
+               ),
+    cfg.StrOpt('log_file',
                required=True,
                ),
 ]
@@ -43,10 +42,10 @@ cfg.CONF.register_opts(app_opts)
 
 
 def make_app():
-    """Instantiates Flask app, attaches collector database, installs acl."""
+    """Instantiates Flask app, attaches collector database."""
     LOG.info('Starting API')
     app = flask.Flask(__name__)
-    app.register_blueprint(v1.blueprint, url_prefix='/v1')
+    app.register_blueprint(v1.blueprint, url_prefix='')
 
     collector = Collector()
     collector.clean()
@@ -63,10 +62,6 @@ def make_app():
         collector.lock.release()
         return response
 
-    # Install the middleware wrapper
-    if cfg.CONF.acl_enabled:
-        acl.install(app, cfg.CONF)
-
     return app
 
 
@@ -74,8 +69,7 @@ def start():
     """Starts Kwapi API."""
     cfg.CONF(sys.argv[1:],
              project='kwapi',
-             default_config_files=['/etc/kwapi/api.conf']
-             )
-    log.setup('kwapi')
+             default_config_files=['/etc/kwapi/api.conf'])
+    log.setup(cfg.CONF.log_file)
     root = make_app()
     root.run(host='0.0.0.0', port=cfg.CONF.api_port)

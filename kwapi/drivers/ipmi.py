@@ -17,7 +17,7 @@
 import subprocess
 import time
 
-from kwapi.openstack.common import log
+from kwapi.utils import log
 from driver import Driver
 
 LOG = log.getLogger(__name__)
@@ -26,7 +26,7 @@ LOG = log.getLogger(__name__)
 class Ipmi(Driver):
     """Driver for IPMI cards."""
 
-    def __init__(self, probe_ids, **kwargs):
+    def __init__(self, probe_ids, probe_data_type, **kwargs):
         """Initializes the IPMI driver.
 
         Keyword arguments:
@@ -36,16 +36,17 @@ class Ipmi(Driver):
                   password) defining the IPMI parameters
 
         """
-        Driver.__init__(self, probe_ids, kwargs)
+        Driver.__init__(self, probe_ids, probe_data_type, kwargs)
 
     def run(self):
         """Starts the driver thread."""
         if self.set_sensor_name():
-            measurements = {}
             while not self.stop_request_pending():
                 watts = self.get_watts()
                 if watts is not None:
-                    measurements['w'] = watts
+                    measure_time = time.time()
+                    measurements = self.create_measurements(self.probe_ids[0],
+                            measure_time, watts)
                     self.send_measurements(self.probe_ids[0], measurements)
                 time.sleep(1)
 

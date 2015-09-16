@@ -16,11 +16,11 @@
 
 import json
 
-from oslo.config import cfg
 import zmq
+import ast
 
 from kwapi import security
-from kwapi.openstack.common import log
+from kwapi.utils import cfg, log
 
 LOG = log.getLogger(__name__)
 
@@ -53,10 +53,27 @@ def listen(function):
             LOG.error('Bad message signature')
         else:
             try:
+                """
+                Measurement format:
+                  * probe_id
+                  * timestamp: time of the measure
+                  * measure: data retrieved by probes
+                  * data_type: type of measure (power, network...)
+                  * params: additional informations
+                """
                 probe = measurements['probe_id'].encode('utf-8')
-                function(probe, float(measurements['w']))
+                timestamp = measurements['timestamp']
+                measure = measurements['measure']
+                params = measurements['data_type']
+                data_type = params['name']
+                probe_names = ast.literal_eval(measurements['probes_names'])
+                for key in measurements.keys():
+                    if not key in ['probe_id', 'timestamp', 'measure', 'data_type', 'message_signature']:
+                        params[key] = measurements[key]
+                function(probe, probe_names, data_type, timestamp, measure, params)
             except (TypeError, ValueError):
-                LOG.error('Malformed power consumption data: %s'
-                          % measurements['w'])
+                raise
+                LOG.error('Malformed data: %s' % measurements)
             except KeyError:
                 LOG.error('Malformed message (missing required key)')
+

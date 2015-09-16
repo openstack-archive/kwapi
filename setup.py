@@ -15,8 +15,65 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+
 import setuptools
 
 setuptools.setup(
-    setup_requires=['d2to1>=0.2.10,<0.3', 'pbr>=0.5,<0.6'],
-    d2to1=True)
+
+    name='kwapi-g5k',
+    version='1.1',
+
+    description='Monitoring Framework',
+
+    author='François Rossigneux, Laurent Pouilloux, Clement Parisot',
+    author_email='laurent.pouilloux@inria.fr',
+
+    url='http://kwapi-g5k.readthedocs.org/en/latest/',
+
+    classifiers=[
+        'Development Status :: 4 - Beta',
+	'Environment :: No Input/Output (Daemon)',
+        'Intended Audience :: Information Technology',
+        'Intended Audience :: System Administrators',
+        'License :: OSI Approved :: Apache Software License',
+        'Operating System :: POSIX :: Linux',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.7',
+        'Topic :: System :: Monitoring',
+    ],
+
+    packages=setuptools.find_packages(),
+
+    data_files=[('/etc/kwapi', ['etc/kwapi/api.conf',
+                                'etc/kwapi/drivers.conf',
+                                'etc/kwapi/rrd.conf',
+                                'etc/kwapi/forwarder.conf',
+                                'etc/kwapi/daemon.conf',
+                                'etc/kwapi/hdf5.conf',
+                                'etc/kwapi/ganglia.conf']),
+                ('/etc/init.d', ['etc/init/kwapi'])],
+
+    install_requires=['flask',
+                      'pyserial',
+                      'pyzmq',
+                      'rrdtool',
+                      'execo',
+                      'numpy',
+                      'pandas',
+                      'tables',
+                      'numexpr',
+                      'httplib2',
+                      'pysnmp',
+                      'ganglia'],
+    entry_points={
+        'console_scripts': [
+            'kwapi-api = kwapi.plugins.api.app:start',
+            'kwapi-drivers = kwapi.drivers.driver_manager:start',
+            'kwapi-forwarder = kwapi.forwarder:start',
+            'kwapi-rrd = kwapi.plugins.rrd.app:start',
+            'kwapi-hdf5 = kwapi.plugins.hdf5.app:start',
+            'kwapi-ganglia = kwapi.plugins.ganglia.app:start']
+    }
+    
+)

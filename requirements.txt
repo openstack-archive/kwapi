@@ -1,6 +1,8 @@
+numpy
 d2to1>=0.2.10,<0.3
 eventlet
 flask
+h5py
 iso8601
 kombu
 oslo.config
@@ -11,3 +13,4 @@ python-keystoneclient
 pyzmq
 python-rrdtool
 webob
+httplib2

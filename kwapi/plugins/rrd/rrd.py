@@ -17,18 +17,16 @@
 """Defines functions to build and update rrd database and graph."""
 
 import collections
-import colorsys
 import errno
 import os
-from threading import Lock
 import struct
 import time
 import uuid
+from threading import Lock
 
-from oslo.config import cfg
 import rrdtool
 
-from kwapi.openstack.common import log
+from kwapi.utils import cfg, log
 
 LOG = log.getLogger(__name__)
 
@@ -36,28 +34,13 @@ rrd_opts = [
     cfg.BoolOpt('signature_checking',
                 required=True,
                 ),
-    cfg.FloatOpt('kwh_price',
-                 required=True,
-                 ),
-    cfg.IntOpt('hue',
-               required=True,
-               ),
-    cfg.IntOpt('max_watts',
-               required=True,
-               ),
     cfg.MultiStrOpt('probes_endpoint',
                     required=True,
                     ),
     cfg.MultiStrOpt('watch_probe',
                     required=False,
                     ),
-    cfg.StrOpt('currency',
-               required=True,
-               ),
     cfg.StrOpt('driver_metering_secret',
-               required=True,
-               ),
-    cfg.StrOpt('png_dir',
                required=True,
                ),
     cfg.StrOpt('rrd_dir',
@@ -66,6 +49,9 @@ rrd_opts = [
 ]
 
 cfg.CONF.register_opts(rrd_opts)
+
+lock = Lock()
+probes_set = set()
 
 scales = collections.OrderedDict()
 # Resolution = 1 second
@@ -81,46 +67,11 @@ scales['month'] = {'interval': 2678400, 'resolution': 21600, 'label': 'month'},
 # Resolution = 1 week
 scales['year'] = {'interval': 31622400, 'resolution': 604800, 'label': 'year'},
 
-probes = set()
-probe_colors = {}
-lock = Lock()
-
-
-def color_generator(nb_colors):
-    """Generates colors."""
-    min_brightness = 50-nb_colors*15/2.0
-    if min_brightness < 5:
-        min_brightness = 5
-    max_brightness = 50+nb_colors*15/2.0
-    if max_brightness > 95:
-        max_brightness = 95
-    if nb_colors <= 1:
-        min_brightness = 50
-        step = 0
-    else:
-        step = (max_brightness-min_brightness) / (nb_colors-1.0)
-    i = min_brightness
-    while int(i) <= max_brightness:
-        rgb = colorsys.hsv_to_rgb(cfg.CONF.hue/360.0,
-                                  1,
-                                  i/100.0)
-        rgb = tuple([int(x*255) for x in rgb])
-        yield '#' + struct.pack('BBB', *rgb).encode('hex')
-        i += step
-        if step == 0:
-            break
-
 
 def create_dirs():
     """Creates all required directories."""
     directories = []
-    directories.append(cfg.CONF.png_dir)
     directories.append(cfg.CONF.rrd_dir)
-    # Build a list of directory names
-    # Avoid loop in try block (problem if exception occurs), and avoid multiple
-    # try blocks (too long)
-    for scale in scales.keys():
-        directories.append(cfg.CONF.png_dir + '/' + scale)
     # Create each directory in a try block, and continue if directory already
     # exist
     for directory in directories:
@@ -131,27 +82,34 @@ def create_dirs():
                 raise
 
 
-def get_png_filename(scale, probe):
-    """Returns the png filename."""
-    return cfg.CONF.png_dir + '/' + scale + '/' + \
-        str(uuid.uuid5(uuid.NAMESPACE_DNS, str(probe))) + '.png'
 
+def get_rrd_filename(probe_uid, metric):
+    """Returns the rrd filename corresponding to probe_uid.
+    
+    >>> get_rrd_filename('nancy.sw1.1-1', 'network_in')
+    "/var/lib/kwapi/kwapi-rrd/0f28a458-8abd-5471-a235-054407234445.rrd"
+    """
+    filename = cfg.CONF.rrd_dir + '/' + str(uuid.uuid5(uuid.NAMESPACE_DNS,
+                                        "%s.%s" % (str(probe_uid),str(metric)))) + '.rrd'
+    return filename
 
-def get_rrd_filename(probe):
-    """Returns the rrd filename."""
-    return cfg.CONF.rrd_dir + '/' + str(uuid.uuid5(uuid.NAMESPACE_DNS,
-                                        str(probe))) + '.rrd'
-
-
-def create_rrd_file(filename):
+def create_rrd_file(filename, params):
     """Creates a RRD file."""
     if not os.path.exists(filename):
-        args = [filename,
-                '--start', '0',
-                '--step', '1',
-                # Heartbeat = 600 seconds, Min = 0, Max = Unlimited
-                'DS:w:GAUGE:600:0:U',
-                ]
+        if params['type'] != 'Gauge':
+            args = [filename,
+                    '--start', '0',
+                    '--step', '1',
+                    # Heartbeat = 600 seconds, Min = 0, Max = Unlimited
+                    'DS:o:DERIVE:600:0:U',
+            ]
+        else:
+            args = [filename,
+                    '--start', '0',
+                    '--step', '1',
+                    # Heartbeat = 600 seconds, Min = 0, Max = Unlimited
+                    'DS:w:GAUGE:600:0:U',
+            ]
         for scale in scales.keys():
             args.append('RRA:AVERAGE:0.5:%s:%s'
                         % (scales[scale][0]['resolution'],
@@ -159,132 +117,18 @@ def create_rrd_file(filename):
                            scales[scale][0]['resolution']))
         rrdtool.create(args)
 
-
-def update_rrd(probe, watts):
+def update_rrd(probe, probe_names, data_type, timestamp, metrics, params):
     """Updates RRD file associated with this probe."""
-    if not probe in probes:
-        color_seq = color_generator(len(probes)+1)
+    if not probe in probes_set:
         lock.acquire()
-        probes.add(probe)
-        for probe in sorted(probes, reverse=True):
-            probe_colors[probe] = color_seq.next()
+        probes_set.add(probe)
         lock.release()
-
-    filename = cfg.CONF.rrd_dir + '/' + \
-        str(uuid.uuid5(uuid.NAMESPACE_DNS, str(probe))) + '.rrd'
-    if not os.path.isfile(filename):
-        create_rrd_file(filename)
+    # Depends on data_type
+    filename = get_rrd_filename(probe, data_type)
+    if not os.path.exists(filename):
+        create_rrd_file(filename, params)
     try:
-        rrdtool.update(filename, 'N:%s' % watts)
-    except rrdtool.error as e:
-        LOG.error('Error updating RRD: %s' % e)
+        rrdtool.update(filename, '%d:%d' % (round(timestamp,0), metrics))
+    except:
+        LOG.error('Error updating RRD: %s %s' % (timestamp, metrics))
 
-
-def build_graph(scale, probe=None):
-    """Builds the graph for the probe, or a summary graph."""
-    if scale in scales.keys() and len(probes) > 0 \
-            and (probe is None or probe in probes):
-        # Get PNG filename
-        if probe is not None:
-            png_file = get_png_filename(scale, probe)
-        else:
-            png_file = cfg.CONF.png_dir + '/' + scale + '/summary.png'
-        # Build required (PNG file not found or outdated)
-        if not os.path.exists(png_file) or os.path.getmtime(png_file) < \
-                time.time() - scales[scale][0]['resolution']:
-            scale_label = ' (' + scales[scale][0]['label'] + ')'
-            if probe is not None:
-                # Specific arguments for probe graph
-                args = [png_file,
-                        '--title', probe + scale_label,
-                        '--width', '497',
-                        '--height', '187',
-                        '--upper-limit', str(cfg.CONF.max_watts),
-                        ]
-            else:
-                # Specific arguments for summary graph
-                args = [png_file,
-                        '--title', 'Summary' + scale_label,
-                        '--width', '694',
-                        '--height', '261',
-                        ]
-            # Common arguments
-            args += ['--start', '-' + str(scales[scale][0]['interval']),
-                     '--end', 'now',
-                     '--full-size-mode',
-                     '--imgformat', 'PNG',
-                     '--alt-y-grid',
-                     '--vertical-label', 'Watts',
-                     '--lower-limit', '0',
-                     '--rigid',
-                     ]
-            if scale == 'minute':
-                args += ['--x-grid', 'SECOND:30:MINUTE:1:MINUTE:1:0:%H:%M']
-            cdef_watt = 'CDEF:watt='
-            cdef_watt_with_unknown = 'CDEF:watt_with_unknown='
-            graph_lines = []
-            stack = False
-            if probe is not None:
-                probe_list = [probe]
-            else:
-                probe_list = sorted(probes, reverse=True)
-            for probe in probe_list:
-                probe_uuid = uuid.uuid5(uuid.NAMESPACE_DNS, probe)
-                rrd_file = get_rrd_filename(probe)
-                # Data source
-                args.append('DEF:watt_with_unknown_%s=%s:w:AVERAGE'
-                            % (probe_uuid, rrd_file))
-                # Data source without unknown values
-                args.append('CDEF:watt_%s=watt_with_unknown_%s,UN,0,watt_with_'
-                            'unknown_%s,IF'
-                            % (probe_uuid, probe_uuid, probe_uuid))
-                # Prepare CDEF expression of total watt consumption
-                cdef_watt += 'watt_%s,' % probe_uuid
-                cdef_watt_with_unknown += 'watt_with_unknown_%s,' % probe_uuid
-                # Draw the area for the probe
-                color = probe_colors[probe]
-                args.append('AREA:watt_with_unknown_%s%s::STACK'
-                            % (probe_uuid, color + 'AA'))
-                if not stack:
-                    graph_lines.append('LINE:watt_with_unknown_%s%s::'
-                                       % (probe_uuid, color))
-                    stack = True
-                else:
-                    graph_lines.append('LINE:watt_with_unknown_%s%s::STACK'
-                                       % (probe_uuid, color))
-            if len(probe_list) >= 2:
-                # Prepare CDEF expression by adding the required number of '+'
-                cdef_watt += '+,' * int(len(probe_list)-2) + '+'
-                cdef_watt_with_unknown += '+,' * int(len(probe_list)-2) + '+'
-            args += graph_lines
-            args.append(cdef_watt)
-            args.append(cdef_watt_with_unknown)
-            # Min watt
-            args.append('VDEF:wattmin=watt_with_unknown,MINIMUM')
-            # Max watt
-            args.append('VDEF:wattmax=watt_with_unknown,MAXIMUM')
-            # Partial average that will be displayed (ignoring unknown values)
-            args.append('VDEF:wattavg_with_unknown=watt_with_unknown,AVERAGE')
-            # Real average (to compute kWh)
-            args.append('VDEF:wattavg=watt,AVERAGE')
-            # Compute kWh for the probe
-            # RPN expressions must contain DEF or CDEF variables, so we pop a
-            # CDEF value
-            args.append('CDEF:kwh=watt,POP,wattavg,1000.0,/,%s,3600.0,/,*'
-                        % str(scales[scale][0]['interval']))
-            # Compute cost
-            args.append('CDEF:cost=watt,POP,kwh,%f,*' % cfg.CONF.kwh_price)
-            # Legend
-            args.append('GPRINT:wattavg_with_unknown:Avg\: %3.1lf W')
-            args.append('GPRINT:wattmin:Min\: %3.1lf W')
-            args.append('GPRINT:wattmax:Max\: %3.1lf W')
-            args.append('GPRINT:watt_with_unknown:LAST:Last\: %3.1lf W\j')
-            args.append('TEXTALIGN:center')
-            args.append('GPRINT:kwh:LAST:Total\: %lf kWh')
-            args.append('GPRINT:cost:LAST:Cost\: %lf ' + cfg.CONF.currency)
-            LOG.info('Build PNG summary graph')
-            rrdtool.graph(args)
-            return png_file
-        else:
-            LOG.info('Retrieve PNG summary graph from cache')
-            return png_file

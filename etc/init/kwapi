@@ -1,0 +1,114 @@
+#!/bin/bash
+### BEGIN INIT INFO
+# Provides:          kwapi
+# Required-Start:    $network
+# Required-Stop:     $network
+# Default-Start:     2 3 5
+# Default-Stop:      0 6
+# short-description: configure kwapi to monitor network and energy metrics on sites
+# Description: network, energy monitoring, RRD, live visualization, long-term storage, ganglia
+### END INIT INFO
+#set -e
+
+# Author: Laurent Pouilloux, François Rossigneux
+#
+PREFIX=/usr/local/bin/
+DESC="Monitoring service"
+NAME=kwapi
+SCRIPTNAME=/etc/init.d/kwapi
+USER=kwapi
+LOG_FILE="/var/log/kwapi/kwapi.log"
+
+# Load the VERBOSE setting and other rcS variables
+. /lib/init/vars.sh
+
+# Define LSB log_* functions.
+# Depend on lsb-base (>= 3.0-6) to ensure that this file is present.
+. /lib/lsb/init-functions
+
+# Create required directories
+[ -d /var/log/kwapi ] || mkdir -p /var/log/kwapi
+[ -d /var/lib/kwapi ] || mkdir -p /var/lib/kwapi
+
+# Give permissions to $USER
+chown -R $USER:$USER /var/log/kwapi /var/lib/kwapi
+
+# Read configuration
+if [ -r /etc/kwapi/daemon.conf ]; then
+    . /etc/kwapi/daemon.conf
+    kwapi_elements=`compgen -A variable | grep KWAPI`
+else
+    echo 'Unable to read configuration file, abort ..'
+    exit 1
+fi
+
+pid_element () {
+    echo /var/run/$1.pid
+}
+
+# Start only if daemon is not running
+daemon_start () {
+    EXEC=${1//_/-}
+    log_action_msg "Starting ${EXEC,,}" >> $LOG_FILE
+    PID=$(pid_element $1)
+    if !( status_of_proc -p $PID ${PREFIX}${EXEC,,} ${EXEC,,} > /dev/null ); then
+        start-stop-daemon --start --make-pidfile --pidfile $PID --chuid $USER --background --startas /bin/bash -- -c "exec ${PREFIX}${EXEC,,} 2>> $LOG_FILE"
+    else
+        log_warning_msg "${EXEC,,} is already running" >> $LOG_FILE
+    fi
+    sleep 1
+}
+
+daemon_stop () {
+    EXEC=${1//_/-}
+    log_action_msg "Stopping ${EXEC,,}" >> $LOG_FILE
+    PID=$(pid_element $1)
+    start-stop-daemon --stop --pidfile $PID 2>> $LOG_FILE
+}
+
+daemon_status () {
+    EXEC=${1//_/-}
+    PID=$(pid_element $1)
+    status_of_proc -p $PID ${PREFIX}${EXEC,,} ${EXEC,,} && return 0 || return $?
+}
+
+# Carry out specific functions when asked to by the system
+case "$1" in
+  start)
+    for element in $kwapi_elements
+    do
+        if eval "$"$element; then
+            daemon_start $element
+        fi
+    done
+    ;;
+  stop)
+    for element in $kwapi_elements
+    do
+        if eval "$"$element; then
+            daemon_stop $element
+        fi
+    done
+    ;;
+  restart)
+    $0 stop
+    $0 start
+  ;;
+  status)
+    # Return != 0 if one of the daemon failed
+    FAIL=0
+    for element in $kwapi_elements
+    do
+        if eval "$"$element; then
+            daemon_status $element || let "FAIL=1"
+        fi
+    done
+    exit $FAIL
+  ;;
+  *)
+    echo "Usage: /etc/init.d/kwapi {start|stop|restart|status}"
+    exit 1
+    ;;
+esac
+
+exit 0

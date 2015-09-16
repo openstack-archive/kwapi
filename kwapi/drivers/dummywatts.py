@@ -20,10 +20,10 @@ import time
 from driver import Driver
 
 
-class Dummy(Driver):
+class DummyWatts(Driver):
     """Dummy driver derived from Driver class. Usefull for tests."""
 
-    def __init__(self, probe_ids, **kwargs):
+    def __init__(self, probe_ids, probe_names, probe_data_type, **kwargs):
         """Initializes the dummy driver.
 
         Keyword arguments:
@@ -33,17 +33,19 @@ class Dummy(Driver):
                   defining the random value interval
 
         """
-        Driver.__init__(self, probe_ids, kwargs)
+        Driver.__init__(self, probe_ids, probe_names, probe_data_type, kwargs)
         self.min_value = int(kwargs.get('min', 75))
         self.max_value = int(kwargs.get('max', 100))
 
     def run(self):
         """Starts the driver thread."""
         while not self.stop_request_pending():
-            measurements = {}
-            for probe_id in self.probe_ids:
-                measurements['w'] = randrange(self.min_value, self.max_value+1)
-                measurements['v'] = 230.0
-                measurements['a'] = measurements['w'] / measurements['v']
+            measure_time = time.time()
+            for probe_id in self.probe_ids :
+                if not probe_id:
+                    continue
+                measurements = self.create_measurements(probe_id,
+                               measure_time,
+                               int(randrange(self.min_value, self.max_value+1)))
                 self.send_measurements(probe_id, measurements)
             time.sleep(1)
