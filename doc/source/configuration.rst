@@ -41,7 +41,7 @@ The configuration file contains a section for each wattmeter.
 
 A sample configuration file can be found in `drivers.conf`_.
 
-.. _drivers.conf: https://github.com/stackforge/kwapi/blob/master/etc/kwapi/drivers.conf
+.. _drivers.conf: https://github.com/openstack/kwapi/blob/master/etc/kwapi/drivers.conf
 
 Kwapi plugin API specific
 =========================
@@ -67,7 +67,7 @@ cleaning_interval                300                                   Delete th
 
 A sample configuration file can be found in `api.conf`_.
 
-.. _api.conf: https://github.com/stackforge/kwapi/blob/master/etc/kwapi/api.conf
+.. _api.conf: https://github.com/openstack/kwapi/blob/master/etc/kwapi/api.conf
 
 Keystone Middleware Authentication
 ----------------------------------
@@ -122,7 +122,7 @@ refresh_interval                 5                                     The webpa
 
 A sample configuration file can be found in `rrd.conf`_.
 
-.. _rrd.conf: https://github.com/stackforge/kwapi/blob/master/etc/kwapi/rrd.conf
+.. _rrd.conf: https://github.com/openstack/kwapi/blob/master/etc/kwapi/rrd.conf
 
 General options
 ===============
@@ -158,4 +158,4 @@ The configuration file contains a section for each wattmeter.
 
 A sample configuration file can be found in `forwarder.conf`_.
 
-.. _forwarder.conf: https://github.com/stackforge/kwapi/blob/master/etc/kwapi/forwarder.conf
+.. _forwarder.conf: https://github.com/openstack/kwapi/blob/master/etc/kwapi/forwarder.conf

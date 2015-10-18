@@ -22,7 +22,7 @@ Installing Kwapi
 
 1. Clone the Kwapi git repository to the management server::
 
-   $ git clone https://github.com/stackforge/kwapi.git
+   $ git clone https://git.openstack.org/openstack/kwapi.git
 
 2. As a user with ``root`` permissions or ``sudo`` privileges, run the
    Kwapi installer and copy the configuration files::
