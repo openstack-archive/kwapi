@@ -1,0 +1,38 @@
+# This is a cross-platform list tracking distribution packages needed by tests;
+# see http://docs.openstack.org/infra/bindep/ for additional information.
+
+build-essential [platform:dpkg]
+curl
+gawk
+language-pack-en [platform:ubuntu]
+libcurl-devel [platform:rpm]
+libcurl4-gnutls-dev [platform:dpkg]
+libffi-dev [platform:dpkg]
+libffi-devel [platform:rpm]
+libjpeg-dev [platform:dpkg]
+libjpeg-turbo-devel [platform:rpm]
+libldap2-dev [platform:dpkg]
+libpcap-dev [platform:dpkg]
+libpcap-devel [platform:rpm]
+librrd-dev [platform:dpkg]
+libsasl2-dev [platform:dpkg]
+libselinux-python [platform:rpm]
+libuuid-devel [platform:rpm]
+locales [platform:debian]
+pkg-config [platform:dpkg]
+pkgconfig [platform:rpm]
+python-dev [platform:dpkg]
+python-devel [platform:rpm]
+python-lxml
+python-zmq
+python3-all-dev [platform:ubuntu-trusty]
+python3-dev [platform:dpkg]
+python3-devel [platform:fedora]
+python3.4 [platform:ubuntu-trusty]
+python34-devel [platform:centos]
+rrdtool-devel [platform:rpm]
+unzip
+uuid-dev [platform:dpkg]
+zlib-devel [platform:rpm]
+zlib1g-dev [platform:dpkg]
+

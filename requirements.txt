@@ -10,4 +10,5 @@ pysnmp
 python-keystoneclient
 pyzmq
 python-rrdtool
+testrepository
 webob
