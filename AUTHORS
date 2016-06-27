@@ -1,16 +1,6 @@
-PROJECT COORDINATOR:
-François Rossigneux	<francois.rossigneux@inria.fr>
-
-MAIN DEVELOPERS:
-François Rossigneux	<francois.rossigneux@inria.fr>
-
-CONTRIBUTORS:
-Jean-Patrick Gelas  <jpgelas@ens-lyon.fr>
-Laurent Lefèvre     <laurent.lefevre@inria.fr>
-
-PLUGINS MAINTAINERS:
-RRD graph builder	: Jean-Patrick Gelas <jpgelas@ens-lyon.fr>
-WTT file logging	: Jean-Patrick Gelas <jpgelas@ens-lyon.fr>
-	
-
-FORMER MAINTAINER:
+Andreas Jaeger <aj@suse.com>
+François Rossigneux <francois.rossigneux@inria.fr>
+Jeremy Stanley <fungi@yuggoth.org>
+Julien Danjou <julien@danjou.info>
+Swann Croiset <swann.croiset@bull.net>
+venkatamahesh <venkatamaheshkotha@gmail.com>
