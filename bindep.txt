@@ -6,11 +6,15 @@ curl
 gawk
 groff
 language-pack-en [platform:ubuntu]
+libcairo2-dev [platform:dpkg]
 libffi-dev [platform:dpkg]
 libffi-devel [platform:rpm]
+libpango1.0-dev [platform:dpkg]
 librrd-dev [platform:dpkg]
 libselinux-python [platform:rpm]
 libuuid-devel [platform:rpm]
+libxml2-dev [platform:dpkg]
+libxml2-devel [platform:rpm]
 locales [platform:debian]
 python-dev [platform:dpkg]
 python-devel [platform:rpm]
