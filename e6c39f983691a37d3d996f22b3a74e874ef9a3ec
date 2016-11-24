@@ -1,0 +1,8 @@
+Code-Review+2: François Rossigneux <francois.rossigneux@gmail.com>
+Workflow+1: François Rossigneux <francois.rossigneux@gmail.com>
+Verified+2: Jenkins
+Submitted-by: Jenkins
+Submitted-at: Thu, 24 Nov 2016 15:52:11 +0000
+Reviewed-on: https://review.openstack.org/402110
+Project: openstack/kwapi
+Branch: refs/heads/master
