@@ -18,22 +18,13 @@
 
 import hashlib
 import hmac
-
-
-def recursive_keypairs(d):
-    """Generator that produces sequence of keypairs for nested dictionaries."""
-    for name, value in sorted(d.iteritems()):
-        if isinstance(value, dict):
-            for subname, subvalue in recursive_keypairs(value):
-                yield ('%s:%s' % (name, subname), subvalue)
-        else:
-            yield name, value
+from oslo.utils import dictutils
 
 
 def compute_signature(message, secret):
     """Returns the signature for a message dictionary."""
     digest_maker = hmac.new(secret, '', hashlib.sha256)
-    for name, value in recursive_keypairs(message):
+    for name, value in dictutils.flatten_dict_to_keypairs(message, ':'):
         if name == 'message_signature':
             continue
         digest_maker.update(name)
