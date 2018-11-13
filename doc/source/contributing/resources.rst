@@ -20,7 +20,7 @@ Project Hosting Details
 =======================
 
 :Bug tracker: https://bugs.launchpad.net/kwapi
-:Mailing list: http://lists.openstack.org/cgi-bin/mailman/listinfo/openstack-dev (prefix subjects with ``[energy]`` for faster responses)
+:Mailing list: https://lists.openstack.org/cgi-bin/mailman/listinfo/openstack-dev (prefix subjects with ``[energy]`` for faster responses)
 :Code Hosting: https://github.com/stackforge/kwapi
 :Code Review: https://review.openstack.org/#/q/status:open+project:stackforge/kwapi,n,z
 

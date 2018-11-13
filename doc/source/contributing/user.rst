@@ -27,8 +27,8 @@ signed OpenStack's contributor's agreement.
 
 .. seealso::
 
-   * http://wiki.openstack.org/HowToContribute
-   * http://wiki.openstack.org/CLA
+   * https://wiki.openstack.org/HowToContribute
+   * https://wiki.openstack.org/CLA
 
 LaunchPad Project
 =================
